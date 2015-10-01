@@ -16,3 +16,9 @@ FOREACH(util ${praxyk_utils})
         COMPONENT Utilities
     )
 ENDFOREACH(util ${praxyk_utils})
+
+INSTALL(
+    PROGRAMS praxyk-python-util.py
+    DESTINATION ${RUNTIME_DIR}
+    COMPONENT Utilities
+)
