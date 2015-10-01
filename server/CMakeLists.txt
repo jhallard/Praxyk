@@ -41,6 +41,7 @@ SET(DOCS_DIR share/doc/praxyk)
 
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(lib)
+ADD_SUBDIRECTORY(python)
 ADD_SUBDIRECTORY(utils)
 
 ####################################################################
