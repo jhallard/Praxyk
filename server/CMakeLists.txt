@@ -15,6 +15,14 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 ########################################################################
 
 ########################################################################
+# Global flags
+########################################################################
+IF(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -fvisibility=hidden")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fvisibility=hidden")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+########################################################################
 # Create uninstall target
 ########################################################################
 CONFIGURE_FILE(
