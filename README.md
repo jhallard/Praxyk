@@ -35,7 +35,7 @@ A managed platform where users can train and configure ML-tool templates. Once c
 This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 2015. 
 
  * John Allard
- * Nicholas Corgen
+ * Nicholas Corgan
  * Nikita Sokolnikov
  * Graham Culver
  * Nick Church
