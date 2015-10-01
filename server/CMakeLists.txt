@@ -1,0 +1,53 @@
+########################################################################
+# CMake configuration
+########################################################################
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+PROJECT(praxyk C CXX)
+
+SET(praxyk_VERSION_MAJOR 0)
+SET(praxyk_VERSION_MINOR 0)
+SET(praxyk_VERSION_PATCH 1)
+
+SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
+
+########################################################################
+# Search for dependencies here
+########################################################################
+
+########################################################################
+# Create uninstall target
+########################################################################
+CONFIGURE_FILE(
+    ${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+@ONLY)
+
+ADD_CUSTOM_TARGET(uninstall
+    ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+)
+
+####################################################################
+# Set install subdirectories
+####################################################################
+IF(NOT DEFINED LIB_SUFFIX AND REDHAT AND CMAKE_SYSTEM_PROCESSOR MATCHES "64$")
+    SET(LIB_SUFFIX 64)
+ENDIF()
+SET(LIB_SUFFIX ${LIB_SUFFIX} CACHE STRING "lib directory suffix")
+SET(RUNTIME_DIR bin)
+SET(LIBRARY_DIR lib${LIB_SUFFIX})
+SET(INCLUDE_DIR include)
+SET(PKG_DATA_DIR share/praxyk)
+SET(DOCS_DIR share/doc/praxyk)
+
+ADD_SUBDIRECTORY(include)
+ADD_SUBDIRECTORY(lib)
+ADD_SUBDIRECTORY(utils)
+
+####################################################################
+# Final Display
+####################################################################
+MESSAGE(STATUS "")
+MESSAGE(STATUS "Building Praxyk - Server Side.")
+MESSAGE(STATUS " - Build type: ${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS " - Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE(STATUS "")

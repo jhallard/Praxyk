@@ -1,0 +1,17 @@
+SET(praxyk_sources
+    src1.cpp
+    src2.cpp
+)
+
+INCLUDE_DIRECTORIES(
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
+ADD_LIBRARY(praxyk SHARED ${praxyk_sources})
+
+INSTALL(
+    TARGETS praxyk
+    LIBRARY DESTINATION ${LIBRARY_DIR} COMPONENT Libraries
+)
