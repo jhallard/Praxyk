@@ -6,20 +6,22 @@ class vmUtil :
 
     def __init__(self, vmargs) :
         self.tok = vmargs['tok']
+        self.logger = vmargs['logutil']
+        self.logclient = vmargs['logclient']
         self.manager = None # will be filled on @login call
 
     def login(self, vendor="DO") :
         self.manager = digitalocean.Manager(token=self.tok)
 
         status = 'f' if not self.manager else 's'
-        return self.logger(self.logclient, 'IAAS VENDOR LOGIN', status, ['Vendor'], vendor)
+        return self.logger.log_event(self.logclient, 'IAAS VENDOR LOGIN', status, ['Vendor'], vendor)
 
     def get_vm_instances(self, vendor="DO") :
         if self.manager :
-            self.logger(self.logclient, 'GET VM INSTANCES', 's', ['Vendor'], vendor)
+            self.logger.log_event(self.logclient, 'GET VM INSTANCES', 's', ['Vendor'], vendor)
             return self.manager.get_all_droplets()
         else :
-            self.logger(self.logclient, 'GET VM INSTANCES', 'f', ['Vendor'], vendor)
+            self.logger.log_event(self.logclient, 'GET VM INSTANCES', 'f', ['Vendor'], vendor)
             return None
 
     def get_vm_instance(self, id) :
@@ -30,7 +32,12 @@ class vmUtil :
     def get_boot_images(self) :
         if self.manager :
             imgs = self.manager.get_images()
-            return [self.format_image(img) for img in imgs]
+            imgs = [self.format_image(img) for img in imgs]
+            self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 's', ['#Images'], str(len(imgs)) )
+            return imgs
+        else :
+            self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'f', ['self.manager'], 'Null')
+            return None
 
     def get_custom_images(self) :
         if self.manager :

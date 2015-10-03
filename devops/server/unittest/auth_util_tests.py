@@ -2,9 +2,9 @@
 
 # @info - Unit testing suite for the auth util class which handles all user authentication
 #         for the shared resource server.
+from unit_test import *
 
-
-def authUtilUnitTest(unitTest) :
+class authUnitTest(UnitTest) :
 
     def __init__(self, testargs) :
         pass
