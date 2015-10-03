@@ -14,10 +14,13 @@ class UnitTest :
     # a test, but still needs to be logged and verified. Ex - a test that tries to update items
     # in a database might need to login to the DB first, they would pass the result of the login
     # attempt to this function, but the result of the updates to the maintest() function
-    def subtest(self,name, f) :
-        return self.logger.log_event(self.logclient, '    SUB-TEST', ("s" if f else "f"),
+    def subtest(self,name, desc, f) :
+        return self.logger.log_event(self.logclient, 'SUB-TEST', ("s" if f else "f"),
                                     ['Test Name', 'Description'],
-                                    (str(name), desc) )
+                                    (str(name)), desc )
+
+    def loginfo(self, name, info) :
+        return self.logger.log_event(self.logclient, 'TEST-INFO', "i", ['Message'], str(info))
 
     def loghead(self) :
         title = self.title + ' UNIT TEST START '

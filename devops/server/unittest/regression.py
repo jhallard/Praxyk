@@ -8,6 +8,7 @@ import _fix_path_
 from server_tests import *
 from auth_util_tests import *
 from vm_util_tests import *
+from db_unit_tests import *
 from log_util import *
 
 import sys, os
@@ -17,7 +18,7 @@ import json
 
 ## logging directories
 BASEDIR = "../logs/"
-LOG_DIR_VM = BASEDIR + "vm-logs"
+LOG_DIR_VM = BASEDIR + "vm-logs/"
 LOG_DIR_DB = BASEDIR + "db-logs/"
 LOG_DIR_SERVER = BASEDIR + 'server-logs'
 LOG_DIR_COMB = BASEDIR + "comb-logs/"
@@ -49,6 +50,8 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
+    parser.add_argument('--schemaf', help="Full path to the .schema file for a database. This is required if " \
+                                          "you are testing the datbase, auth, or server.")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
     parser.add_argument('test', help="Which test do you want to run. The following are accepted : " + \
@@ -90,8 +93,8 @@ def vm_unittest(globalargs, testargs) :
     vmargs = globalargs['vmargs'] 
     vmargs['logclient'] = VM_LOG_CLIENT
     vmargs['logutil'] = testargs['logutil']
-    tst = vmUnitTest(vmargs, testargs)
-    return tst.run()
+    test = vmUnitTest(vmargs, testargs)
+    return test.run()
 
 
 # call authUnitTest().run()
@@ -103,9 +106,18 @@ def server_unittest() :
     pass
 
 # call dbUnitTest().run()
-def db_unittest() :
-    pass
+def db_unittest(globalargs, testargs) :
+    dbargs = globalargs['dbargs']
+    dbargs['dbip'] = dbargs['dbipv4']
+    dbargs['logutil'] = testargs['logutil']
+    dbargs['logclient'] = DB_LOG_CLIENT
 
+    testargs['testtable'] = 'TEST_BUFFER'
+            
+    test = dbUnitTest(dbargs, testargs)
+    return test.run()
+
+##### Main Function #####
 # @info - calls the various unit tests after configuring them to the users specifications.
 if __name__ == "__main__" :
 
@@ -120,9 +132,15 @@ if __name__ == "__main__" :
             'servertest' : SERVER_TEST_LOG_CLIENT,
             'dbtest' : DB_TEST_LOG_CLIENT}
 
+    DBSCHEMA = None # used only for db, auth, and server tests.
+
     args = parse_args(sys.argv)
     (logutil, db) = init_logutil()
     arg_map = parse_config_file(args.config) 
+
+    if args.schemaf :
+        with open(args.schemaf) as fh :
+            DBSCHEMA = json.load(fh)
 
     if not arg_map:
         sys.stderr.write("Failed to parse input configuration file.")
@@ -136,7 +154,8 @@ if __name__ == "__main__" :
 
     test_fn = TESTS[test]
     testargs = {'logutil' : logutil,
-                'logclient' : TESTCLIENTS[test]
+                'logclient' : TESTCLIENTS[test],
+                'schema'    : DBSCHEMA
                 }
 
     result = test_fn(arg_map, testargs)

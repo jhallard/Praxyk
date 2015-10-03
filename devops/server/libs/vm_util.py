@@ -17,6 +17,7 @@ class vmUtil :
         return self.logger.log_event(self.logclient, 'IAAS VENDOR LOGIN', status, ['Vendor'], vendor)
 
     def get_vm_instances(self, vendor="DO") :
+        self.logger.log_event(self.logclient, 'GET VM INSTANCES', 'a')
         if self.manager :
             self.logger.log_event(self.logclient, 'GET VM INSTANCES', 's', ['Vendor'], vendor)
             return self.manager.get_all_droplets()
@@ -25,11 +26,18 @@ class vmUtil :
             return None
 
     def get_vm_instance(self, id) :
+        self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'a', ['Instance Id'], id)
         if self.manager :
-            return self.manager.get_droplet(id)
+            inst = self.manager.get_droplet(id)
+            if inst :
+                self.logger.log_event(self.logclient, 'GET VM INSTANCE', 's', ['Instance Id'], id)
+                return inst
+
+        self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'f', ['Instance Id'], id)
         return None
 
     def get_boot_images(self) :
+        self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'a')
         if self.manager :
             imgs = self.manager.get_images()
             imgs = [self.format_image(img) for img in imgs]
@@ -40,9 +48,14 @@ class vmUtil :
             return None
 
     def get_custom_images(self) :
+        self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'a')
         if self.manager :
             imgs = self.manager.get_images(private=True)
-            return [self.format_image(img) for img in imgs]
+            if imgs :
+                self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 's', ['Num Images'], len(imgs))
+                return [self.format_image(img) for img in imgs]
+            return  self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'f', [], "", "Images came back Null")
+
 
 
     def format_do_instance(self, instance, creator) :
