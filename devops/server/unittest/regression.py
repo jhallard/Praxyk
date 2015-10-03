@@ -6,8 +6,8 @@
 import _fix_path_
 
 from server_tests import *
-from auth_util_tests import *
-from vm_util_tests import *
+from auth_unit_tests import *
+from vm_unit_tests import *
 from db_unit_tests import *
 from log_util import *
 
@@ -67,10 +67,16 @@ def parse_config_file(fn) :
     return None
 
 
+# @info - formats the log filenames in a consistent format, client+datetime+.log in the clients own directory.
 def formatfn(logdir, client, dt) :
     dt = dt.replace(" ", "_")
     return logdir+client+'_'+dt +'.log'
 
+# @info - logUtil is class that serves as a global log multiplexer. It takes a bunch of clients and maps
+#         all of their logging inputs to any series of defined logging outputs. Log outputs can be both
+#         filenames and std streams. Since this is the top level of the program, we init the logUtil here,
+#         and tell everyone where they're going to log. We then pass around the logutil object and the 
+#         logging works out uniformly. See @/lib/log_util.py for more info.
 def init_logutil() :
     logutil = logUtil()
     dt = logutil.date_timestamp_str()
@@ -83,7 +89,7 @@ def init_logutil() :
                AUTH_TEST_LOG_CLIENT     : [sys.stdout, formatfn(LOG_DIR_TEST, AUTH_TEST_LOG_CLIENT, dt)],
                SERVER_TEST_LOG_CLIENT   : [sys.stdout, formatfn(LOG_DIR_TEST, SERVER_TEST_LOG_CLIENT, dt)],
                DB_TEST_LOG_CLIENT       : [sys.stdout, formatfn(LOG_DIR_TEST, DB_TEST_LOG_CLIENT, dt)],
-               logutil.error_client_name: [],#[sys.stderr],
+               logutil.error_client_name: [],#[sys.stderr], # uncmnt to direct all errors to stderr
                logutil.combined_client_name : [formatfn(LOG_DIR_COMB, logutil.combined_client_name, dt)]}
     logutil.set_clients(clients)
     return (logutil, dt) 
@@ -122,6 +128,7 @@ def db_unittest(globalargs, testargs) :
 if __name__ == "__main__" :
 
     # all of the possible tests that can be run from the command line
+    # map the test argument to a test function above
     TESTS = {'vmtest' : vm_unittest,
             'authtest' : auth_unittest,
             'servertest' : server_unittest,
@@ -146,17 +153,19 @@ if __name__ == "__main__" :
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
 
-    test = args.test
+    testname = args.test
 
-    if test not in TESTS.keys() :
-        sys.stderr.write("Invalid input for option test. Must be one of (%s)" % tests)
+    if testname not in TESTS.keys() :
+        errmsg = "Invalid input for option test. Must be one of (%s)." + \
+                 "Try with '-h' option to see help"
+        sys.stderr.write(errmsg % str(TESTS))
         sys.exit(1)
 
-    test_fn = TESTS[test]
-    testargs = {'logutil' : logutil,
-                'logclient' : TESTCLIENTS[test],
-                'schema'    : DBSCHEMA
-                }
+    testargs = {'logutil'   : logutil,
+                'logclient' : TESTCLIENTS[testname],
+                'schema'    : DBSCHEMA}
+
+    test_fn = TESTS[testname]
 
     result = test_fn(arg_map, testargs)
 

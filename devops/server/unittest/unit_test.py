@@ -17,7 +17,7 @@ class UnitTest :
     def subtest(self,name, desc, f) :
         return self.logger.log_event(self.logclient, 'SUB-TEST', ("s" if f else "f"),
                                     ['Test Name', 'Description'],
-                                    (str(name)), desc )
+                                    (str(name), desc) )
 
     def loginfo(self, name, info) :
         return self.logger.log_event(self.logclient, 'TEST-INFO', "i", ['Message'], str(info))

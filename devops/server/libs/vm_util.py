@@ -19,8 +19,12 @@ class vmUtil :
     def get_vm_instances(self, vendor="DO") :
         self.logger.log_event(self.logclient, 'GET VM INSTANCES', 'a')
         if self.manager :
-            self.logger.log_event(self.logclient, 'GET VM INSTANCES', 's', ['Vendor'], vendor)
-            return self.manager.get_all_droplets()
+            try :
+                self.logger.log_event(self.logclient, 'GET VM INSTANCES', 's', ['Vendor'], vendor)
+                return self.manager.get_all_droplets()
+            except Exception, e :
+                self.logger.log_event(self.log_client, "GET VM INSTANCES", 'e', ['Vendor', 'e.what()'], (vendor, str(e)))
+                return None
         else :
             self.logger.log_event(self.logclient, 'GET VM INSTANCES', 'f', ['Vendor'], vendor)
             return None
@@ -28,10 +32,14 @@ class vmUtil :
     def get_vm_instance(self, id) :
         self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'a', ['Instance Id'], id)
         if self.manager :
-            inst = self.manager.get_droplet(id)
-            if inst :
-                self.logger.log_event(self.logclient, 'GET VM INSTANCE', 's', ['Instance Id'], id)
-                return inst
+            try : 
+                inst = self.manager.get_droplet(id)
+                if inst :
+                    self.logger.log_event(self.logclient, 'GET VM INSTANCE', 's', ['Instance Id'], id)
+                    return inst
+            except Exception, e :
+                self.logger.log_event(self.log_client, "GET VM INSTANCE", 'e', ['Instance Id', 'e.what()'], (id, str(e)))
+                return None
 
         self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'f', ['Instance Id'], id)
         return None
@@ -39,10 +47,15 @@ class vmUtil :
     def get_boot_images(self) :
         self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'a')
         if self.manager :
-            imgs = self.manager.get_images()
-            imgs = [self.format_image(img) for img in imgs]
-            self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 's', ['#Images'], str(len(imgs)) )
-            return imgs
+            try : 
+                imgs = self.manager.get_images()
+                imgs = [self.format_image(img) for img in imgs]
+                self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 's', ['#Images'], str(len(imgs)) )
+                return imgs
+            except Exception, e :
+                self.logger.log_event(self.log_client, "GET BOOT INSTANCE", 'e', ['e.what()'], (str(e)))
+                return None
+
         else :
             self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'f', ['self.manager'], 'Null')
             return None
@@ -55,6 +68,12 @@ class vmUtil :
                 self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 's', ['Num Images'], len(imgs))
                 return [self.format_image(img) for img in imgs]
             return  self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'f', [], "", "Images came back Null")
+
+    def create_vm_snapshot(self) :
+        pass
+
+    def create_vm_image(self) :
+        pass
 
 
 
