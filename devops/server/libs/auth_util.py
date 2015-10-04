@@ -1,4 +1,11 @@
 #!/bin/env python
+
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
+
 import hashlib, uuid
 import datetime
 from datetime import timedelta

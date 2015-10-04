@@ -1,4 +1,10 @@
 #!/bin/env python
+
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 from sys import *
 import sys
 import datetime
@@ -99,7 +105,7 @@ class logUtil :
     #         when multiple clients are logging to the same stream, in which case an identifer (client name)
     #         is appended to each log.
     def append_client(self, client, logstr) :
-        clientspace = 0 if len(client) >=10 else 10 - len(client)
+        clientspace = 0 if len(client) >=15 else 15 - len(client)
         return ' [' + client + '] ' + clientspace*' ' + logstr
 
     # @info - get the current time in the form HH:MM:SS.123

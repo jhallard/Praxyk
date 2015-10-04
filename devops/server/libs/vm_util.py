@@ -1,8 +1,18 @@
 #!/bin/env python
+
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 import digitalocean
 import datetime
 import socket
 
+# @info - This class acts as an interface between other scripts and the various IaaS APIs like
+#         Digital Oceans and eventually GCE and AWS. It doesn't work a database at all, it simply
+#         allows us to query, create, destroy, and otherwise manage VMs and snapshots of VMs that
+#         are running with the configured IaaS providers
 class vmUtil :
 
     def __init__(self, vmargs) :
@@ -52,7 +62,7 @@ class vmUtil :
         if self.manager :
             try : 
                 imgs = self.manager.get_images()
-                imgs = [self.format_image(img) for img in imgs]
+                imgs = [self.format_boot_image(img) for img in imgs]
                 self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 's', ['#Images'], str(len(imgs)) )
                 return imgs
             except Exception, e :
@@ -63,14 +73,14 @@ class vmUtil :
             self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'f', ['self.manager'], 'Null')
             return None
 
-    def get_custom_images(self) :
+    def get_snapshots(self) :
         self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'a')
         if self.manager :
 			try :
 				imgs = self.manager.get_images(private=True)
 				if imgs :
 					self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 's', ['Num Images'], len(imgs))
-					return [self.format_image(img) for img in imgs]
+					return [self.format_snapshot(img) for img in imgs]
 				else :
 					self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'f', [], "", "Images came back Null")
 					return None
@@ -106,21 +116,21 @@ class vmUtil :
     									     "droplet.destroy() Failed") 
     	return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'f', ['Instance ID'], (xid), "Droplet Not Found") 
 				
-
+    # @info - get the status of the vm like 'starting', or 'active'
     def get_vm_status(self, id) :
-		inst = self.get_vm_instance(id)
-		if inst :
-			status = inst.status
-			self.logger.log_event(self.logclient, "GET VM STATUS", 's', ['Instance ID', 'Status'], (id, status)) 
-			return status
-			self.logger.log_event(self.logclient, "GET VM STATUS", 'f', ['Instance ID'], (id), "Instance Came Back NULL") 
-		return None
+        inst = self.get_vm_instance(id)
+        if inst :
+            status = inst.status
+            self.logger.log_event(self.logclient, "GET VM STATUS", 's', ['Instance ID', 'Status'], (id, status)) 
+            return status
+        self.logger.log_event(self.logclient, "GET VM STATUS", 'f', ['Instance ID'], (id), "Instance Came Back NULL") 
+        return None
     	
 
-    def create_vm_snapshot(self) :
-        pass
-
-    def create_vm_image(self) :
+    # @info - takes the id of a *SHUT DOWN* instance and takes a snapshot of it. VMs cannot be imaged
+    #         while running on DO. They can be backed up though.
+    def create_vm_snapshot(self, xid) :
+        # @TODO - create snapshot of running instance
         pass
 
 
@@ -128,20 +138,25 @@ class vmUtil :
         return [self.format_do_instance(instance) for instance in instances]
 
     def format_do_instance(self, instance, creator="") :
-        return {
+        dbargs = {
+                "id"   : instance.id,
                 "name" : instance.name,
-                 "id"   : instance.id,
+                "image" : instance.image,
                  "ip"   : instance.ip_address,
                  "ipv6" : instance.ip_v6_address,
                  "class": instance.size_slug,
                  "disk" : instance.disk,
+                 "region" : instance.region,
                  "status": instance.status,
                  "creator": creator,
                  "created_at": self.format_time_str(str(instance.created_at)),
                  "provider" : "DO",
-                 "image_ids" : instance.snapshot_ids,
-                 "backup_ids": instance.backup_ids
              }
+        imgargs = {
+                  "snapshot_ids" : instance.snapshot_ids,
+                  "backup_ids": instance.backup_ids
+                }
+        keyargs = {"sshkeys" : instance.ssh_keys}
 
     def format_ssh_key(self, key) :
         return {
@@ -151,10 +166,23 @@ class vmUtil :
                  "fingerprint": key.fingerprint,
                  }
 
-    def format_image(self, image) :
+    def format_snapshot(self, image, inst_name="") :
+        return {
+                "name" : image.name,
+                "id" : image.id,
+                "instancename" : inst_name, # name of the instance the image was gen'd from
+                "created_at"  : self.format_time_str(str(image.created_at)),
+                "provider" : "DO",
+                "description" : "",
+                "region" : image.regions[0]
+                }
+
+    def format_boot_image(self, image) :
         return {
                 "id" : image.id,
-                "name" : image.name
+                "name" : image.name,
+                "slug" : image.slug,
+                "disto" : image.distribution
                 }
 
     def format_time_str(self, timestr) :

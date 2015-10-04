@@ -1,5 +1,11 @@
 #!/bin/env python
 
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
+
 # @info - Unit testing suite for the vmUtil class which handles all interaction
 #         for our team with the various IaaS providers (DO, GCE, AWS). We'll
 #         test create and destroy some VMs.
@@ -25,10 +31,10 @@ class vmUnitTest(UnitTest) :
         ret = True
         ret = ret and self.test_login()
         ret = ret and self.test_get_boot_images()
-        ret = ret and self.test_get_custom_images()
+        ret = ret and self.test_get_snapshots()
         ret = ret and self.test_get_running_instances()
-        ret = ret and self.test_formatting_instances()
-        ret = ret and self.test_create_destroy_instance()
+        # ret = ret and self.test_formatting_instances()
+        # ret = ret and self.test_create_destroy_instance()
 
         self.logtail(ret)
         return ret
@@ -41,17 +47,20 @@ class vmUnitTest(UnitTest) :
     def test_get_boot_images(self) :
         desc = "Get the Available Boot-Images from IaaS Provider"
         self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login())
+        res = self.vmutil.get_boot_images() 
+        return self.maintest(sys._getframe().f_code.co_name, desc, res != None)
 
-        return self.maintest(sys._getframe().f_code.co_name, desc,
-                             self.vmutil.get_boot_images() != None)
 
-
-    def test_get_custom_images(self) :
+    def test_get_snapshots(self) :
         desc = "Get the Available Boot-Images from IaaS provider"
         self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login())
 
-        return self.maintest(sys._getframe().f_code.co_name, desc,
-                             self.vmutil.get_custom_images() != None)
+        res = self.vmutil.get_snapshots() 
+        if res :
+            self.logger.log(self.logclient, str([str([str(k) + str(v) for k,v in imgs.items()]) for imgs in res]) )
+            # self.logger.log(self.logclient, str([str(k) for k in res]) )
+
+        return self.maintest(sys._getframe().f_code.co_name, desc, res != None)
 
 
     def test_get_running_instances(self) :
