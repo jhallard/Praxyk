@@ -19,6 +19,9 @@ class UnitTest :
                                     ['Test Name', 'Description'],
                                     (str(name), desc) )
 
+    def logteststart(self, name, info="") :
+        return self.logger.log_event(self.logclient, 'UNIT TEST', 'a', ['Test Name', 'Info'], (name, info))
+
     def loginfo(self, name, info) :
         return self.logger.log_event(self.logclient, 'TEST-INFO', "i", ['Message'], str(info))
 

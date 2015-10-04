@@ -104,8 +104,29 @@ def vm_unittest(globalargs, testargs) :
 
 
 # call authUnitTest().run()
-def auth_unittest() :
-    pass
+def auth_unittest(globalargs, testargs) :
+    vmargs = globalargs['vmargs']
+    vmargs['logclient'] = VM_LOG_CLIENT
+    vmargs['logutil'] = testargs['logutil']
+
+    dbargs = globalargs['dbargs']
+    dbargs['dbip'] = dbargs['dbipv4']
+    dbargs['logutil'] = testargs['logutil']
+    dbargs['logclient'] = DB_LOG_CLIENT
+    dbutil = dbUtil(dbargs)
+
+    if not dbutil :
+        sys.stderr.write("Could not init dbUtil, Exiting.")
+        return False
+    dbutil.login()
+
+    authargs = {}
+    authargs['dbutil'] = dbutil
+    authargs['logclient'] = AUTH_LOG_CLIENT
+    authargs['logutil'] = logutil
+
+    test = authUnitTest(vmargs, authargs, testargs)
+    return test.run()
 
 # call serverUnitTest().run()
 def server_unittest() :
@@ -145,10 +166,6 @@ if __name__ == "__main__" :
     (logutil, db) = init_logutil()
     arg_map = parse_config_file(args.config) 
 
-    if args.schemaf :
-        with open(args.schemaf) as fh :
-            DBSCHEMA = json.load(fh)
-
     if not arg_map:
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
@@ -160,6 +177,18 @@ if __name__ == "__main__" :
                  "Try with '-h' option to see help"
         sys.stderr.write(errmsg % str(TESTS))
         sys.exit(1)
+
+    # certain tests require a .schema file to be given with the --schemaf flag so
+    # they can build the test database.
+    if testname in ['dbtest', 'authtest', 'servertest'] and not args.schemaf :
+        errmsg = "Test [%s] requires the use of --schemaf flag and an accompanying" + \
+                 "full path the a test db .schema file. Try with '-h' to see help"
+        sys.stderr.write(errmsg % str(TESTS))
+        sys.exit(1)
+
+    if args.schemaf :
+        with open(args.schemaf) as fh :
+            DBSCHEMA = json.load(fh)
 
     testargs = {'logutil'   : logutil,
                 'logclient' : TESTCLIENTS[testname],

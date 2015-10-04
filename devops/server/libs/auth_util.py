@@ -1,10 +1,11 @@
 #!/bin/env python
 import hashlib, uuid
 import datetime
+from datetime import timedelta
 from os.path import expanduser
 
-from dbutil import *
-from logutil import *
+from db_util import *
+from log_util import *
 
 
 # @info - This class handles authentication of user requests for interaction with the instance-management code.
@@ -23,13 +24,14 @@ class authUtil :
         self.ndbTokens = "Tokens"
 
     def check_user_exists(self, name) :
-        return self.dbutil.query(self.ndbUsers, "*", "name='%s'"%name) :
+        res = self.dbutil.query(self.ndbUsers, "*", "username='%s'"%name)
+        return res is not None and len(res) > 0
 
     # @info - takes a dictionary of arguments containing 'username', 'pwhash' (512 bit), 'email' (optional).
     #         creates a new user if one with that name doesn't exist, if one exists already returns None.
     #         if the user is created successfully it tries to create an access token for the user, it that 
     #         fails it returns none, otherwise it returns the new access token.
-    def create_user(dbutil, userargs) :
+    def create_user(self,userargs) :
         un = userargs['username']
         pwhash = userargs['pwhash']
         email = userargs.get('email', "")
@@ -41,12 +43,12 @@ class authUtil :
             return None 
 
         if self.dbutil.insert(self.ndbUsers, vals) : 
-            self.logger.log_event(self.logclient, "CREATE USER", 's't, ['Username', 'Email'], (un, email))
+            self.logger.log_event(self.logclient, "CREATE USER", 's', ['Username', 'Email'], (un, email))
         else :
             self.logger.log_event(self.logclient, "CREATE USER", 'f', ['Username', 'Email'], (un, email))
             return None
 
-        return  make_new_token(un)
+        return  self.make_new_token(un)
         
 
     def validate_token(self, tok) :
@@ -58,19 +60,35 @@ class authUtil :
         if not self.check_user_exists(user) :
             return self.logger.log_event(self.logclient, "TOKEN FETCH", 'f', ['User'], (user), "User Doesn't Exist")
 
-        tok = self.dbutil.query(self.ndbTokens, 'val', "user='%s'"%user, order_by="created_at ASC", limit=1)
+        tok = self.dbutil.query(self.ndbTokens, '*', "user='%s'"%user, order_by="created_at ASC", limit=1)
 
         if not tok :
-            return self.logger.log_event(self.logclient, "TOKEN FETCH", 'f', ['User'], (user), "No Tokens Found")
+            self.logger.log_event(self.logclient, "TOKEN FETCH", 'f', ['User'], (user), "No Tokens Found")
+            return None
         else :
             expires_at = tok[0][3]
-            if expires_at <  dt_to_str(datetime.datetime.now()) :
+            if self.dt_to_str(expires_at) <  self.dt_to_str(datetime.datetime.now()) :
                 return self.make_new_token(user)
             else :
                 return tok[0][1] # the token value
 
+    def get_user(self, name) :
+        if not self.check_user_exists(name) :
+            return self.logger.log_event(self.logclient, "USER INFO FETCH", 'f', ['User'], (name), "User Doesn't Exist")
+        user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%name, limit=1)
+        print str(user)
+
+        if user :
+            user = user[0] # it's the first and only row returned.
+
+        print str(user)
+
+        return {'username' : user[0], 'pwhash' : user[1], 'email' : user[2]}
+
+
 
     def make_new_token(self, user) :
+        self.logger.log_event(self.logclient, "CREATE ACCESS TOK", 'a', ['Username'], user)
         tokcreate = datetime.datetime.now()
         tokexpire = tokcreate + timedelta(days=7)
         tc_str = self.dt_to_str(tokcreate)
@@ -81,10 +99,10 @@ class authUtil :
         tokvals = [("val", token), ("user", user), ("created_at", tc_str), ("expires_at", te_str)]
 
         if self.dbutil.insert(self.ndbTokens, tokvals) :
-            self.logger.log_event(self.logclient, "CREATE ACCESS TOK", 's', ['Username', 'Email'], (un, email))
+            self.logger.log_event(self.logclient, "CREATE ACCESS TOK", 's', ['Username'], user)
             return token
         else :
-            self.logger.log_event(self.logclient, "CREATE ACCESS TOK", 'f', ['Username', 'Email'], (un, email))
+            self.logger.log_event(self.logclient, "CREATE ACCESS TOK", 'f', ['Username'], user)
             return None
 
     # @info - every once in a while we need to go through and delete old tokens from the database

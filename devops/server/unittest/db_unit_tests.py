@@ -175,6 +175,7 @@ class dbUnitTest(UnitTest) :
         rows='*'
         cond='1=1'
         description= table + " Query for (" + rows + ") on (" + cond + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.query(table, rows, cond))
 
@@ -183,6 +184,7 @@ class dbUnitTest(UnitTest) :
         rows='name, data'
         cond="name like '%ab%'"
         description= table + " Query for (" + rows + ") on (" + cond + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.query(table, rows, cond))
 
@@ -191,6 +193,7 @@ class dbUnitTest(UnitTest) :
         rows='data'
         cond="data like 'aaa%'"
         description= table + " Query for (" + rows + ") on (" + cond + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.query(table, rows, cond))
 
@@ -209,6 +212,7 @@ class dbUnitTest(UnitTest) :
         rows='*'
         cond='1=1'
         description= table + " Query for (" + rows + ") on (" + cond + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return subq and self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.query(subq, rows, cond))
 
@@ -223,6 +227,7 @@ class dbUnitTest(UnitTest) :
         rows='name'
         cond="name like 'a%'"
         description= table + " Query for (" + rows + ") on (" + cond + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         query = self.dbutil.query(subq, rows, cond)
 
         return self.maintest(sys._getframe().f_code.co_name, description, len(query)> 0)
@@ -233,6 +238,7 @@ class dbUnitTest(UnitTest) :
         table=self.table
         vals=[['name'], ['data']]
         description="Create Table " + table + ",  Rows (" + self.dbutil.format_keys(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          not self.dbutil.create_table(table, vals))
 
@@ -240,6 +246,7 @@ class dbUnitTest(UnitTest) :
         table='TEMP'
         vals=[['name varchar(200) PRIMARY KEY'], ['data varchar(400)']]
         description="Create Table " + table + ",  Rows (" + self.dbutil.format_keys(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.create_table(table, vals))
 
@@ -247,6 +254,7 @@ class dbUnitTest(UnitTest) :
         table='TEMP2'
         vals=[['name varchar(200) PRIMARY KEY'], ['readme varchar(400)', 'timestamp datetime']]
         description="Create Table " + table + ",  Rows (" + self.dbutil.format_keys(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.create_table(table, vals))
 
@@ -256,18 +264,21 @@ class dbUnitTest(UnitTest) :
     def test_table_drop_1(self) :
         table='NOT_EXISTS'
         description="Drop Table " + table
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          not self.dbutil.drop_table(table))
 
     def test_table_drop_2(self) :
         table='TEMP'
         description="Drop Table " + table
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.drop_table(table))
 
     def test_table_drop_3(self) :
         table='TEMP2'
         description="Drop Table " + table
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.drop_table(table))
 
@@ -277,18 +288,21 @@ class dbUnitTest(UnitTest) :
     def test_database_create_1(self) :
         database=self.dbnames[1]
         description="Create Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.create_database(database))
 
     def test_database_create_2(self) :
         database=self.dbnames[2]
         description="Create Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.create_database(database))
 
     def test_database_create_3(self) :
         database=self.dbnames[3]
         description="Create Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.create_database(database))
 
@@ -298,24 +312,28 @@ class dbUnitTest(UnitTest) :
     def test_database_drop_1(self) :
         database='NOT_EXISTS_DB'
         description="Drop Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          not self.dbutil.drop_database(database))
 
     def test_database_drop_2(self) :
         database=self.dbnames[2]
         description="Drop Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.drop_database(database))
 
     def test_database_drop_3(self) :
         database=self.dbnames[3]
         description="Drop Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.drop_database(database))
 
     def test_database_drop_4(self) :
         database=self.dbnames[1]
         description="Drop Database " + database
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.drop_database(database))
 
@@ -327,6 +345,7 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.insert(table, vals))
 
@@ -340,6 +359,7 @@ class dbUnitTest(UnitTest) :
         passed=True
         for val in vals :
             description=table + " Insert for (" + self.dbutil.format_keyvals(val) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
              self.dbutil.insert(table, val)) :
              passed=False
@@ -350,9 +370,11 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'lksjdfoijeoiwjeosijdlkfsndclns')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         passed = self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.insert(table, vals))
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return passed and self.maintest(sys._getframe().f_code.co_name, description,
          not self.dbutil.insert(table, vals))
 
@@ -362,9 +384,11 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         passed = self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.insert(table, vals))
         description= table + " Query for (*) on (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return passed and self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.query(table, self.dbutil.format_keys(vals)))
 
@@ -383,6 +407,7 @@ class dbUnitTest(UnitTest) :
         passed=True
         for val in vals[:MAX] :
             description=table + " Insert for (" + self.dbutil.format_keyvals(val) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
              self.dbutil.insert(table, val)) :
              passed=False
@@ -396,10 +421,12 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         passed = self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.insert(table, vals))
         vals2=[('name','ABAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Update for (" + self.dbutil.format_keyvals(vals2) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return passed and self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.update(table, vals2, self.dbutil.format_keyandvals(vals[0])))
 
@@ -413,12 +440,14 @@ class dbUnitTest(UnitTest) :
         passed=True
         for val in vals :
             description=table + " Insert for (" + self.dbutil.format_keyvals(val) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
              self.dbutil.insert(table, val)) :
              passed=False
         for val in vals :
             vals_new = [val[0], ('data',"XXXXXX")]
             description=table + " Update for (" + self.dbutil.format_keyvals(vals_new) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
              self.dbutil.update(table, vals_new, self.dbutil.format_keyandvals(val))) :
              passed=False
@@ -429,10 +458,12 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         passed = self.maintest(sys._getframe().f_code.co_name, description,
                                  self.dbutil.insert(table, vals))
         vals2=[('name','AAA'), ('data', 'ksl;jsllskdlkjflksj03290293023232232332sjdf')]
         description=table + " Insert or Update for (" + self.dbutil.format_keyvals(vals2) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return passed and self.maintest(sys._getframe().f_code.co_name, description,
                             self.dbutil.insert_or_update(table, vals2, self.dbutil.format_keyandvals(vals[0])))
 
@@ -447,12 +478,14 @@ class dbUnitTest(UnitTest) :
         MAX=10
         for val in vals[:MAX] :
             description=table + " Insert for (" + self.dbutil.format_keyvals(val) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
              self.dbutil.insert(table, val)) :
              passed=False
         for val in vals[:MAX] :
             vals_new = [val[0], ('data',"XXXXXX")]
             description=table + " Update for (" + self.dbutil.format_keyvals(vals_new) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
              self.dbutil.update(table, vals_new, self.dbutil.format_keyandvals(val))) :
              passed=False
@@ -471,9 +504,11 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         passed = self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.insert(table, vals))
         description=table + " Delete on (" + self.dbutil.format_keyandvals(vals[0]) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return passed and self.maintest(sys._getframe().f_code.co_name, description,
          0 < self.dbutil.delete(table, self.dbutil.format_keyandvals(vals[0])))
 
@@ -482,10 +517,12 @@ class dbUnitTest(UnitTest) :
         self.clear_table(table)
         vals=[('name','AAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Insert for (" + self.dbutil.format_keyvals(vals) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         passed = self.maintest(sys._getframe().f_code.co_name, description,
          self.dbutil.insert(table, vals))
         vals=[('name','ABAA'), ('data', 'ksl;jdfnaskdjnfksjndfiurealksjdf')]
         description=table + " Delete on (" + self.dbutil.format_keyandvals(vals[0]) + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         return passed and self.maintest(sys._getframe().f_code.co_name, description,
           not self.dbutil.delete(table, self.dbutil.format_keyandvals(vals[0])))
 
@@ -501,10 +538,12 @@ class dbUnitTest(UnitTest) :
         passed=True
         for val in vals :
             description=table + " Insert for (" + self.dbutil.format_keyvals(val) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description, self.dbutil.insert(table, val)) :
                 passed=False
         for val in vals :
             description=table + " Delete on (" + self.dbutil.format_keyvals(val[0]) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
                                    self.dbutil.delete(table, self.dbutil.format_keyandvals(val[0]))) :
                 passed=False
@@ -524,10 +563,12 @@ class dbUnitTest(UnitTest) :
         passed=True
         for val in vals :
             description=table + " Insert for (" + self.dbutil.format_keyvals(val) + ")"
+            self.logteststart(sys._getframe().f_code.co_name, description)
             if not self.maintest(sys._getframe().f_code.co_name, description,
                                    self.dbutil.insert(table, val)) :
              passed=False
         description=table + " Delete on (" + cond + ")"
+        self.logteststart(sys._getframe().f_code.co_name, description)
         if not self.maintest(sys._getframe().f_code.co_name, description,
                                3 == self.dbutil.delete(table, cond)) :
             passed=False

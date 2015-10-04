@@ -360,7 +360,7 @@ class dbUtil :
         self.db_logf('BUILD DATABASE', 'w', ['database', 'schema'], (dbname, schema))
 
         if not self.create_database(dbname) :
-            log_db_database_build(dbname, schema, False)
+            self.log_db_database_build(dbname, schema, False)
             return False
 
         if not self.use_database(dbname) :

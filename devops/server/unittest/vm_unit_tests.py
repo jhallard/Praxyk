@@ -23,11 +23,11 @@ class vmUnitTest(UnitTest) :
 
     def run(self) :
         ret = True
-        # ret = ret and self.test_login()
-        # ret = ret and self.test_get_boot_images()
-        # ret = ret and self.test_get_custom_images()
-        # ret = ret and self.test_get_running_instances()
-        # ret = ret and self.test_formatting_instances()
+        ret = ret and self.test_login()
+        ret = ret and self.test_get_boot_images()
+        ret = ret and self.test_get_custom_images()
+        ret = ret and self.test_get_running_instances()
+        ret = ret and self.test_formatting_instances()
         ret = ret and self.test_create_destroy_instance()
 
         self.logtail(ret)
@@ -96,7 +96,7 @@ class vmUnitTest(UnitTest) :
         droplet = self.vmutil.create_vm_instance(vmargs)
         self.subtest(sys._getframe().f_code.co_name, "Droplet Creation Started", droplet != None)
 
-        time_left = 120 # 2 minutes
+        time_left = 180 # 2 minutes
         sleep_amount = 10
         while self.vmutil.get_vm_status(droplet.id) != 'active' and time_left > 0:
             time.sleep(sleep_amount)
@@ -105,7 +105,7 @@ class vmUnitTest(UnitTest) :
 
         if time_left <= 0 :
             self.maintest(sys._getframe().f_code.co_name, "Timed out Waiting for Active State", False)
-            return false
+            return False
 
         self.maintest(sys._getframe().f_code.co_name, "New Instance Created and Active", True)
 
