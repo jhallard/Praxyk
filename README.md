@@ -8,8 +8,8 @@ Machine Learning as a Service
 ##### Motivations :
  * The space of problems that can be solved with machine-learning has drastically increased recently.
  * Large scale data-collection is ubiquitous, even among non-tech businesses.
- * The prevalence of ‘big-data’ makes customizable machine-learning tools in high demand.
- * Setting up the infrastructure and configuring it to process one’s data can be costly and time consuming.
+ * The prevalence of 'big-data' makes customizable machine-learning tools in high demand.
+ * Setting up the infrastructure and configuring it to process one's data can be costly and time consuming.
  * It often does not make financial sense for smaller businesses to set up their own ML frameworks
 
 ##### (non-new) Idea

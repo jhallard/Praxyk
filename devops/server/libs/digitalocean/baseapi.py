@@ -2,6 +2,7 @@
 import json
 import logging
 import requests
+from requests.adapters import TimeoutSauce
 try:
     from urlparse import urljoin
 except:
@@ -12,6 +13,14 @@ GET = 'GET'
 POST = 'POST'
 DELETE = 'DELETE'
 PUT = 'PUT'
+
+
+class MyTimeout(TimeoutSauce):
+    def __init__(self, *args, **kwargs):
+        connect = kwargs.get('connect', 5)
+        read = kwargs.get('read', connect)
+        super(MyTimeout, self).__init__(connect=connect, read=read)
+
 
 
 class Error(Exception):
@@ -42,6 +51,7 @@ class BaseAPI(object):
         self.token = ""
         self.end_point = "https://api.digitalocean.com/v2/"
         self._log = logging.getLogger(__name__)
+	requests.adapters.TimeoutSauce = MyTimeout
 
         for attr in kwargs.keys():
             setattr(self, attr, kwargs[attr])
@@ -55,6 +65,8 @@ class BaseAPI(object):
         """
         if params is None:
             params = {}
+
+        params['timeout'] = 0.5
 
         if not self.token:
             raise TokenError("No token provided. Please use a valid token")

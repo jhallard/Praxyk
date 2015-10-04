@@ -6,5 +6,10 @@ from unit_test import *
 
 class authUnitTest(UnitTest) :
 
-    def __init__(self, testargs) :
+    def __init__(self, dbargs, authargs, testargs) :
         pass
+
+
+    def build_test_database(self) :
+        pass
+    
