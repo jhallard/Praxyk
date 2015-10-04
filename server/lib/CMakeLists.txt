@@ -1,5 +1,3 @@
-ADD_SUBDIRECTORY(neural2d)
-
 SET(praxyk_sources
     src1.cpp
     src2.cpp
@@ -12,7 +10,6 @@ INCLUDE_DIRECTORIES(
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
 ADD_LIBRARY(praxyk SHARED ${praxyk_sources})
-TARGET_LINK_LIBRARIES(praxyk neural2d)
 
 INSTALL(
     TARGETS praxyk
