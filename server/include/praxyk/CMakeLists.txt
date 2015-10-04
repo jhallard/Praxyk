@@ -1,6 +1,6 @@
 SET(praxyk_headers
     config.hpp
-    src1.hpp
+    praxyk.hpp
     src2.hpp
 )
 

@@ -13,6 +13,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 ########################################################################
 # Search for dependencies here
 ########################################################################
+FIND_PACKAGE(Tesseract)
 
 ########################################################################
 # Global flags
@@ -50,7 +51,7 @@ SET(DOCS_DIR share/doc/praxyk)
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(lib)
 ADD_SUBDIRECTORY(python)
-ADD_SUBDIRECTORY(utils)
+#ADD_SUBDIRECTORY(utils)
 
 ####################################################################
 # Final Display
