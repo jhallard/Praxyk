@@ -189,6 +189,7 @@ class dbUtil :
         self.log_db_raw(inp)
         try :
             num_del = cur.execute(inp)
+            cur.close()
             if num_del > 0 :
                 self.db.commit()
                 self.log_db_delete(table,  cond_str, num_del)
@@ -207,6 +208,7 @@ class dbUtil :
         if not self.index_exists(table, index_name) :
             self.log_db_raw(inp)
             cur.execute(inp)
+            cur.close()
             if self.index_exists(table, index_name) :
                 self.db.commit()
                 self.log_index_create(table, index_name, index_vals)
@@ -223,6 +225,7 @@ class dbUtil :
         self.log_db_raw(inp)
         if self.index_exists(table, index_name) :
             cur.execute(inp)
+            cur.close()
             if not self.index_exists(table, index_name) :
                 self.db.commit()
                 self.log_index_drop(table, index_name)
@@ -240,6 +243,7 @@ class dbUtil :
         self.log_db_raw(inp)
         cur.execute(inp)
         fetch = cur.fetchall()
+        cur.close()
         return len(fetch) > 0 
 
 
@@ -251,6 +255,7 @@ class dbUtil :
             try :
                 self.log_db_raw(inp)
                 cur.execute(inp)
+                cur.close()
                 if self.table_exists(table) : # if the table now exists
                     self.db.commit()
                     self.log_db_table_create(table, vals_str)
@@ -273,6 +278,7 @@ class dbUtil :
             inp = """DROP TABLE %s; """ % (table)
             self.log_db_raw(inp)
             cur.execute(inp)
+            cur.close()
             self.db.commit()
             if not self.table_exists(table) :
                 self.log_db_table_drop(table)
@@ -281,6 +287,7 @@ class dbUtil :
                 self.log_db_table_drop(table, False)
                 return False
         else :
+            cur.close()
             self.log_db_table_drop(table, False)
             return False
 
@@ -290,6 +297,7 @@ class dbUtil :
         self.log_db_raw(subq)
         cur.execute(subq)
         res = cur.fetchall()
+        cur.close()
         return len(res) > 0
 
     def create_database(self, name) :
@@ -298,6 +306,7 @@ class dbUtil :
             inp = """CREATE DATABASE %s; """ % (name)
             self.log_db_raw(inp)
             cur.execute(inp)
+            cur.close()
             if self.database_exists(name) :
                 self.db.commit()
                 self.log_db_database_create(name)
@@ -307,6 +316,7 @@ class dbUtil :
                 return False
         else :
             self.log_db_database_create(name, False)
+            cur.close()
             return False
 
     def drop_database(self, name) :
@@ -315,6 +325,7 @@ class dbUtil :
             inp = """DROP DATABASE %s; """ % (name)
             self.log_db_raw(inp)
             cur.execute(inp)
+            cur.close()
             self.db.commit()
             if not self.database_exists(name) :
                 self.log_db_database_drop(name)
@@ -323,6 +334,7 @@ class dbUtil :
                 self.log_db_database_drop(name, False)
                 return False
         else :
+            cur.close()
             self.log_db_database_drop(name, False)
             return False
 
@@ -333,8 +345,10 @@ class dbUtil :
         try :
             cur.execute(subq)
             res = cur.fetchall()
+            cur.close()
             return len(res) > 0
         except Exception, e :
+            cur.close()
             self.log_except(str(sys._getframe().f_code.co_name), str(schema), str(e))
             return False
 

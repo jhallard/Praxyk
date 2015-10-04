@@ -41,6 +41,9 @@ class devopsUtil :
         self.rootpwdhash = self.hashpw(self.rootuser, devopsargs['rootpwd'])
         self.rootemail = devopsargs['rootemail']
 
+        self.regions = ['sfo1', 'nyc1', 'nyc2']
+        self.providers = ['DO', 'AWS', 'GCE']
+
         # Table names for the devops database
         self.ndbUsers = "Users"
         self.ndbTokens = "Tokens"
@@ -50,6 +53,7 @@ class devopsUtil :
         self.ndbImages = "Images"
         self.ndbProviders = "Providers"
         self.ndbSSHKeys = "SSHKeys"
+        self.ndbRegions = "Regions"
 
     # @info - uses the dbUtil class to build the database that contains all of the devops info,
     #         like users, token, admin rights, instances, etc.
@@ -64,12 +68,8 @@ class devopsUtil :
     #         the root user can make other users.
     def fill_database(self) :
         self.logger.log_event(self.logclient, "FILLING DATABASE", 'a', ['DB Name'], self.dbname)
-
-        instances = self.vmutil.get_vm_instances()
-
-        if not instances :
-            instances = [] # it's okay if no instances are running, we just have nothing to insert
-
+        
+        # start by making the root user given to us in the config file
         userargs = {'username' : self.rootuser,
                     'pwhash' : self.rootpwdhash,
                     'email' : self.rootemail}
@@ -78,32 +78,50 @@ class devopsUtil :
 
         if not create_user_res :
             return self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
-                                         ['DB Name', 'User Name'],
-                                         (self.dbname, self.rootuser),
+                                         ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                          "Could not add Root User to DB")
         else :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 's',
-                                  ['DB Name', 'User Name'],
-                                  (self.dbname, self.rootuser),
+                                  ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                   "Root User Added to DB")
+
+        if not self.add_regions() :
+            self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
+                                  ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                  "Couldn't Add Instance Regions to DB")
+
+        if not self.add_providers() :
+            self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
+                                  ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                  "Couldn't Add IaaS Providers to DB")
+
+        if not self.add_boot_images() :
+            self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
+                                  ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                  "Couldn't Add Boot Images to DB")
+
+
+        # then add in any existing digital ocean instances.
+        instances = self.vmutil.get_vm_instances()
+
+        if not instances :
+            instances = [] # it's okay if no instances are running, we just have nothing to insert
 
         create_inst_res = True
         for inst in instances :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 'i',
                                   ['DB Name', 'User Name', 'Instance Name', 'Instance ID'],
-                                  (self.dbname, self.rootuser, inst.name, inst.id),
-                                  "Root User Added to DB")
+                                  (self.dbname, self.rootuser, inst.name, inst.id), "Root User Added to DB")
+
             create_inst_res = create_inst_res and self.add_instance_db(inst, self.rootuser)
 
         if not create_inst_res :
             return self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
-                                         ['DB Name', 'User Name'],
-                                         (self.dbname, self.rootuser),
+                                         ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                          "Could not add All Instances to DB")
         else :
             return self.logger.log_event(self.logclient, "FILLING DATABASE", 's',
-                                         ['DB Name', 'User Name'],
-                                         (self.dbname, self.rootuser),
+                                         ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                          "All Instances Added to DB")
 
 
@@ -117,27 +135,60 @@ class devopsUtil :
                               ['DB Name', 'Instance Name', 'Instance ID', 'Creator'],
                               (self.dbname, instance.name, instance.id, creator))
 
-        instance = self.vmutil.format_do_instance(instance)
+        (instance, imgs, keys) = self.vmutil.format_do_instance(instance, self.rootuser)
 
         if not instance :
             return self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', 
-                                  ['DB Name', 'Creator'],
-                                  (self.dbname, creator),
+                                  ['DB Name', 'Creator'], (self.dbname, creator),
                                   "Instance Could not be Formatted Correctly.")
 
-        if not self.dbutil.insert(self.ndbInstances, self.format_db(instance)) :
+        if not self.dbutil.insert(self.ndbInstances, instance) :
             return self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', 
                                   ['DB Name', 'Instance Name', 'Instance ID', 'Creator'],
-                                  (self.dbname, instance['name'], instance['id'], creator),
+                                  (self.dbname, instance[1], instance[0], creator),
                                   "DB Insert Failed, check DB Logs.")
         else :
             return self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 's', 
                                   ['DB Name', 'Instance Name', 'Instance ID', 'Creator'],
-                                  (self.dbname, instance['name'], instance['id'], creator),
+                                  (self.dbname, instance[1], instance[0], creator),
                                   "Instance Added to DB.")
 
 
+    # @info - adds the available instance regions to the db
+    def add_regions(self) :
+        self.logger.log_event(self.logclient, "ADDING REGIONS", 'a', [], "")
+        ret = True
+        for region in self.regions :
+            ret = ret and self.dbutil.insert(self.ndbRegions, [("slug", str(region))])
+        self.logger.log_event(self.logclient, "ADDING REGIONS", ('s' if ret else 'f'), [], "")
+        return ret
 
+    # @info - adds the IaaS providers we use to the db
+    def add_providers(self) :
+        self.logger.log_event(self.logclient, "ADDING PROVERSS", 'a', [], "")
+        ret = True
+        for provider in self.providers :
+            ret = ret and self.dbutil.insert(self.ndbProviders, [("slug", str(provider))])
+        self.logger.log_event(self.logclient, "ADDING PROVIDERS", ('s' if ret else 'f'), [], "")
+        return ret
+
+    # @info - adds the default boot images to the db (ex ubuntu-14.04-x64, etc.)
+    def add_boot_images(self) :
+        self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 'a')
+
+        imgs = self.vmutil.get_boot_images() 
+
+        if not imgs :
+            return self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 'f', [], "", "Boot Images List Came Back Empty.")
+        ret = True
+        for img in imgs :
+            ret = ret and self.dbutil.insert(self.ndbImages, img)
+
+        return self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 's' if ret else 'f', ['Num Images'], len(imgs))
+
+
+    # @info - takes a dictionary {'name' : 'value'} and formats it into the list of tuples [('name', 'value') ...]
+    #         that is needed to insert into the db with the dbUtil class
     def format_db(self, vals) :
         if not vals :
             return []
@@ -147,8 +198,8 @@ class devopsUtil :
         return ret
 
 
+    # @info - util to hash and salt the users password for storage in the db
     def hashpw(self, user, pw) :
-        # should be salted I know
         salt = pw[0] + user[0] +  'sss' + user + pw[1]*3 + 'ttt' + user[1] +  pw[2] + pw[1]
         return hashlib.sha512(salt + pw).hexdigest()
 

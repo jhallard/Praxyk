@@ -22,12 +22,14 @@ class vmUtil :
         self.manager = None # will be filled on @login call
         socket.setdefaulttimeout(0.5)
 
+    # @info - logs us in with the API wrapper libraries we are using to access the IaaS APIs
     def login(self, vendor="DO") :
         self.manager = digitalocean.Manager(token=self.tok)
 
         status = 'f' if not self.manager else 's'
         return self.logger.log_event(self.logclient, 'IAAS VENDOR LOGIN', status, ['Vendor'], vendor)
 
+    # @info - gets all of the currently running VM instances from a specific IaaS vendor (default is dig. ocean)
     def get_vm_instances(self, vendor="DO") :
         self.logger.log_event(self.logclient, 'GET VM INSTANCES', 'a')
         if self.manager :
@@ -42,6 +44,7 @@ class vmUtil :
             self.logger.log_event(self.logclient, 'GET VM INSTANCES', 'f', ['Vendor'], vendor)
             return None
 
+    # @info - gets the dictionary that represents a VM instance based on that instances unique ID.
     def get_vm_instance(self, id) :
         self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'a', ['Instance Id'], id)
         if self.manager :
@@ -57,6 +60,8 @@ class vmUtil :
         self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'f', ['Instance Id'], id)
         return None
 
+    # @info - gets the default boot images from the IaaS providers. This includes the special apps like gitlab tht
+    #         can be spawned on preexisting images
     def get_boot_images(self) :
         self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'a')
         if self.manager :
@@ -73,6 +78,8 @@ class vmUtil :
             self.logger.log_event(self.logclient, 'GET BOOT IMAGES', 'f', ['self.manager'], 'Null')
             return None
 
+    # @info - gets all of the custom images of VMs that we have made
+    #         This is different from above which gets the default available boot images.
     def get_snapshots(self) :
         self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'a')
         if self.manager :
@@ -134,57 +141,66 @@ class vmUtil :
         pass
 
 
+    # @info - takes a list of vm instances and runs them through the instance formatter
     def format_do_instances(self, instances) :
         return [self.format_do_instance(instance) for instance in instances]
 
-    def format_do_instance(self, instance, creator="") :
-        dbargs = {
-                "id"   : instance.id,
-                "name" : instance.name,
-                "image" : instance.image,
-                 "ip"   : instance.ip_address,
-                 "ipv6" : instance.ip_v6_address,
-                 "class": instance.size_slug,
-                 "disk" : instance.disk,
-                 "region" : instance.region,
-                 "status": instance.status,
-                 "creator": creator,
-                 "created_at": self.format_time_str(str(instance.created_at)),
-                 "provider" : "DO",
-             }
-        imgargs = {
-                  "snapshot_ids" : instance.snapshot_ids,
-                  "backup_ids": instance.backup_ids
-                }
-        keyargs = {"sshkeys" : instance.ssh_keys}
+    # @info - formats a single instant (and it's creator) into a list of tupled needed 
+    #         for insertion into the Instances table in our database. Since the given
+    #         instance dictionary contains info about ssh keys and snapshots, we store
+    #         those and return them too in a 3-tuple.
+    def format_do_instance(self, instance, creator ) :
+        dbargs = [ 
+                 ("id", instance.id),
+                 ("name", instance.name),
+                 ("image", instance.image['id']),
+                 ("ip", instance.ip_address),
+                 ("ipv6", instance.ip_v6_address),
+                 ("class", instance.size_slug),
+                 ("disk", instance.disk),
+                 ("region", instance.region['slug']),
+                 ("status", instance.status),
+                 ("creator", creator),
+                 ("created_at", self.format_time_str(str(instance.created_at))),
+                 ("provider", "DO"),
+             ]
+        imgargs = [("snapshot_ids", instance.snapshot_ids),
+                  ("backup_ids", instance.backup_ids)] 
 
+        keyargs = [("sshkeys", instance.ssh_keys)]
+
+        return (dbargs, imgargs, keyargs)
+
+    # @info - formats an ssh key so it can be inserted into the database
     def format_ssh_key(self, key) :
-        return {
-                "id": key.id,
-                 "name": key.name,
-                 "pubkey": key.pubkey,
-                 "fingerprint": key.fingerprint,
-                 }
+        return [ 
+                 ("id", key.id),
+                 ("name", key.name),
+                 ("pubkey", key.pubkey),
+                 ("fingerprint", key.fingerprint),
+                ]
 
+    # @info - formats a snapshot dictionary so it can be stored in the database
     def format_snapshot(self, image, inst_name="") :
-        return {
-                "name" : image.name,
-                "id" : image.id,
-                "instancename" : inst_name, # name of the instance the image was gen'd from
-                "created_at"  : self.format_time_str(str(image.created_at)),
-                "provider" : "DO",
-                "description" : "",
-                "region" : image.regions[0]
-                }
+        return [ 
+                ("name", image.name),
+                ("id", image.id),
+                ("instancename", inst_name),
+                ("created_at", self.format_time_str(str(image.created_at))),
+                ("provider", "DO"),
+                ("description", ""),
+                ("region", image.regions[0]),
+                ]
 
     def format_boot_image(self, image) :
-        return {
-                "id" : image.id,
-                "name" : image.name,
-                "slug" : image.slug,
-                "disto" : image.distribution
-                }
+        return [
+                ("id", image.id),
+                ("name", image.name),
+                ("slug", image.slug),
+                ("disto", image.distribution)
+                ]
 
+    # @info formts a ISO YY:MM:DDTHH:MM:SSZ time string properly for the SQL Datetime type
     def format_time_str(self, timestr) :
         dt = datetime
         ret = dt.datetime.strptime(timestr, "%Y-%m-%dT%H:%M:%SZ")

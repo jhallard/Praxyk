@@ -57,7 +57,7 @@ class vmUnitTest(UnitTest) :
 
         res = self.vmutil.get_snapshots() 
         if res :
-            self.logger.log(self.logclient, str([str([str(k) + str(v) for k,v in imgs.items()]) for imgs in res]) )
+            self.logger.log(self.logclient, str([str([str(k) + str(v) for (k,v) in imgs]) for imgs in res]) )
             # self.logger.log(self.logclient, str([str(k) for k in res]) )
 
         return self.maintest(sys._getframe().f_code.co_name, desc, res != None)

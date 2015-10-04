@@ -91,6 +91,7 @@ def init_logutil() :
     logutil = logUtil()
     dt = logutil.date_timestamp_str()
     clients = {
+             # client-name  --maps to---> [    list of filename or streams        ]
                VM_LOG_CLIENT            : [formatfn(LOG_DIR_VM, VM_LOG_CLIENT, dt)],
                DB_LOG_CLIENT            : [formatfn(LOG_DIR_DB, DB_LOG_CLIENT, dt)],
                AUTH_LOG_CLIENT          : [formatfn(LOG_DIR_AUTH, AUTH_LOG_CLIENT, dt)],
@@ -194,6 +195,7 @@ if __name__ == "__main__" :
             'servertest' : server_unittest,
             'devopstest' : devops_unittest,
             'dbtest' : db_unittest}
+    # map a test name to its client name
     TESTCLIENTS = {
             'vmtest' : VM_TEST_LOG_CLIENT,
             'authtest' : AUTH_TEST_LOG_CLIENT,
@@ -201,11 +203,12 @@ if __name__ == "__main__" :
             'devopstest' : DEVOPS_TEST_LOG_CLIENT,
             'dbtest' : DB_TEST_LOG_CLIENT}
 
-    DBSCHEMA = None # used only for db, auth, and server tests.
+    DBSCHEMA = None # used only for db, auth, devops, and server tests.
+                    # set below if used.
 
     args = parse_args(sys.argv)
-    (logutil, db) = init_logutil()
     arg_map = parse_config_file(args.config) 
+    (logutil, db) = init_logutil()
 
     if not arg_map:
         sys.stderr.write("Failed to parse input configuration file.")
@@ -216,15 +219,15 @@ if __name__ == "__main__" :
     if testname not in TESTS.keys() :
         errmsg = "Invalid input for option test. Must be one of (%s)." + \
                  "Try with '-h' option to see help"
-        sys.stderr.write(errmsg % str(TESTS))
+        sys.stderr.write(errmsg % str(TESTS.keys()))
         sys.exit(1)
 
     # certain tests require a .schema file to be given with the --schemaf flag so
-    # they can build the test database.
-    if testname in ['dbtest', 'authtest', 'servertest'] and not args.schemaf :
+    # they can build a test database.
+    if testname in ['dbtest', 'authtest', 'devopstest', 'servertest'] and not args.schemaf :
         errmsg = "Test [%s] requires the use of --schemaf flag and an accompanying" + \
                  "full path the a test db .schema file. Try with '-h' to see help"
-        sys.stderr.write(errmsg % str(TESTS))
+        sys.stderr.write(errmsg % str(testname))
         sys.exit(1)
 
     if args.schemaf :
