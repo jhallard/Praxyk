@@ -1,4 +1,4 @@
-#!/bin/python2
+#!/usr/bin/python
 
 ## @auth John Allard
 ## @date Oct 2015

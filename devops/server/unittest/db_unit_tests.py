@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import _fix_path_
 from db_util import *
 from unit_test import *

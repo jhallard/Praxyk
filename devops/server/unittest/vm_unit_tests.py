@@ -39,7 +39,9 @@ class vmUnitTest(UnitTest) :
         ret = ret and self.test_get_running_instances()
         ret = ret and self.test_formatting_instances()
         ret = ret and self.test_create_instance()
+        ret = ret and self.test_poweroff_instance()
         ret = ret and self.test_create_snapshot()
+        ret = ret and self.test_poweron_instance()
         ret = ret and self.test_delete_snapshot()
         ret = ret and self.test_destroy_instance()
 
@@ -67,7 +69,8 @@ class vmUnitTest(UnitTest) :
             self.logger.log(self.logclient, str([str([str(k) + str(v) for (k,v) in imgs]) for imgs in res]) )
             # self.logger.log(self.logclient, str([str(k) for k in res]) )
 
-        return self.maintest(sys._getframe().f_code.co_name, desc, res != None)
+        return self.maintest(sys._getframe().f_code.co_name, desc, True) # if res is none it just means we
+                                                                         # have no images currently
 
 
     def test_get_running_instances(self) :
@@ -92,7 +95,7 @@ class vmUnitTest(UnitTest) :
             return False
 
         formatted = self.vmutil.format_do_instances(instances, "TEST-USER")
-        self.logger.log_event(self.logclient,"FORMATTING INSTACES", 'i', ['Instances Grabbed'], str(formatted))
+        # self.logger.log_event(self.logclient,"FORMATTING INSTACES", 'i', ['Instances Grabbed'], str(formatted))
         return self.maintest(sys._getframe().f_code.co_name, desc, formatted != None)
 
     def test_create_instance(self) :
@@ -111,21 +114,45 @@ class vmUnitTest(UnitTest) :
 
         droplet = self.vmutil.create_vm_instance(vmargs)
         self.subtest(sys._getframe().f_code.co_name, "Droplet Creation Started", droplet != None)
+        self.instance_id1 = str(droplet.id)
 
-        time_left = 180 # 2 minutes
-        sleep_amount = 10
-        while self.vmutil.get_vm_status(droplet.id) != 'active' and time_left > 0:
-            time.sleep(sleep_amount)
-            self.logger.log_event(self.logclient, "TEST INFO", 'i', ['Time Left'], str(time_left), "Waiting for VM to go Active..")
-            time_left -= sleep_amount
-
-        if time_left <= 0 :
-            self.maintest(sys._getframe().f_code.co_name, "Timed out Waiting for Active State", False)
-            return False
-
-        self.instance_id1 = droplet.id
+        # wait for the vm to go active
+        went_active = self.vmutil.wait_for_state(droplet.id, ['active', 'new'], 180)
 
         return self.maintest(sys._getframe().f_code.co_name, "New Instance Created and Active", True)
+
+    def test_poweroff_instance(self) :
+        """ This Test will PowerOff a running instance"""
+        desc = "Poweroff a single VM Instance"
+
+        if not self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login()) :
+            return False
+
+        is_up = self.vmutil.wait_for_state(self.instance_id1, 'active', 240)
+
+        res = self.vmutil.poweroff_vm_instance(self.instance_id1)
+
+        went_off = self.vmutil.wait_for_state(self.instance_id1, 'off', 440)
+
+        return self.maintest(sys._getframe().f_code.co_name, "New Instance Powered Off", went_off == True)
+
+    def test_poweron_instance(self) :
+        """ This Test will Power On a running instance"""
+        desc = "Power On a single VM Instance"
+
+        if not self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login()) :
+            return False
+
+        # is_down = self.vmutil.wait_for_state(self.instance_id1, 'off', 180)
+
+        res = self.vmutil.poweron_vm_instance(self.instance_id1)
+
+        self.subtest(sys._getframe().f_code.co_name, "Droplet Power On Started", res != None)
+        self.logger.log_event(self.logclient, "TEST POWERON INSTANCE", 'i', ['API Returned From Power ON'], str(res))
+        
+        went_on = self.vmutil.wait_for_state(self.instance_id1, ['active', 'new'], 180)
+
+        return self.maintest(sys._getframe().f_code.co_name, "New Instance Powered On and Active", went_on == True)
 
     def test_create_snapshot(self) :
 	""" This test will attempt to make a snapshot of a vm instance that was just created"""
@@ -137,9 +164,10 @@ class vmUnitTest(UnitTest) :
                    'class'  : '1gb'
                    }
 
-        snap = self.vmutil.create_vm_snapshot(self.instance_id1, SNAPSHOT_NAME)
-        self.snapshot_id1 = snap.id
-        self.logger.log_event("TEST-INFO", 'i', ['Snapshot Details'], str(snap))
+        snap = self.vmutil.create_vm_snapshot(self.instance_id1, vmargs['name']+'SNPSHT')
+        snap.wait(5)
+
+        self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
 
     def test_delete_snapshot(self) :
@@ -152,8 +180,10 @@ class vmUnitTest(UnitTest) :
                    'class'  : '1gb'
                    }
 
+        snapshot = self.vmutil.get_snapshots()[0]
+        self.snapshot_id1 = snapshot[1]
         snap = self.vmutil.delete_vm_snapshot(self.snapshot_id1)
-        self.logger.log_event("TEST-INFO", 'i', ['Snapshot Details'], str(snap))
+        self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
 
     def test_build_instance_from_snapshot(self) :

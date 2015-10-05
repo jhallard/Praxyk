@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 ## @auth John Allard
 ## @date Oct 2015
@@ -8,6 +8,7 @@
 import digitalocean
 import datetime
 import socket
+import time
 
 # @info - This class acts as an interface between other scripts and the various IaaS APIs like
 #         Digital Oceans and eventually GCE and AWS. It doesn't work a database at all, it simply
@@ -45,19 +46,19 @@ class vmUtil :
             return None
 
     # @info - gets the dictionary that represents a VM instance based on that instances unique ID.
-    def get_vm_instance(self, id) :
-        self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'a', ['Instance Id'], id)
+    def get_vm_instance(self, xid) :
+        self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'a', ['Instance Id'], xid)
         if self.manager :
             try : 
-                inst = self.manager.get_droplet(id)
+                inst = self.manager.get_droplet(xid)
                 if inst :
-                    self.logger.log_event(self.logclient, 'GET VM INSTANCE', 's', ['Instance Id'], id)
+                    self.logger.log_event(self.logclient, 'GET VM INSTANCE', 's', ['Instance Id'], xid)
                     return inst
             except Exception, e :
-                self.logger.log_event(self.logclient, "GET VM INSTANCE", 'e', ['Instance Id', 'e.what()'], (id, str(e)))
+                self.logger.log_event(self.logclient, "GET VM INSTANCE", 'e', ['Instance Id', 'e.what()'], (xid, str(e)))
                 return None
 
-        self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'f', ['Instance Id'], id)
+        self.logger.log_event(self.logclient, 'GET VM INSTANCE', 'f', ['Instance Id'], xid)
         return None
 
     # @info - gets the default boot images from the IaaS providers. This includes the special apps like gitlab tht
@@ -89,7 +90,7 @@ class vmUtil :
                     self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 's', ['Num Images'], len(imgs))
                     return [self.format_snapshot(img) for img in imgs]
                 else :
-                    self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'f', [], "", "Images came back Null")
+                    self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'i', [], "", "Images came back Null")
                     return None
             except Exception, e :
                 self.logger.log_event(self.logclient, "GET CUSTOM INSTANCE", 'e', ['e.what()'], (str(e)))
@@ -97,6 +98,14 @@ class vmUtil :
         else :
             self.logger.log_event(self.logclient, 'GET CUSTOM IMAGES', 'f', ['self.manager'], 'Null')
             return None
+
+    # @info - this gets all the snapshots and looks for the one with the given name
+    def get_snapshot_by_name(self, name) :
+        snapshots = self.get_snapshots()
+        for ss in snapshots :
+            if ss[0] == name :
+                return ss
+        return None
 
     # @info - takes the id of a snapshot and grabs it from IaaS providers API
     def get_snapshot(self, xid) :
@@ -111,7 +120,7 @@ class vmUtil :
                     self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 'f', [], "", "Image ID not Found")
                     return None
             except Exception, e :
-                self.logger.log_event(self.logclient, "GET CUSTOM INSTANCE", 'e', ['e.what()'], (str(e)))
+                self.logger.log_event(self.logclient, "GET CUSTOM IMAGE", 'e', ['e.what()'], (str(e)))
                 return None
         else :
             self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 'f', ['self.manager'], 'Null')
@@ -143,13 +152,13 @@ class vmUtil :
         return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'f', ['Instance ID'], (xid), "Droplet Not Found") 
                 
     # @info - get the status of the vm like 'starting', or 'active'
-    def get_vm_status(self, id) :
-        inst = self.get_vm_instance(id)
+    def get_vm_status(self, xid) :
+        inst = self.get_vm_instance(xid)
         if inst :
             status = inst.status
-            self.logger.log_event(self.logclient, "GET VM STATUS", 's', ['Instance ID', 'Status'], (id, status)) 
+            self.logger.log_event(self.logclient, "GET VM STATUS", 's', ['Instance ID', 'Status'], (xid, status)) 
             return status
-        self.logger.log_event(self.logclient, "GET VM STATUS", 'f', ['Instance ID'], (id), "Instance Came Back NULL") 
+        self.logger.log_event(self.logclient, "GET VM STATUS", 'f', ['Instance ID'], (xid), "Instance Came Back NULL") 
         return None
         
 
@@ -164,30 +173,41 @@ class vmUtil :
                                   "Instance Doesn't Exist (get_vm_instance())")
             return None
 
-        # inst must be powered off to snapshot
-        if self.get_vm_status(xid) != "off" :
-            self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 'f', ['Instance ID', 'Status'], 
-                                  (xid, inst.status), "Instance Must Be Powered Off.")
-            return None
+        snapshot = inst.take_snapshot(snap_name, return_dict=False, power_off=True)
 
-        snapshot = inst.take_snapshot(snap_name)
+        # inst must be powered off to snapshot
+        # if self.get_vm_status(xid) != "off" :
+            # self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 'f', ['Instance ID', 'Status'], 
+                                  # (xid, inst.status), "Instance Must Be Powered Off.")
+            # return None
+
+
+        self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 's', ['Instance ID', 'Status'], 
+                              (xid, inst.status), "Instance Must Be Powered Off.")
         return snapshot
 
     # @info - takes the id of an existing vm snapshot and destroy it. Be careful, snapshot is 
     #         non recoverable after deletion. Returns t/f depending on the success of deletion.
     def delete_vm_snapshot(self, xid) :
-        self.logger.log_event("DELETE VM SNAPSHOT", 'a', ['Snapshot ID'], str(xid))
+        self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 'a', ['Snapshot ID'], str(xid))
         snap = self.get_snapshot(xid)
 
         if not snap :
-            return self.logger.log_event("DELETE VM SNAPSHOT", 'f', ['Snapshot ID'], str(xid), "Snapshot Not Found on IaaS Servers.")
+            return self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 'f', ['Snapshot ID'], str(xid), "Snapshot Not Found on IaaS Servers.")
 
         ret = snap.destroy()
-        return self.logger.log_event("DELETE VM SNAPSHOT", 's' if ret else 'f', ['Snapshot ID'], str(xid))
+        return self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 's' if ret else 'f', ['Snapshot ID'], str(xid))
 
     # @info - takes the id of a snapshot and attempts to make a new instance based of that image. 
-    def restore_vm_snapshot(self, snapshot_id) :
-        pass
+    def rebuild_vm_snapshot(self, vmargs) :
+        droplet = digitalocean.Droplet(token=self.tok,
+                                       name=vmargs['name'],
+                                       region=vmargs['region'],
+                                       image=ivmargs['snapshot_id'],
+                                       size_slug=vmargs['class'],
+                                       backups=False)
+        droplet.rebuild()
+        return droplet
 
 
     # @info - used to resize a currently existing instance
@@ -197,11 +217,75 @@ class vmUtil :
 
     # @info - used to power off the instance with id inst_id. Used when taking a snapshot
     def shutdown_vm_instance(self, inst_id) :
-        pass
+        inst = self.get_vm_instance(inst_id)
+        if inst :
+            status = inst.status
+            if status not in  ["active", "new"] :
+                return self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 'f',
+                                             ['Instance ID', 'Status'], (inst_id, status),
+                                             "Cannot be Shutdown, Instance Not Active")
+            ret = inst.shutdown()
+            self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 's', ['Instance ID'], (inst_id), "Instance shutdown Initiated") 
+            return ret
+        self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 'f', ['Instance ID'], (inst_id), "Instance Came Back NULL") 
+        return None
+
+    # @info - more aggressive way of shutting down an instance 
+    def poweroff_vm_instance(self, inst_id) :
+        inst = self.get_vm_instance(inst_id)
+        if inst :
+            status = inst.status
+            if status not in  ["active", "new"] :
+                return self.logger.log_event(self.logclient, "POWEROFF VM INST", 'f',
+                                             ['Instance ID', 'Status'], (inst_id, status),
+                                             "Cannot be Shutdown, Instance Not Active")
+            ret = inst.power_off()
+            self.logger.log_event(self.logclient, "POWEROFF VM INST", 's', ['Instance ID'], (inst_id), "Instance Power Off Initiated") 
+            return ret
+        self.logger.log_event(self.logclient, "POWEROFF VM INST", 'f', ['Instance ID'], (inst_id), "Instance Came Back NULL") 
+        return None
 
     # @info - used to power back on an instance with id inst_id after being shutdown
     def poweron_vm_instance(self, inst_id) :
-        pass
+        inst = self.get_vm_instance(inst_id)
+        if inst :
+            status = inst.status
+            if status != "off" :
+                return self.logger.log_event(self.logclient, "Power On VM INST", 'f',
+                                             ['Instance ID', 'Status'], (inst_id, status),
+                                             "Cannot be Shutdown, Instance Not Shut Down")
+            ret = inst.power_on()
+            return ret
+        self.logger.log_event(self.logclient, "POWER ON VM INST", 'f', ['Instance ID'], (inst_id), "Instance Came Back NULL") 
+        return None
+
+
+    # @info - waits form a vm to go into the given state. States can be 'new', 'active', 'off'
+    #         time_left is how much time you would wait max for the state change
+    def wait_for_state(self, inst_id, states, time_left) :
+        if not isinstance(states, list) :
+            states = [states]
+
+        sleep_amount = 10
+        cur_state = self.get_vm_status(inst_id) 
+
+        self.logger.log_event(self.logclient, "WAIT FOR VM STATE", 'a', ['Current State', 'Desired State', 'Time to Wait'], 
+                                  (cur_state, str(states), str(time_left)+'sec'))
+
+        while cur_state not in states and time_left > 0:
+            time.sleep(sleep_amount)
+            self.logger.log_event(self.logclient, "WAIT FOR VM STATE", 'i', ['Current State', 'Desired State', 'Time Left'], 
+                                  (cur_state, str(states), str(time_left)+'sec'), "Waiting for VM to change state")
+            time_left -= sleep_amount
+            cur_state = self.get_vm_status(inst_id) 
+
+        if time_left <= 0 :
+            return self.logger.log_event(self.logclient, "WAIT FOR VM STATE", 'f', ['Final State', 'Desired State', 'Time Waited (s)'],
+                                         (cur_state, str(states), str(time_left)), "Timed out Waiting for State Change")
+        else :
+            return self.logger.log_event(self.logclient, "WAIT FOR VM STATE", 's', ['Final State', 'Desired State', 'Time Waited (s)'],
+                                         (cur_state, str(states), str(time_left)) )
+
 
 
 
