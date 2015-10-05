@@ -41,6 +41,7 @@ class vmUnitTest(UnitTest) :
         ret = ret and self.test_create_instance()
         ret = ret and self.test_poweroff_instance()
         ret = ret and self.test_create_snapshot()
+        ret = ret and self.test_rebuild_snapshot()
         ret = ret and self.test_poweron_instance()
         ret = ret and self.test_delete_snapshot()
         ret = ret and self.test_destroy_instance()
@@ -65,8 +66,8 @@ class vmUnitTest(UnitTest) :
         self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login())
 
         res = self.vmutil.get_snapshots() 
-        if res :
-            self.logger.log(self.logclient, str([str([str(k) + str(v) for (k,v) in imgs]) for imgs in res]) )
+        # if res :
+            # self.logger.log(self.logclient, str([str([str(k) + str(v) for (k,v) in imgs]) for imgs in res]) )
             # self.logger.log(self.logclient, str([str(k) for k in res]) )
 
         return self.maintest(sys._getframe().f_code.co_name, desc, True) # if res is none it just means we
@@ -170,6 +171,20 @@ class vmUnitTest(UnitTest) :
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
 
+    def test_rebuild_snapshot(self) :
+        """ This test will attempt to make a new VM from a recently taken snapshot. It will confirm the
+            new VM is created and active before concluding."""
+        desc = "Builds a VM instance from a snapshot"
+        vmargs = { 'name' : 'REBUILT-INST',
+                   'region' : 'sfo1',
+                   'image'  : self.snapshot_id1,
+                   'class'  : '1gb'
+                   }
+
+        droplet = self.vmutil.rebuild_vm_snapshot(vmargs)
+        self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['New Droplet Details'], str(droplet))
+        return self.maintest(sys._getframe().f_code.co_name, desc, droplet!= None)
+
     def test_delete_snapshot(self) :
 	""" This test will attempt to delete a snapshot that was just created."""
         desc = "Delete a  Snapshot of a single VM Instance"
@@ -185,13 +200,6 @@ class vmUnitTest(UnitTest) :
         snap = self.vmutil.delete_vm_snapshot(self.snapshot_id1)
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
-
-    def test_build_instance_from_snapshot(self) :
-        """ This test will take an existing snapshot and build a VM instance from it, then check that the
-            instance is running okay """
-        desc = "Build a VM instance from an existing snapshot"
-
-
 
 
     def test_destroy_instance(self) :

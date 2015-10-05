@@ -55,6 +55,13 @@ class devopsUtil :
         self.ndbSSHKeys = "SSHKeys"
         self.ndbRegions = "Regions"
 
+
+    # @info - gets the existing instances that the user has access to and returns their names, id's, 
+    #         and ip addresses.
+    def get_all_instances(self) :
+        # @TODO add logging
+        return self.vmutil.get_vm_instances(self)
+
     # @info - uses the dbUtil class to build the database that contains all of the devops info,
     #         like users, token, admin rights, instances, etc.
     def build_database(self) :
@@ -125,9 +132,6 @@ class devopsUtil :
             return self.logger.log_event(self.logclient, "FILLING DATABASE", 'i',
                                          ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                          "Could not Add All Snapshots to DB")
-
-
-
 
 
     # @info - adds a VM instance to the database. Takes in an instance (returned from get_vm_instance

@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 
-# @info - Unit testing suite for the auth util class which handles all user authentication
-#         for the shared resource server.
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 from unit_test import *
 from vm_util import *
 from auth_util import *
+
+# @info - Unit testing suite for the auth util class which handles all user authentication
+#         for the shared resource server.
 
 class authUnitTest(UnitTest) :
 
