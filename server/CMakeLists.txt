@@ -13,7 +13,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 ########################################################################
 # Search for dependencies here
 ########################################################################
-FIND_PACKAGE(Tesseract)
+FIND_PACKAGE(Tesseract REQUIRED)
 
 ########################################################################
 # Global flags
