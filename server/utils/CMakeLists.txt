@@ -4,7 +4,7 @@ INCLUDE_DIRECTORIES(
 
 SET(praxyk_utils
     praxyk-util1
-    praxyk-util2
+    #praxyk-util2
 )
 
 FOREACH(util ${praxyk_utils})

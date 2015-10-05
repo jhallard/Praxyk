@@ -10,7 +10,8 @@ INCLUDE_DIRECTORIES(
 )
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
-ADD_LIBRARY(praxyk SHARED ${praxyk_sources} ${Tesseract_LIBRARIES})
+ADD_LIBRARY(praxyk SHARED ${praxyk_sources})
+TARGET_LINK_LIBRARIES(praxyk ${Tesseract_LIBRARIES})
 
 INSTALL(
     TARGETS praxyk
