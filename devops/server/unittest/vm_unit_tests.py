@@ -27,14 +27,21 @@ class vmUnitTest(UnitTest) :
         UnitTest.__init__(self, testargs)
         self.vmutil = vmUtil(vmargs)
 
+        self.snapshot_id1 = 0  # used by our snapshot tests, need to store id of created
+                               # ones to delete in further tests
+        self.instance_id1 = 0 # used by the instance tests 
+
     def run(self) :
         ret = True
         ret = ret and self.test_login()
         ret = ret and self.test_get_boot_images()
         ret = ret and self.test_get_snapshots()
         ret = ret and self.test_get_running_instances()
-        # ret = ret and self.test_formatting_instances()
-        # ret = ret and self.test_create_destroy_instance()
+        ret = ret and self.test_formatting_instances()
+        ret = ret and self.test_create_instance()
+        ret = ret and self.test_create_snapshot()
+        ret = ret and self.test_delete_snapshot()
+        ret = ret and self.test_destroy_instance()
 
         self.logtail(ret)
         return ret
@@ -84,14 +91,14 @@ class vmUnitTest(UnitTest) :
         if not self.subtest(sys._getframe().f_code.co_name, "Getting All VMs from IaaS providers.", instances != None) :
             return False
 
-        formatted = self.vmutil.format_do_instances(instances)
+        formatted = self.vmutil.format_do_instances(instances, "TEST-USER")
         self.logger.log_event(self.logclient,"FORMATTING INSTACES", 'i', ['Instances Grabbed'], str(formatted))
         return self.maintest(sys._getframe().f_code.co_name, desc, formatted != None)
 
-    def test_create_destroy_instance(self) :
-	""" This test grabs will attempt to create and destroy an instance on digital ocean. It takes about a minute to spin
-            up an instance so it will actually wait for the status of instance to go to active before attempting to delete it"""
-        desc = "Create and Delete a single VM Instance"
+    def test_create_instance(self) :
+	""" This test grabs will attempt to create an instance on digital ocean. It takes about a minute to spin
+            up an instance so it will actually wait for the status of instance to go to active before returning True"""
+        desc = "Create a single VM Instance"
 
         vmargs = { 'name' : 'TEST-INST-ALPH',
                    'region' : 'sfo1',
@@ -116,10 +123,58 @@ class vmUnitTest(UnitTest) :
             self.maintest(sys._getframe().f_code.co_name, "Timed out Waiting for Active State", False)
             return False
 
-        self.maintest(sys._getframe().f_code.co_name, "New Instance Created and Active", True)
+        self.instance_id1 = droplet.id
 
-        res = self.vmutil.destroy_vm_instance(droplet.id)
-        
+        return self.maintest(sys._getframe().f_code.co_name, "New Instance Created and Active", True)
+
+    def test_create_snapshot(self) :
+	""" This test will attempt to make a snapshot of a vm instance that was just created"""
+        desc = "Take a Snapshot of a single VM Instance"
+
+        vmargs = { 'name' : 'TEST-INST-ALPH',
+                   'region' : 'sfo1',
+                   'image'  : 'ubuntu-14-04-x64',
+                   'class'  : '1gb'
+                   }
+
+        snap = self.vmutil.create_vm_snapshot(self.instance_id1, SNAPSHOT_NAME)
+        self.snapshot_id1 = snap.id
+        self.logger.log_event("TEST-INFO", 'i', ['Snapshot Details'], str(snap))
+        return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
+
+    def test_delete_snapshot(self) :
+	""" This test will attempt to delete a snapshot that was just created."""
+        desc = "Delete a  Snapshot of a single VM Instance"
+
+        vmargs = { 'name' : 'TEST-INST-ALPH',
+                   'region' : 'sfo1',
+                   'image'  : 'ubuntu-14-04-x64',
+                   'class'  : '1gb'
+                   }
+
+        snap = self.vmutil.delete_vm_snapshot(self.snapshot_id1)
+        self.logger.log_event("TEST-INFO", 'i', ['Snapshot Details'], str(snap))
+        return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
+
+    def test_build_instance_from_snapshot(self) :
+        """ This test will take an existing snapshot and build a VM instance from it, then check that the
+            instance is running okay """
+        desc = "Build a VM instance from an existing snapshot"
+
+
+
+
+    def test_destroy_instance(self) :
+	""" This test grabs will attempt to destroy an instance on digital ocean that was created by the test_create_instance test. """
+        desc = "Destroy a single VM Instance"
+
+        vmargs = { 'name' : 'TEST-INST-ALPH',
+                   'region' : 'sfo1',
+                   'image'  : 'ubuntu-14-04-x64',
+                   'class'  : '1gb'
+                   }
+
+        res = self.vmutil.destroy_vm_instance(self.instance_id1)
         return self.maintest(sys._getframe().f_code.co_name, desc, res)
 
 

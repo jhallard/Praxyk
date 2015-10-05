@@ -59,6 +59,11 @@ class devopsUtil :
     #         like users, token, admin rights, instances, etc.
     def build_database(self) :
         self.logger.log_event(self.logclient, "BUILDING DATABASE", 'a', ['DB Name'], self.dbname)
+
+        if self.dbutil.database_exists(self.dbname) :
+            return self.logger.log_event(self.logclient, "BUILDING DATABASE", 'f', ['DB Name'], self.dbname,
+                                         "DB Already Exists, must drop before rebuilding.")
+
         ret = self.dbutil.build_database(self.schema)
         return self.logger.log_event(self.logclient, "BUILDING DATABASE", ('s' if ret else 'f'),
                                      ['DB Name'], self.dbname)
@@ -109,20 +114,17 @@ class devopsUtil :
 
         create_inst_res = True
         for inst in instances :
-            self.logger.log_event(self.logclient, "FILLING DATABASE", 'i',
-                                  ['DB Name', 'User Name', 'Instance Name', 'Instance ID'],
-                                  (self.dbname, self.rootuser, inst.name, inst.id), "Root User Added to DB")
-
             create_inst_res = create_inst_res and self.add_instance_db(inst, self.rootuser)
 
         if not create_inst_res :
-            return self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
+            self.logger.log_event(self.logclient, "FILLING DATABASE", 'i',
+                                     ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                     "Could not add All Instances to DB")
+
+        if not self.add_snapshots() :
+            return self.logger.log_event(self.logclient, "FILLING DATABASE", 'i',
                                          ['DB Name', 'User Name'], (self.dbname, self.rootuser),
-                                         "Could not add All Instances to DB")
-        else :
-            return self.logger.log_event(self.logclient, "FILLING DATABASE", 's',
-                                         ['DB Name', 'User Name'], (self.dbname, self.rootuser),
-                                         "All Instances Added to DB")
+                                         "Could not Add All Snapshots to DB")
 
 
 
@@ -148,10 +150,30 @@ class devopsUtil :
                                   (self.dbname, instance[1], instance[0], creator),
                                   "DB Insert Failed, check DB Logs.")
         else :
-            return self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 's', 
+            self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 's', 
                                   ['DB Name', 'Instance Name', 'Instance ID', 'Creator'],
                                   (self.dbname, instance[1], instance[0], creator),
                                   "Instance Added to DB.")
+        if imgs :
+            snapshot_ids = imgs['snapshot_ids']
+            for xid in snapshot_ids :
+                snap = self.vmutil.get_snapshot(xid)
+                if not snap :
+                    self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', 
+                                      ['DB Name', 'Instance Name', 'Instance ID', 'Creator', 'Snapshot ID'],
+                                      (self.dbname, instance[1], instance[0], creator, xid),
+                                      "Could not get Snapshot object from IaaS API")
+                else :
+                    snapshot = self.vmutil.format_snapshot(snap, instance[1])
+                    if self.dbutil.insert_or_update(self.ndbSnapshots, snapshot) :
+                        self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 's', ['Snapshot ID', 'Instance ID'], 
+                                              (xid, instance[1]), "Snapshot Added to DB")
+                    else :
+                        self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', ['Snapshot ID', 'Instance ID'], 
+                                              (xid, instance[1]), "Snapshot Added to DB")
+        if keys :
+            pass
+
 
 
     # @info - adds the available instance regions to the db
@@ -185,6 +207,21 @@ class devopsUtil :
             ret = ret and self.dbutil.insert(self.ndbImages, img)
 
         return self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 's' if ret else 'f', ['Num Images'], len(imgs))
+
+    # @info - grabs any existing snapshots and adds them to the database
+    def add_snapshots(self) :
+        self.logger.log_event(self.logclient, "ADDING EXISTING SNAPSHOTS", 'a')
+
+        snapshots = self.vmutil.get_snapshots()
+        if not snapshots :
+            self.logger.log_event(self.logclient, "ADDING EXISTING SNAPSHOTS", 's', ['Num Snapshots'], '0')
+            return True
+
+        ret = True
+        for snapshot in snapshots :
+            ret = ret and self.dbutil.insert(self.ndbSnapshots, snapshot) 
+
+        return self.logger.log_event(self.logclient, "ADDING EXISTING SNAPSHOTS", 's' if ret else 'f', ['Num Snapshots'], len(snapshots))
 
 
     # @info - takes a dictionary {'name' : 'value'} and formats it into the list of tuples [('name', 'value') ...]
