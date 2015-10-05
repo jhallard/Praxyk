@@ -155,8 +155,7 @@ class devopsUtil :
                                   (self.dbname, instance[1], instance[0], creator),
                                   "Instance Added to DB.")
         if imgs :
-            snapshot_ids = imgs['snapshot_ids']
-            for xid in snapshot_ids :
+            for xid in imgs[0][1]:
                 snap = self.vmutil.get_snapshot(xid)
                 if not snap :
                     self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', 
@@ -173,6 +172,8 @@ class devopsUtil :
                                               (xid, instance[1]), "Snapshot Added to DB")
         if keys :
             pass
+
+        return True
 
 
 
