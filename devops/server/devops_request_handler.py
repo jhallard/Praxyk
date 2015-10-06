@@ -18,7 +18,7 @@
 #
 #
 ########################################################################################
-
+import _fix_path_
 from vm_util import *
 from auth_util import *
 from devops_util import *
@@ -41,7 +41,7 @@ LOG_DIR_SERVER = BASEDIR + 'server-logs'
 LOG_DIR_COMB = BASEDIR + "comb-logs/"
 LOG_DIR_AUTH = BASEDIR + "auth-logs/"
 LOG_DIR_DEVOPS = BASEDIR + "devops-logs/"
-LOGDIR_HANDLER = BASEDIR + "handler-logs/"
+LOG_DIR_HANDLER = BASEDIR + "handler-logs/"
 
 
 ## logutil client names
@@ -119,7 +119,7 @@ def init_logutil() :
                AUTH_LOG_CLIENT          : [formatfn(LOG_DIR_AUTH, AUTH_LOG_CLIENT, dt)],
                SERVER_LOG_CLIENT        : [formatfn(LOG_DIR_SERVER, SERVER_LOG_CLIENT, dt)],
                DEVOPS_LOG_CLIENT        : [formatfn(LOG_DIR_DEVOPS, DEVOPS_LOG_CLIENT, dt)],
-               HANDLER_LOG_CLIENT       : [sys.stdout, formatfn(LOG_DIR_HANDLER, HANDLER_LOG_CLIENT, dt)]
+               HANDLER_LOG_CLIENT       : [sys.stdout, formatfn(LOG_DIR_HANDLER, HANDLER_LOG_CLIENT, dt)],
                logutil.error_client_name: [sys.stderr], # uncmnt to direct all errors to stderr
                logutil.combined_client_name : [formatfn(LOG_DIR_COMB, logutil.combined_client_name, dt)]}
     logutil.set_clients(clients)
@@ -142,7 +142,7 @@ tasks = [
     }
 ]
 
-@app.route('/todo/api/v1.0/tasks', methods=['GET'])
+@DEVOPS_HANDLER_APP.route('/todo/api/v1.0/tasks', methods=['GET'])
 def get_tasks():
     return jsonify({'tasks': tasks})
 
