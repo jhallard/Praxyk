@@ -8,7 +8,7 @@
 ## - download is for downloading files uploaded in the db (does streaming)
 #########################################################################
 
-@auth.requires_login()
+
 def index():
     """
     example action using the internationalization operator T and flash
@@ -17,11 +17,18 @@ def index():
     if you need a simple wiki simply replace the two lines below with:
     return auth.wiki()
     """
-    """response.flash = T("Hello World")
-    return dict(message=T('Welcome to web2py!'))"""
-    redirect(URL('webInput',user_signature=True))
-    return dict(link=link)  
+    response.flash = T("Hello World")
+    return dict(message=T('Welcome to web2py!'))
+	
+    
+    
 
+@auth.requires_login()
+def pod_tlp_input():
+	redirect(URL('webInput',user_signature=True))
+	return dict(link=link) 
+
+	
 @auth.requires_signature() 
 def webInput():
    return dict()

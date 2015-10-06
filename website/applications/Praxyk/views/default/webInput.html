@@ -1,13 +1,5 @@
-<script> 
-function tlp(){
-   alert("TLP was called");
-}
-
-function pod(){
-   alert("POD was called");
-}
-</script>
-{{extend 'plugin_layouts/layouts/KeepItSimple.html'}}
+{{response.files.append(URL(r=request,c='static/js',f='pod_tlp.js'))}}
+{{extend 'plugin_layouts/layouts/Spaced.html'}}
 <button onclick="pod()">POD Input</button><br />
 <button onclick="tlp()">TLP Input</button>
 

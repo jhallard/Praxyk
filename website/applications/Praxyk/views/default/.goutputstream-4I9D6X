@@ -1,0 +1,8 @@
+function tlp(){
+	alert("TLP was called");
+}
+
+function pod(){
+	alert("POD was called");
+}
+
