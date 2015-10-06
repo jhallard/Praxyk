@@ -63,7 +63,7 @@ def parse_args(argv) :
     parser.add_argument('--schemaf', help="Full path to the .schema file for a database. This is required if " + \
                                           "you are testing the datbase, auth, devops, or server.")
     parser.add_argument('--flags', help="A string where each character represents a test flag. Only used for vmtest so far." + \
-                                        "vmtest flags : [a b c d e] each one runs another series of tests.")
+                                        "vmtest flags : [a b c d e f] each one runs another series of tests.")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
     parser.add_argument('test', help="Which test do you want to run. The following are accepted : " + \

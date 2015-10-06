@@ -68,6 +68,10 @@ class vmUnitTest(UnitTest) :
             ret = ret and self.test_rebuild_vm_snapshot()
             ret = ret and self.test_destroy_instance()
 
+        if 'f' in self.flags :
+            ret = ret and self.test_create_snapshot()
+            ret = ret and self.test_delete_snapshot()
+
         self.logtail(ret)
         return ret
 
@@ -193,14 +197,11 @@ class vmUnitTest(UnitTest) :
     def test_create_snapshot(self) :
 	""" This test will attempt to make a snapshot of a vm instance that was just created"""
         desc = "Take a Snapshot of a single VM Instance"
-
-        vmargs = { 'name' : 'TEST-INST-ALPH',
-                   'region' : 'sfo1',
-                   'image'  : 'ubuntu-14-04-x64',
-                   'class'  : '1gb'
-                   }
-
-        snap = self.vmutil.create_vm_snapshot(self.instance_id1, vmargs['name']+'SNPSHT')
+        
+        if not self.instance_id1 :
+            self.instance_id1 = self.vmutil.get_vm_instances()[0].id #the first instance
+            
+        snap = self.vmutil.create_vm_snapshot(self.instance_id1, 'TEST-SNPSHT')
         snap.wait(5)
 
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
@@ -216,10 +217,11 @@ class vmUnitTest(UnitTest) :
 
         is_up = self.vmutil.wait_for_state(self.instance_id1, 'active', 340)
 
-        droplet = self.vmutil.rebuild_vm_snapshot(self.instance_id1, self.snapshot_id1)
+        (droplet, action) = self.vmutil.rebuild_vm_snapshot(self.instance_id1, self.snapshot_id1)
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['New Droplet Details'], str(droplet))
 
         went_active = self.vmutil.wait_for_state(droplet.id, ['active', 'new'], 180)
+        action.wait(5)
         return self.maintest(sys._getframe().f_code.co_name, "New Instance Rebuilt and Active", went_active)
 
     # builds a new VM from scratch from a snapshot
@@ -249,8 +251,9 @@ class vmUnitTest(UnitTest) :
 	""" This test will attempt to delete a snapshot that was just created."""
         desc = "Delete a  Snapshot of a single VM Instance"
 
-        snapshot = self.vmutil.get_snapshots()[0]
-        self.snapshot_id1 = snapshot[1][1]
+        if not self.snapshot_id1 :
+            snapshot = self.vmutil.get_snapshots()[0]
+            self.snapshot_id1 = snapshot[1][1]
         snap = self.vmutil.delete_vm_snapshot(self.snapshot_id1)
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)

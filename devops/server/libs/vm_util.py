@@ -129,26 +129,34 @@ class vmUtil :
     # @info - create a new vm instance, right now only works through digital ocean. Wouldn't be hard to integrate
     #          other IaaS APIs though.
     def create_vm_instance(self, vmargs) :
-        droplet = digitalocean.Droplet(token=self.tok,
-                                       name=vmargs['name'],
-                                       region=vmargs['region'],
-                                       image=vmargs['image'],
-                                       size_slug=vmargs['class'],
-                                       backups=False)
-        droplet.create()
-        return droplet
+        try :
+            droplet = digitalocean.Droplet(token=self.tok,
+                                           name=vmargs['name'],
+                                           region=vmargs['region'],
+                                           image=vmargs['image'],
+                                           size_slug=vmargs['class'],
+                                           backups=False)
+            droplet.create()
+            return droplet
+        except Exception, e :
+            self.logger.log_event(self.logclient, "CREATE VM INSTANCE", 'e', ['e.what()'], (str(e)))
+            return None
 
     # @info - destroy the vm instance tagged with the given ID. Will attempt to destroy it and return true
     #          if it succeeds. 
     def destroy_vm_instance(self, xid) :
         self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'a', ['Instance ID'], (xid)) 
         droplet = self.get_vm_instance(xid)
-        if droplet :
-            if droplet.destroy() :
-                return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 's', ['Instance ID'], (xid)) 
-            else :
-                return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'f', ['Instance ID'], (xid), 
-                                             "droplet.destroy() Failed") 
+        try :
+            if droplet :
+                if droplet.destroy() :
+                    return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 's', ['Instance ID'], (xid)) 
+                else :
+                    return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'f', ['Instance ID'], (xid), 
+                                                 "droplet.destroy() Failed") 
+        except Exception, e :
+            self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'e', ['e.what()'], (str(e)))
+            return False
         return self.logger.log_event(self.logclient, "DESTROY VM INSTANCE", 'f', ['Instance ID'], (xid), "Droplet Not Found") 
                 
     # @info - get the status of the vm like 'starting', or 'active'
@@ -165,6 +173,7 @@ class vmUtil :
     # @info - takes the id of an instance an images its disk, creating a bootable snapshot of the 
     #         instance at the time it was taken. Note that images can only be taken when the instance
     #         is shut down, so if the instance isn't shut down then this function will not work.
+    #         returns the action object for the shutdown
     def create_vm_snapshot(self, xid, snap_name) :
         # @TODO - create snapshot of instance
         inst = self.get_vm_instance(xid)
@@ -172,34 +181,34 @@ class vmUtil :
             self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 'f', ['Instance ID'], xid, 
                                   "Instance Doesn't Exist (get_vm_instance())")
             return None
+        try :
+            snap_action = inst.take_snapshot(snap_name, return_dict=False, power_off=True)
 
-        snapshot = inst.take_snapshot(snap_name, return_dict=False, power_off=True)
-
-        # inst must be powered off to snapshot
-        # if self.get_vm_status(xid) != "off" :
-            # self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 'f', ['Instance ID', 'Status'], 
-                                  # (xid, inst.status), "Instance Must Be Powered Off.")
-            # return None
-
-
-        self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 's', ['Instance ID', 'Status'], 
-                              (xid, inst.status), "Instance Must Be Powered Off.")
-        return snapshot
+            self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 's', ['Instance ID', 'Status'], 
+                                  (xid, inst.status), "Instance Must Be Powered Off.")
+            return snap_action
+        except Exception, e :
+            self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 'e', ['e.what()'], (str(e)))
+            return None
 
     # @info - takes the id of an existing vm snapshot and destroy it. Be careful, snapshot is 
     #         non recoverable after deletion. Returns t/f depending on the success of deletion.
     def delete_vm_snapshot(self, xid) :
         self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 'a', ['Snapshot ID'], str(xid))
         snap = self.get_snapshot(xid)
-
         if not snap :
             return self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 'f', ['Snapshot ID'], str(xid), "Snapshot Not Found on IaaS Servers.")
 
-        ret = snap.destroy()
-        return self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 's' if ret else 'f', ['Snapshot ID'], str(xid))
+        try :
+            ret = snap.destroy()
+            return self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 's' if ret else 'f', ['Snapshot ID'], str(xid))
+        except Exception, e :
+            self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 'e', ['e.what()'], (str(e)))
+            return False
 
     # @info - takes the id of an existing instance and a snapshot id and attempts to rebuild the instance given by
     #         the id with the snapshot given by the snapshot id. 
+    #         returns a 2-tuple (droplet, action)
     def rebuild_vm_snapshot(self, droplet_id, snapshot_id) :
         self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 'a', ['Droplet ID', 'Snapshot ID'],
                               (str(droplet_id), str(snapshot_id)))
@@ -208,11 +217,15 @@ class vmUtil :
         if not droplet :
             self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 'f', ['Droplet ID', 'Snapshot ID'],
                                   (str(droplet_id), str(snapshot_id)))
-
-        droplet.rebuild(image_id=snapshot_id)
-        self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 's', ['Droplet ID', 'Snapshot ID'],
-                              (str(droplet_id), str(snapshot_id)), "Rebuild Sequence Initiated")
-        return droplet
+            return None
+        try :
+            action = droplet.rebuild(image_id=snapshot_id, return_dict=False)
+            self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 's', ['Droplet ID', 'Snapshot ID'],
+                                  (str(droplet_id), str(snapshot_id)), "Rebuild Sequence Initiated")
+            return (droplet, action)
+        except Exception, e :
+            self.logger.log_event(self.logclient, "REBUILD DELETE VM SNAPSHOT", 'e', ['e.what()'], (str(e)))
+            return None
 
     # @info - used to resize a currently existing instance
     def resize_vm_instance(self, inst_id, new_size) :
@@ -223,14 +236,18 @@ class vmUtil :
     def shutdown_vm_instance(self, inst_id) :
         inst = self.get_vm_instance(inst_id)
         if inst :
-            status = inst.status
-            if status not in  ["active", "new"] :
-                return self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 'f',
-                                             ['Instance ID', 'Status'], (inst_id, status),
-                                             "Cannot be Shutdown, Instance Not Active")
-            ret = inst.shutdown()
-            self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 's', ['Instance ID'], (inst_id), "Instance shutdown Initiated") 
-            return ret
+            try :
+                status = inst.status
+                if status not in  ["active", "new"] :
+                    return self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 'f',
+                                                 ['Instance ID', 'Status'], (inst_id, status),
+                                                 "Cannot be Shutdown, Instance Not Active")
+                ret = inst.shutdown()
+                self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 's', ['Instance ID'], (inst_id), "Instance shutdown Initiated") 
+                return ret
+            except Exception, e :
+                self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 'e', ['e.what()'], (str(e)))
+                return None
         self.logger.log_event(self.logclient, "SHUTDOWN VM INST", 'f', ['Instance ID'], (inst_id), "Instance Came Back NULL") 
         return None
 
@@ -238,14 +255,18 @@ class vmUtil :
     def poweroff_vm_instance(self, inst_id) :
         inst = self.get_vm_instance(inst_id)
         if inst :
-            status = inst.status
-            if status not in  ["active", "new"] :
-                return self.logger.log_event(self.logclient, "POWEROFF VM INST", 'f',
-                                             ['Instance ID', 'Status'], (inst_id, status),
-                                             "Cannot be Shutdown, Instance Not Active")
-            ret = inst.power_off()
-            self.logger.log_event(self.logclient, "POWEROFF VM INST", 's', ['Instance ID'], (inst_id), "Instance Power Off Initiated") 
-            return ret
+            try :
+                status = inst.status
+                if status not in  ["active", "new"] :
+                    return self.logger.log_event(self.logclient, "POWEROFF VM INST", 'f',
+                                                 ['Instance ID', 'Status'], (inst_id, status),
+                                                 "Cannot be Shutdown, Instance Not Active")
+                ret = inst.power_off()
+                self.logger.log_event(self.logclient, "POWEROFF VM INST", 's', ['Instance ID'], (inst_id), "Instance Power Off Initiated") 
+                return ret
+            except Exception, e :
+                self.logger.log_event(self.logclient, "POWEROFF VM INST", 'e', ['e.what()'], (str(e)))
+                return None
         self.logger.log_event(self.logclient, "POWEROFF VM INST", 'f', ['Instance ID'], (inst_id), "Instance Came Back NULL") 
         return None
 
@@ -253,13 +274,17 @@ class vmUtil :
     def poweron_vm_instance(self, inst_id) :
         inst = self.get_vm_instance(inst_id)
         if inst :
-            status = inst.status
-            if status != "off" :
-                return self.logger.log_event(self.logclient, "Power On VM INST", 'f',
-                                             ['Instance ID', 'Status'], (inst_id, status),
-                                             "Cannot be Shutdown, Instance Not Shut Down")
-            ret = inst.power_on()
-            return ret
+            try :
+                status = inst.status
+                if status != "off" :
+                    return self.logger.log_event(self.logclient, "Power On VM INST", 'f',
+                                                 ['Instance ID', 'Status'], (inst_id, status),
+                                                 "Cannot be Shutdown, Instance Not Shut Down")
+                ret = inst.power_on()
+                return ret
+            except Exception, e :
+                self.logger.log_event(self.logclient, "POWEROFF VM INST", 'e', ['e.what()'], (str(e)))
+                return None
         self.logger.log_event(self.logclient, "POWER ON VM INST", 'f', ['Instance ID'], (inst_id), "Instance Came Back NULL") 
         return None
 
@@ -290,9 +315,7 @@ class vmUtil :
             return self.logger.log_event(self.logclient, "WAIT FOR VM STATE", 's', ['Final State', 'Desired State', 'Time Waited (s)'],
                                          (cur_state, str(states), str(time_left)) )
 
-
-
-
+    
 
     # @info - takes a list of vm instances and runs them through the instance formatter
     def format_do_instances(self, instances, creator) :
