@@ -72,11 +72,12 @@ class authUtil :
         self.logger.log_event(self.logclient, "USER VALIDATE", 'a', ['User'], (username))
         user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%namename, limit=1)
 
-        if user :
-            user = user[0] # it's the first and only row returned.
-
+        if not user :
+            return self.logger.log_event(self.logclient, "USER VALIDATE", 'f' if ret else 'f', ['User'],
+                                         (username), "User not Found in DB.")
+        user = user[0] # it's the first and only row returned.
         ret = (user[1] == pwhash)
-        return self.logger.log_event(self.logclient, "USER VALIDATE", 's' if ret else 'f', ['User'], (username))
+        return self.logger.log_event(self.logclient, "USER VALIDATE", 's' if ret else 'f', ['User'], (username), "PW Hash Match Attempt.")
 
     # @info - takes a user and gets a valid token for them. If none are available it makes a new one and returns
     #         it. This is called after the validate_user function is called.

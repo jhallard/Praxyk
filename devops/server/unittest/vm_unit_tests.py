@@ -21,6 +21,7 @@ class vmUnitTest(UnitTest) :
         self.title = 'Virtual-Machine Util'
         self.logger = testargs['logutil']
         self.logclient = testargs['logclient']
+        self.flags = [flag for flag in str(testargs['flags'])] # turns a string 'abcdef' --> ['a', 'b', 'c', .. 'f'] containing test flags
         self.head_data=[] # Add info to log at top of test log file here
         self.tail_data=[] # ^^ bottom of test file here
 
@@ -29,25 +30,59 @@ class vmUnitTest(UnitTest) :
 
         self.snapshot_id1 = 0  # used by our snapshot tests, need to store id of created
                                # ones to delete in further tests
-        self.instance_id1 = 0 # used by the instance tests 
+        self.instance_id1 = 0 # vm built from scratch in create_instance()
 
     def run(self) :
         ret = True
         ret = ret and self.test_login()
-        ret = ret and self.test_get_boot_images()
-        ret = ret and self.test_get_snapshots()
-        ret = ret and self.test_get_running_instances()
-        ret = ret and self.test_formatting_instances()
-        ret = ret and self.test_create_instance()
-        ret = ret and self.test_poweroff_instance()
-        ret = ret and self.test_create_snapshot()
-        ret = ret and self.test_rebuild_snapshot()
-        ret = ret and self.test_poweron_instance()
-        ret = ret and self.test_delete_snapshot()
-        ret = ret and self.test_destroy_instance()
+
+        if 'a' in self.flags : 
+            # create and destroy a single instance from scratch
+            ret = ret and self.test_create_instance()
+            ret = ret and self.test_destroy_instance()
+
+        if 'b' in self.flags :
+            # create and destroy a new instance from a snapshot
+            ret = ret and self.test_build_vm_snapshot()
+            ret = ret and self.test_destroy_instance()
+
+        if 'c' in self.flags :
+            # create an instance, poweroff, take a snapshot, delete the snapshot, delete the instance
+            ret = ret and self.test_create_instance()
+            ret = ret and self.test_poweroff_instance()
+            ret = ret and self.test_create_snapshot()
+            ret = ret and self.test_poweron_instance()
+            ret = ret and self.test_delete_snapshot()
+            ret = ret and self.test_destroy_instance()
+    
+        if 'd' in self.flags :
+            # standard health check
+            ret = ret and self.test_get_boot_images()
+            ret = ret and self.test_get_snapshots()
+            ret = ret and self.test_get_running_instances()
+            ret = ret and self.test_formatting_instances()
+        
+        if 'e' in self.flags :
+            # create an instance, rebuild it from an image, destroy the instance
+            ret = ret and self.test_create_instance()
+            ret = ret and self.test_rebuild_vm_snapshot()
+            ret = ret and self.test_destroy_instance()
 
         self.logtail(ret)
         return ret
+
+        # ret = ret and self.test_get_boot_images()
+        # ret = ret and self.test_get_snapshots()
+        # ret = ret and self.test_get_running_instances()
+        # ret = ret and self.test_formatting_instances()
+        # ret = ret and self.test_create_instance()
+        # ret = ret and self.test_poweroff_instance()
+        # ret = ret and self.test_create_snapshot()
+        # ret = ret and self.test_rebuild_vm_snapshot()
+        # ret = ret and self.test_build_vm_snapshot()
+        # ret = ret and self.test_poweron_instance()
+        # ret = ret and self.test_delete_snapshot()
+        # ret = ret and self.test_destroy_instance()
 
     def test_login(self) :
         desc = "Testing login through IaaS API"
@@ -120,7 +155,7 @@ class vmUnitTest(UnitTest) :
         # wait for the vm to go active
         went_active = self.vmutil.wait_for_state(droplet.id, ['active', 'new'], 180)
 
-        return self.maintest(sys._getframe().f_code.co_name, "New Instance Created and Active", True)
+        return self.maintest(sys._getframe().f_code.co_name, "New Instance Created and Active", went_active)
 
     def test_poweroff_instance(self) :
         """ This Test will PowerOff a running instance"""
@@ -144,7 +179,7 @@ class vmUnitTest(UnitTest) :
         if not self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login()) :
             return False
 
-        # is_down = self.vmutil.wait_for_state(self.instance_id1, 'off', 180)
+        is_down = self.vmutil.wait_for_state(self.instance_id1, 'off', 180)
 
         res = self.vmutil.poweron_vm_instance(self.instance_id1)
 
@@ -171,32 +206,51 @@ class vmUnitTest(UnitTest) :
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
 
-    def test_rebuild_snapshot(self) :
+    # takes a current VM and rebuilds it with a snapshot
+    def test_rebuild_vm_snapshot(self) :
+        """ This test will attempt to rebuild an existing VM from a recently taken snapshot. It will confirm the
+            new VM is created and active before concluding."""
+        desc = "Rebuilds an Existing VM instance from a snapshot"
+        snapshot = self.vmutil.get_snapshots()[0]
+        self.snapshot_id1 = snapshot[1][1]
+
+        is_up = self.vmutil.wait_for_state(self.instance_id1, 'active', 340)
+
+        droplet = self.vmutil.rebuild_vm_snapshot(self.instance_id1, self.snapshot_id1)
+        self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['New Droplet Details'], str(droplet))
+
+        went_active = self.vmutil.wait_for_state(droplet.id, ['active', 'new'], 180)
+        return self.maintest(sys._getframe().f_code.co_name, "New Instance Rebuilt and Active", went_active)
+
+    # builds a new VM from scratch from a snapshot
+    def test_build_vm_snapshot(self) :
         """ This test will attempt to make a new VM from a recently taken snapshot. It will confirm the
             new VM is created and active before concluding."""
-        desc = "Builds a VM instance from a snapshot"
-        vmargs = { 'name' : 'REBUILT-INST',
+        desc = "Builds a new VM instance from a snapshot"
+        snapshot = self.vmutil.get_snapshots()[0]
+
+        vmargs = { 'name' : 'TEST-INST-BETA',
                    'region' : 'sfo1',
-                   'image'  : self.snapshot_id1,
+                   'image'  : snapshot[1][1],
                    'class'  : '1gb'
                    }
 
-        droplet = self.vmutil.rebuild_vm_snapshot(vmargs)
+        droplet = self.vmutil.create_vm_instance(vmargs)
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['New Droplet Details'], str(droplet))
-        return self.maintest(sys._getframe().f_code.co_name, desc, droplet!= None)
+        self.subtest(sys._getframe().f_code.co_name, "Droplet Creation Started", droplet != None)
+        self.instance_id1 = str(droplet.id)
+
+        # wait for the vm to go active
+        went_active = self.vmutil.wait_for_state(droplet.id, ['active', 'new'], 180)
+
+        return self.maintest(sys._getframe().f_code.co_name, "New Instance Rebuilt and Active", went_active)
 
     def test_delete_snapshot(self) :
 	""" This test will attempt to delete a snapshot that was just created."""
         desc = "Delete a  Snapshot of a single VM Instance"
 
-        vmargs = { 'name' : 'TEST-INST-ALPH',
-                   'region' : 'sfo1',
-                   'image'  : 'ubuntu-14-04-x64',
-                   'class'  : '1gb'
-                   }
-
         snapshot = self.vmutil.get_snapshots()[0]
-        self.snapshot_id1 = snapshot[1]
+        self.snapshot_id1 = snapshot[1][1]
         snap = self.vmutil.delete_vm_snapshot(self.snapshot_id1)
         self.logger.log_event(self.logclient, "TEST-INFO", 'i', ['Snapshot Details'], str(snap))
         return self.maintest(sys._getframe().f_code.co_name, desc, snap != None)
@@ -212,6 +266,9 @@ class vmUnitTest(UnitTest) :
                    'class'  : '1gb'
                    }
 
+        is_active = self.vmutil.wait_for_state(self.instance_id1, ['active'], 300)
+        if not is_active :
+            return self.maintest(sys._getframe().f_code.co_name, "Instance Never Went Active to Destroy", False)
         res = self.vmutil.destroy_vm_instance(self.instance_id1)
         return self.maintest(sys._getframe().f_code.co_name, desc, res)
 

@@ -60,8 +60,10 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
-    parser.add_argument('--schemaf', help="Full path to the .schema file for a database. This is required if " \
+    parser.add_argument('--schemaf', help="Full path to the .schema file for a database. This is required if " + \
                                           "you are testing the datbase, auth, devops, or server.")
+    parser.add_argument('--flags', help="A string where each character represents a test flag. Only used for vmtest so far." + \
+                                        "vmtest flags : [a b c d e] each one runs another series of tests.")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
     parser.add_argument('test', help="Which test do you want to run. The following are accepted : " + \
@@ -206,6 +208,8 @@ if __name__ == "__main__" :
     DBSCHEMA = None # used only for db, auth, devops, and server tests.
                     # set below if used.
 
+    TESTFLAGS = None # set if they passed in the --flags arg followed by a string
+
     args = parse_args(sys.argv)
     arg_map = parse_config_file(args.config) 
     (logutil, db) = init_logutil()
@@ -234,9 +238,13 @@ if __name__ == "__main__" :
         with open(args.schemaf) as fh :
             DBSCHEMA = json.load(fh)
 
+    if args.flags :
+        TESTFLAGS = args.flags
+
     testargs = {'logutil'   : logutil,
                 'logclient' : TESTCLIENTS[testname],
-                'schema'    : DBSCHEMA}
+                'schema'    : DBSCHEMA,
+                'flags'     : TESTFLAGS}
 
     test_fn = TESTS[testname]
 

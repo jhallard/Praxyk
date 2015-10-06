@@ -112,9 +112,9 @@ class vmUtil :
         self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 'a', ['Snapshot ID'], str(xid))
         if self.manager :
             try :
-                img = self.manager.get_image(id=xid)
+                img = self.manager.get_image(image_id=xid)
                 if img :
-                    self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 's', ['Image Name'], image.name)
+                    self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 's', ['Image Name'], img.name)
                     return self.format_snapshot(img)
                 else :
                     self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 'f', [], "", "Image ID not Found")
@@ -198,17 +198,21 @@ class vmUtil :
         ret = snap.destroy()
         return self.logger.log_event(self.logclient, "DELETE VM SNAPSHOT", 's' if ret else 'f', ['Snapshot ID'], str(xid))
 
-    # @info - takes the id of a snapshot and attempts to make a new instance based of that image. 
-    def rebuild_vm_snapshot(self, vmargs) :
-        droplet = digitalocean.Droplet(token=self.tok,
-                                       name=vmargs['name'],
-                                       region=vmargs['region'],
-                                       image=ivmargs['snapshot_id'],
-                                       size_slug=vmargs['class'],
-                                       backups=False)
-        droplet.rebuild()
-        return droplet
+    # @info - takes the id of an existing instance and a snapshot id and attempts to rebuild the instance given by
+    #         the id with the snapshot given by the snapshot id. 
+    def rebuild_vm_snapshot(self, droplet_id, snapshot_id) :
+        self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 'a', ['Droplet ID', 'Snapshot ID'],
+                              (str(droplet_id), str(snapshot_id)))
+        droplet = self.get_vm_instance(droplet_id)
 
+        if not droplet :
+            self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 'f', ['Droplet ID', 'Snapshot ID'],
+                                  (str(droplet_id), str(snapshot_id)))
+
+        droplet.rebuild(image_id=snapshot_id)
+        self.logger.log_event(self.logclient, "REBUILD VM SNAPSHOT", 's', ['Droplet ID', 'Snapshot ID'],
+                              (str(droplet_id), str(snapshot_id)), "Rebuild Sequence Initiated")
+        return droplet
 
     # @info - used to resize a currently existing instance
     def resize_vm_instance(self, inst_id, new_size) :

@@ -15,6 +15,7 @@ class devopsUnitTest(UnitTest) :
         self.logclient = testargs['logclient']
 	self.schema = testargs['schema']
 	self.dbname = self.schema['dbname']
+        # self.tests = testargs['tests']
         self.head_data=['Schema File : %s' % self.schema['file']] # Add info to log at top of test log file here
         self.tail_data=[] # ^^ bottom of test file here
 
@@ -54,7 +55,7 @@ class devopsUnitTest(UnitTest) :
         ret = ret and self.fill_test_database()
 	# ret = ret and self.test_add_user()
 	# ret = ret and self.test_get_user_token()
-	# ret = ret and self.drop_test_database()
+	ret = ret and self.drop_test_database()
 	self.logtail(ret)
 	return ret
 
