@@ -83,8 +83,9 @@ class devopsUtil :
         
         # start by making the root user given to us in the config file
         userargs = {'username' : self.rootuser,
-                    'pwhash' : self.rootpwdhash,
-                    'email' : self.rootemail}
+                    'pwhash'   : self.rootpwdhash,
+                    'email'    : self.rootemail,
+                    'auth'     : self.authutil.AUTH_ROOT}
 
         create_user_res = self.authutil.create_user(userargs)
 
@@ -97,17 +98,17 @@ class devopsUtil :
                                   ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                   "Root User Added to DB")
 
-        if not self.add_regions() :
+        if not self.add_existing_regions() :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
                                   ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                   "Couldn't Add Instance Regions to DB")
 
-        if not self.add_providers() :
+        if not self.add_existing_providers() :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
                                   ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                   "Couldn't Add IaaS Providers to DB")
 
-        if not self.add_boot_images() :
+        if not self.add_existing_boot_images() :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
                                   ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                   "Couldn't Add Boot Images to DB")
@@ -128,7 +129,7 @@ class devopsUtil :
                                      ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                      "Could not add All Instances to DB")
 
-        if not self.add_snapshots() :
+        if not self.add_existing_snapshots() :
             return self.logger.log_event(self.logclient, "FILLING DATABASE", 'i',
                                          ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                          "Could not Add All Snapshots to DB")
@@ -167,8 +168,8 @@ class devopsUtil :
                                       (self.dbname, instance[1], instance[0], creator, xid),
                                       "Could not get Snapshot object from IaaS API")
                 else :
-                    snapshot = self.vmutil.format_snapshot(snap, instance[1])
-                    if self.dbutil.insert_or_update(self.ndbSnapshots, snapshot) :
+                    # snap[2][1] = instance[1] # set the snapshot instance name to the added instance name
+                    if self.dbutil.insert_or_update(self.ndbSnapshots, snap, "id='%s'"%str(xid)) :
                         self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 's', ['Snapshot ID', 'Instance ID'], 
                                               (xid, instance[1]), "Snapshot Added to DB")
                     else :
@@ -182,7 +183,7 @@ class devopsUtil :
 
 
     # @info - adds the available instance regions to the db
-    def add_regions(self) :
+    def add_existing_regions(self) :
         self.logger.log_event(self.logclient, "ADDING REGIONS", 'a', [], "")
         ret = True
         for region in self.regions :
@@ -191,7 +192,7 @@ class devopsUtil :
         return ret
 
     # @info - adds the IaaS providers we use to the db
-    def add_providers(self) :
+    def add_existing_providers(self) :
         self.logger.log_event(self.logclient, "ADDING PROVERSS", 'a', [], "")
         ret = True
         for provider in self.providers :
@@ -200,7 +201,7 @@ class devopsUtil :
         return ret
 
     # @info - adds the default boot images to the db (ex ubuntu-14.04-x64, etc.)
-    def add_boot_images(self) :
+    def add_existing_boot_images(self) :
         self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 'a')
 
         imgs = self.vmutil.get_boot_images() 
@@ -214,7 +215,7 @@ class devopsUtil :
         return self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 's' if ret else 'f', ['Num Images'], len(imgs))
 
     # @info - grabs any existing snapshots and adds them to the database
-    def add_snapshots(self) :
+    def add_existing_snapshots(self) :
         self.logger.log_event(self.logclient, "ADDING EXISTING SNAPSHOTS", 'a')
 
         snapshots = self.vmutil.get_snapshots()

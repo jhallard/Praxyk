@@ -42,7 +42,6 @@ LOG_DIR_COMB = BASEDIR + "comb-logs/"
 LOG_DIR_AUTH = BASEDIR + "auth-logs/"
 LOG_DIR_DEVOPS = BASEDIR + "devops-logs/"
 LOGDIR_HANDLER = BASEDIR + "handler-logs/"
-LOG_DIR_TEST = BASEDIR + "test-logs/"
 
 
 ## logutil client names
@@ -56,10 +55,23 @@ HANDLER_LOG_CLIENT = 'handlerclnt'
 DEVOPS_HANDLER_APP = Flask(__name__)
 
 DESCRIPTION = """
-This is the set of unit tests for that devops server backend.
-From this program you can test the main server program as well
-as the various utilities that it relies on, like the dbUtil,
-vmUtil, and authUtil classes.
+This is the script that handles all incoming API requests for the
+Praxyk development operations server (devops.praxyk.com). It uses the
+included utilities (vmUtil, dbUtil, authUtil, devopsUtil) to expose a
+secure and simple interface for users to access shared compute resources.
+
+The script must be given the path to a configuration file containing sensitive
+information (dbusers, dbpw, dbip, auth tokens for IaaS providers). It also must
+be given a shema file representing the devops database that is being used.
+
+Most actions that are performed by this script are triggered via incoming API calls,
+except for the build/fill database commands. Those can only be triggered by giving the
+input flag --builddb and --filldb respectively. Build DB will cause the tables and indexes
+to be constructed, while fill DB will cause data in the DB to be synced with data from
+IaaS providers. It will also add in the root user. 
+
+If you want to sync the DB with IaaS providers manually without building and filling the DB
+from scratch, you can use the API to send a sync command. See the DevOps API Docs.
 """
 
 # @info - parse command line args into useable dictionary
@@ -68,18 +80,18 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
-    parser.add_argument('--schemaf', help="Full path to the .schema file for a database. This is required if " + \
-                                          "you are testing the datbase, auth, devops, or server.")
-    parser.add_argument('--flags', help="A string where each character represents a test flag. Only used for vmtest so far." + \
-                                        "vmtest flags : [a b c d e f] each one runs another series of tests.")
+    parser.add_argument('--builddb', help="If present, the DB represented by the given schema file will be"+\
+                                    "built from scratch but not filled, given that it doesn't exist already.")
+    parser.add_argument('--filldb', help="If present, the devops DB that was just built will be synced with"+\
+                                    "the current info provided by IaaS providers.")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
-    parser.add_argument('test', help="Which test do you want to run. The following are accepted : " + \
-                                     "{vmtest, authtest, devopstest, servertest, dbtest}")
+    parser.add_argument('schemaf', help="Full path to the .schema file for a database.")
     return parser.parse_args()
 
-# @info - loads the given json file path into a dictionary and returns it
-def parse_config_file(fn) :
+
+# @info - takes a given json file and loads it into an active dictionary for return
+def load_json_file(fn) :
     if os.path.isfile(fn) :
         with open(fn, 'r+') as fh :
             data = json.load(fh)
@@ -135,11 +147,22 @@ def get_tasks():
     return jsonify({'tasks': tasks})
 
 if __name__ == '__main__':
-    args = parse_args(sys.argv)
-    arg_map = parse_config_file(args.config) 
     (logutil, db) = init_logutil()
+    logclient = HANDLER_LOG_CLIENT
 
-    if not arg_map:
+    args = parse_args(sys.argv)
+    if not args.config :
+        self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No Config File Given")
+        sys.exit(1)
+
+    if not args.schema :
+        self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No DB Schema File Given")
+        sys.exit(1)
+
+    config = load_json_file(args.config) 
+    schema = load_json_file(args.schemaf)
+
+    if not config:
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
 

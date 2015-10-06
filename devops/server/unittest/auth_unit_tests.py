@@ -77,7 +77,8 @@ class authUnitTest(UnitTest) :
 	TESTEMAIL = 'test@test.com'
 	userargs = {'username' : TESTUSER,
 		    'pwhash'   : TESTHASH,
-		    'email'    : TESTEMAIL}
+		    'email'    : TESTEMAIL,
+		    'auth'     : 2}
 
 	res = True
 	tok = self.authutil.create_user(userargs)

@@ -15,7 +15,9 @@ class devopsUnitTest(UnitTest) :
         self.logclient = testargs['logclient']
 	self.schema = testargs['schema']
 	self.dbname = self.schema['dbname']
-        # self.tests = testargs['tests']
+        self.flags = testargs.get('flags', 'a')
+	if not self.flags :
+	    self.flags = "a"
         self.head_data=['Schema File : %s' % self.schema['file']] # Add info to log at top of test log file here
         self.tail_data=[] # ^^ bottom of test file here
 
@@ -51,27 +53,52 @@ class devopsUnitTest(UnitTest) :
 
     def run(self) :
 	ret = True
-	ret = ret and self.build_test_database()
-        ret = ret and self.fill_test_database()
-	# ret = ret and self.test_add_user()
-	# ret = ret and self.test_get_user_token()
-	ret = ret and self.drop_test_database()
+
+        if 'a' in self.flags :
+            ret = ret and self.test_build_database()
+            ret = ret and self.test_fill_database()
+            # ret = ret and self.test_add_user()
+            # ret = ret and self.test_get_user_token()
+            # ret = ret and self.test_drop_database()
+
 	self.logtail(ret)
 	return ret
 
+	# ret = ret and self.test_build_database()
+        # ret = ret and self.test_fill_database()
+	# ret = ret and self.test_add_user()
+	# ret = ret and self.test_get_user_token()
+	# ret = ret and self.test_drop_database()
 
-    def build_test_database(self) :
+    def test_add_user(self) :
+        dec = "Adding a single new user to the database"
+
+	userargs = devopsargs
+
+        create_user_res = self.authutil.create_user(userargs)
+	self.user_token1 = create_user_res
+	self.maintest(sys._getframe().f_code.co_name, desc, create_user_res is not None)
+
+    def test_get_user_token(self) :
+        dec = "Get a recently added user's token from the DB"
+
+	userargs = devopsargs
+        create_user_res = self.authutil.create_user(userargs)
+	self.maintest(sys._getframe().f_code.co_name, desc, create_user_res is not None)
+
+
+    def test_build_database(self) :
 	desc = "Building the test Database"
 	self.logteststart(sys._getframe().f_code.co_name, desc)
 	return self.maintest(sys._getframe().f_code.co_name, desc, self.devopsutil.build_database())
 
-    def fill_test_database(self) :
+    def test_fill_database(self) :
 	desc = "Filling the test Database"
 	self.logteststart(sys._getframe().f_code.co_name, desc)
 	return self.maintest(sys._getframe().f_code.co_name, desc, self.devopsutil.fill_database())
 
 
-    def drop_test_database(self) :
+    def test_drop_database(self) :
 	desc = "Dropping the test Database"
 	self.logteststart(sys._getframe().f_code.co_name, desc)
 	return self.maintest(sys._getframe().f_code.co_name, desc, self.dbutil.drop_database(self.dbname))

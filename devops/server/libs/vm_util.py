@@ -104,7 +104,7 @@ class vmUtil :
         snapshots = self.get_snapshots()
         for ss in snapshots :
             if ss[0] == name :
-                return ss
+                return self.format_snapshot(ss)
         return None
 
     # @info - takes the id of a snapshot and grabs it from IaaS providers API

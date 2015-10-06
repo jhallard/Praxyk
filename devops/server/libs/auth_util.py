@@ -29,6 +29,12 @@ class authUtil :
         self.logclient = args['logclient']
         self.ndbUsers = "Users"
         self.ndbTokens = "Tokens"
+        self.ndbAuth = "Auth"
+
+        # user auth defines, 3 levels going from read-only priviledges to root.
+        self.AUTH_LOW = 0  # can only login to instances created for them
+        self.AUTH_MED = 1  # can make and login to instances and and  and delete only their own
+        self.AUTH_ROOT = 2 # root baby root!
 
     def check_user_exists(self, name) :
         res = self.dbutil.query(self.ndbUsers, "*", "username='%s'"%name)
@@ -42,6 +48,7 @@ class authUtil :
         un = userargs['username']
         pwhash = userargs['pwhash']
         email = userargs.get('email', "")
+        auth = userargs.get('auth', self.AUTH_LOW)
 
         vals = [("username", un), ("pwhash", pwhash), ("email", email)]
 
@@ -53,6 +60,14 @@ class authUtil :
             self.logger.log_event(self.logclient, "CREATE USER", 's', ['Username', 'Email'], (un, email))
         else :
             self.logger.log_event(self.logclient, "CREATE USER", 'f', ['Username', 'Email'], (un, email))
+            return None
+
+        valsauth = [("username", un), ("level", auth)]
+
+        if self.dbutil.insert(self.ndbAuth, valsauth) : 
+            self.logger.log_event(self.logclient, "CREATE USER AUTH", 's', ['Username', 'Auth'], (un, str(auth)))
+        else :
+            self.logger.log_event(self.logclient, "CREATE USER AUTH", 'f', ['Username', 'Auth'], (un, str(auth)))
             return None
 
         return  self.make_new_token(un)
@@ -72,12 +87,11 @@ class authUtil :
         self.logger.log_event(self.logclient, "USER VALIDATE", 'a', ['User'], (username))
         user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%namename, limit=1)
 
-        if not user :
-            return self.logger.log_event(self.logclient, "USER VALIDATE", 'f' if ret else 'f', ['User'],
-                                         (username), "User not Found in DB.")
-        user = user[0] # it's the first and only row returned.
+        if user :
+            user = user[0] # it's the first and only row returned.
+
         ret = (user[1] == pwhash)
-        return self.logger.log_event(self.logclient, "USER VALIDATE", 's' if ret else 'f', ['User'], (username), "PW Hash Match Attempt.")
+        return self.logger.log_event(self.logclient, "USER VALIDATE", 's' if ret else 'f', ['User'], (username))
 
     # @info - takes a user and gets a valid token for them. If none are available it makes a new one and returns
     #         it. This is called after the validate_user function is called.
@@ -98,15 +112,44 @@ class authUtil :
                 return tok[0][1] # the token value
 
     # @info - get a users attributes from the database base on the username
-    def get_user(self, name) :
-        if not self.check_user_exists(name) :
-            return self.logger.log_event(self.logclient, "USER INFO FETCH", 'f', ['User'], (name), "User Doesn't Exist")
-        user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%name, limit=1)
+    def get_user(self, username) :
+        if not self.check_user_exists(username) :
+            return self.logger.log_event(self.logclient, "USER INFO FETCH", 'f', ['User'], (username), "User Doesn't Exist")
+        user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%username, limit=1)
 
         if user :
             user = user[0] # it's the first and only row returned.
 
-        return {'username' : user[0], 'pwhash' : user[1], 'email' : user[2]}
+        auth = self.get_auth_level(username)
+        
+        return {'username' : user[0], 'pwhash' : user[1], 'email' : user[2], 'auth' : auth}
+
+    # @info - gets the auth level for the given user from the database and returns it
+    # @TODO - NEED TO TEST
+    def get_auth_level(self, username) :
+        if not self.check_user_exists(username) :
+            return self.logger.log_event(self.logclient, "USER AUTH FETCH", 'f', ['User'], (username), "User Doesn't Exist")
+
+        auth = self.dbutil.query(self.ndbAuth, 'level', "user='%s'"%username, limit=1)
+
+        if auth :
+            self.logger.log_event(self.logclient, "USER AUTH FETCH", 's', ['User', 'Auth Level'],
+                                  (username, str(auth[0][0])))
+            return auth[0][0]
+        return None
+
+    # @info - makes sure that the given users auth level is at or below the given level
+    # @TODO - NEED TO TEST
+    def verify_auth_level(self, username, auth_level) :
+        self.logger.log_event(self.logclient, "VERIFY AUTH", 'a', ['User', 'Auth Level'], (username, str(auth_level)))
+        user = self.get_user(user)
+
+        if not user :
+            return self.logger.log_event(self.logclient, "VERIFY AUTH", 'f', ['User', 'Auth Level'], (username, str(auth_level)),
+                                         "User Doesn't Exist")
+
+        verified = (user['auth'] <= auth_level)
+        return self.logger.log_event(self.logclient, "VERIFY AUTH", 's' if verified else 'f', ['User'], (username))
 
 
 
