@@ -1,6 +1,6 @@
 #include <praxyk/spam.hpp>
 
-#include <fann.h> // Needs to be included before fann_cpp.h
+#include <floatfann.h> // Needs to be included before fann_cpp.h
 #include <fann_cpp.h>
 
 namespace praxyk {
@@ -17,7 +17,19 @@ namespace praxyk {
 
     static FANN::neural_net _nnet = _init_spam_net();
 
+    /*
+     * This just shows how the neural net will be called. We
+     * still need to figure out how to go from the message
+     * we're passing in to the actual input numbers. Given that
+     * we're not actually instantiating the neural net, running
+     * this will segfault.
+     */
     float get_spam_chance(const std::string &message) {
-        return 0.0;
+        fann_type dummy_inputs[3];
+        dummy_inputs[0] = 1;
+        dummy_inputs[1] = 1;
+        dummy_inputs[2] = 1;
+
+        return *(_nnet.run(dummy_inputs));
     }
 }
