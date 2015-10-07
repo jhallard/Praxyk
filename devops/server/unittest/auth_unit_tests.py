@@ -56,8 +56,10 @@ class authUnitTest(UnitTest) :
     def run(self) :
 	ret = True
 	ret = ret and self.build_test_database()
-	ret = ret and self.test_add_user()
-	ret = ret and self.test_get_user_token()
+	ret = ret and self.test_add_users()
+	ret = ret and self.test_get_users_token()
+	ret = ret and self.test_get_users_auth_level()
+        ret = ret and self.test_verify_users_auth_level()
 	# ret = ret and self.drop_test_database()
 	self.logtail(ret)
 	return ret
@@ -68,19 +70,32 @@ class authUnitTest(UnitTest) :
 	self.logteststart(sys._getframe().f_code.co_name, desc)
 	return self.maintest(sys._getframe().f_code.co_name, desc, self.dbutil.build_database(self.schema))
 
-    def test_add_user(self) :
+    def test_add_users(self) :
 	desc = "Add a single user to the Users table."
 	self.logteststart(sys._getframe().f_code.co_name, desc)
 
 	TESTUSER = 'testuser'
 	TESTHASH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	TESTEMAIL = 'test@test.com'
+        TESTAUTH = 2
+
+	TESTUSER2 = 'noobuser'
+	TESTHASH2 = 'ABCDDDDDDDDIJKLMNOPQRSTUVWXYZ'
+	TESTEMAIL2 = 'peaches@test.com'
+        TESTAUTH2 = 1
+
 	userargs = {'username' : TESTUSER,
 		    'pwhash'   : TESTHASH,
 		    'email'    : TESTEMAIL,
-		    'auth'     : 2}
+		    'auth'     : TESTAUTH}
+	userargs2 = {'username' : TESTUSER2,
+		    'pwhash'   : TESTHASH2,
+		    'email'    : TESTEMAIL2,
+		    'auth'     : TESTAUTH2}
 
 	res = True
+
+        # first user
 	tok = self.authutil.create_user(userargs)
 	res = res and self.subtest(sys._getframe().f_code.co_name, "Testing Token Returned From Create User", tok != None)
 
@@ -88,22 +103,93 @@ class authUnitTest(UnitTest) :
 	self.subtest(sys._getframe().f_code.co_name, "Checking Added User Exists in DB", res)
 
 	user_map = self.authutil.get_user(TESTUSER)
+	res =  res and self.maintest(sys._getframe().f_code.co_name, desc, user_map != None)
+
+        # second user
+	tok = self.authutil.create_user(userargs2)
+	res = res and self.subtest(sys._getframe().f_code.co_name, "Testing Token Returned From Create User", tok != None)
+
+	res = res and self.authutil.check_user_exists(TESTUSER2)
+	self.subtest(sys._getframe().f_code.co_name, "Checking Added User Exists in DB", res)
+
+	user_map = self.authutil.get_user(TESTUSER2)
 	return res and self.maintest(sys._getframe().f_code.co_name, desc, user_map != None)
 
-    def test_get_user_token(self) :
+    def test_get_users_token(self) :
 	desc = "Get a Token for the User Just Added"
 	self.logteststart(sys._getframe().f_code.co_name, desc)
 
 	TESTUSER = 'testuser'
 	TESTHASH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	TESTEMAIL = 'test@test.com'
-	res = True
+        TESTAUTH = 2
 
+	TESTUSER2 = 'noobuser'
+	TESTHASH2 = 'ABCDDDDDDDDIJKLMNOPQRSTUVWXYZ'
+	TESTEMAIL2 = 'peaches@test.com'
+        TESTAUTH2 = 1
+
+	userargs = {'username' : TESTUSER,
+		    'pwhash'   : TESTHASH,
+		    'email'    : TESTEMAIL,
+		    'auth'     : TESTAUTH}
+	userargs2 = {'username' : TESTUSER2,
+		    'pwhash'   : TESTHASH2,
+		    'email'    : TESTEMAIL2,
+		    'auth'     : TESTAUTH2}
+	res = True
+        # first user
 	res = res and self.authutil.check_user_exists(TESTUSER)
 	self.subtest(sys._getframe().f_code.co_name, "Checking Added User Exists in DB", res)
 
 	tok = self.authutil.get_token(TESTUSER)
+	res = res and self.maintest(sys._getframe().f_code.co_name, desc, tok != None)
+
+        # second user
+	res = res and self.authutil.check_user_exists(TESTUSER2)
+	self.subtest(sys._getframe().f_code.co_name, "Checking Added User Exists in DB", res)
+
+	tok = self.authutil.get_token(TESTUSER2)
 	return res and self.maintest(sys._getframe().f_code.co_name, desc, tok != None)
+
+    def test_get_users_auth_level(self) :
+        desc = "Get the newly added user's auth level"
+	TESTUSER = 'testuser'
+        TESTAUTH = 2
+	TESTUSER2 = 'noobuser'
+        TESTAUTH2 = 1
+	res = True
+
+	res = res and self.authutil.check_user_exists(TESTUSER)
+        level = self.authutil.get_auth_level(TESTUSER)
+        res = (level == TESTAUTH)
+	res = res and self.maintest(sys._getframe().f_code.co_name, desc, res)
+
+	res = res and self.authutil.check_user_exists(TESTUSER2)
+        level = self.authutil.get_auth_level(TESTUSER2)
+        res = (level == TESTAUTH2)
+	return res and self.maintest(sys._getframe().f_code.co_name, desc, res)
+
+    def test_verify_users_auth_level(self) :
+        desc = "Test the verify_auth_level Function for the new user."
+	TESTUSER = 'testuser'
+        TESTAUTH = 2
+	TESTUSER2 = 'noobuser'
+        TESTAUTH2 = 1
+
+	res = True
+
+	res = res and self.authutil.check_user_exists(TESTUSER)
+        res = res and self.subtest(sys._getframe().f_code.co_name, "Test Auth Level 0", self.authutil.verify_auth_level(TESTUSER, 0))
+        res = res and self.subtest(sys._getframe().f_code.co_name, "Test Auth Level 1", self.authutil.verify_auth_level(TESTUSER, 1))
+        res = res and self.subtest(sys._getframe().f_code.co_name, "Test Auth Level 2", self.authutil.verify_auth_level(TESTUSER, 2))
+	res = res and self.maintest(sys._getframe().f_code.co_name, desc, res)
+
+	res = res and self.authutil.check_user_exists(TESTUSER2)
+        res = res and self.subtest(sys._getframe().f_code.co_name, "Test Auth Level 0", self.authutil.verify_auth_level(TESTUSER2, 0))
+        res = res and self.subtest(sys._getframe().f_code.co_name, "Test Auth Level 1", self.authutil.verify_auth_level(TESTUSER2, 1))
+        res = res and self.subtest(sys._getframe().f_code.co_name, "Test Auth Level 2", not self.authutil.verify_auth_level(TESTUSER2, 2))
+	return res and self.maintest(sys._getframe().f_code.co_name, desc, res)
 
     def drop_test_database(self) :
 	desc = "Dropping the test Database"

@@ -63,7 +63,7 @@ def parse_args(argv) :
     parser.add_argument('--schemaf', help="Full path to the .schema file for a database. This is required if " + \
                                           "you are testing the datbase, auth, devops, or server.")
     parser.add_argument('--flags', help="A string where each character represents a test flag. Only used for vmtest so far." + \
-                                        "vmtest flags     : [a b c d e f] each one runs another series of tests."+\
+                                        "vmtest flags     : [a b c d e f g] each one runs another series of tests."+\
                                         "devopstest flags : [a b c] ")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
@@ -115,6 +115,14 @@ def vm_unittest(globalargs, testargs) :
     vmargs = globalargs['vmargs'] 
     vmargs['logclient'] = VM_LOG_CLIENT
     vmargs['logutil'] = testargs['logutil']
+
+    key = globalargs['devopsargs']['sshkey']
+    pubkey_text = ""
+    with open(key['pubkey_file'], 'r+') as fh :
+        pubkey_text = fh.read()
+
+    key['public_key'] = pubkey_text
+    vmargs['sshkey'] = key
     test = vmUnitTest(vmargs, testargs)
     return test.run()
 
@@ -169,6 +177,12 @@ def devops_unittest(globalargs, testargs) :
     devopsargs['schema'] = testargs['schema']
     devopsargs['logutil'] = logutil
     devopsargs['logclient'] = DEVOPS_LOG_CLIENT
+    rootkey = devopsargs['sshkey']
+    pubkey_text = ""
+    with open(rootkey['pubkey_file'], 'r+') as fh :
+        pubkey_text = fh.read()
+    rootkey['public_key'] = pubkey_text
+    devopsargs['sshkey'] = rootkey
 
     test = devopsUnitTest(dbargs, vmargs, authargs, devopsargs, testargs)
     return test.run()

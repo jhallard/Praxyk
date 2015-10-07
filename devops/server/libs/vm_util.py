@@ -315,7 +315,52 @@ class vmUtil :
             return self.logger.log_event(self.logclient, "WAIT FOR VM STATE", 's', ['Final State', 'Desired State', 'Time Waited (s)'],
                                          (cur_state, str(states), str(time_left)) )
 
-    
+
+    # @info - retrive all of the valid ssh keys from the IaaS providers
+    def get_ssh_keys(self) :
+        if self.manager :
+            try :
+                sshkeys = self.manager.get_all_sshkeys()
+                if sshkeys :
+                    self.logger.log_event(self.logclient, "GET SSH KEYS", 's', ['Num Keys'], (str(len(sshkeys))))
+                    return sshkeys
+            except Exception, e :
+                self.logger.log_event(self.logclient, "GET SSH KEYS", 'e', ['e.what()'], str(e))
+                return None
+        self.logger.log_event(self.logclient, "GET SSH KEYS", 'f', [], "")
+        return None
+
+    # @info - retrive a single valid ssh key from the IaaS providers by key id
+    def get_ssh_key(self, xid) :
+        if self.manager :
+            sshkey = self.manager.get_ssh_key(xid)
+            try :
+                if sshkey :
+                    self.logger.log_event(self.logclient, "GET SSH KEY", 's', ['Keys ID'], (str(sshkey.id)))
+                    return  sshkey
+            except Exception, e :
+                self.logger.log_event(self.logclient, "GET SSH KEY", 'e', ['e.what()'], str(e))
+                return None
+        self.logger.log_event(self.logclient, "GET SSH KEY", 'f', [], "")
+        return None
+
+    # @info - takes a given ssh key and adds it to the digital ocean account. Key must contain a name
+    #         public-key and fingerprint as a dictionary {'name' : name, 'public_key' : pkey, 'fingerprint' : fp}
+    def add_ssh_key(self, key) :
+        self.logger.log_event(self.logclient, "ADD SSH KEY", 'a', ['Key Name', 'Key Fingerprint'], (key['name'], key['fingerprint']))
+        try :
+            newkey = digitalocean.SSHKey(token=self.tok,
+                                         name = key['name'],
+                                         public_key = key['public_key'])
+            newkey.create()
+            self.logger.log_event(self.logclient, "ADD SSH KEY", 'f' if not newkey else 's',
+                                  ['Key Name', 'Key Fingerprint'], (key['name'], key['fingerprint']))
+            return newkey
+        except Exception, e :
+            self.logger.log_event(self.logclient, "ADD SSH KEY", 'e', ['e.what()'], str(e))
+            return None
+
+        
 
     # @info - takes a list of vm instances and runs them through the instance formatter
     def format_do_instances(self, instances, creator) :
@@ -348,11 +393,12 @@ class vmUtil :
         return (dbargs, imgargs, keyargs)
 
     # @info - formats an ssh key so it can be inserted into the database
-    def format_ssh_key(self, key) :
+    def format_ssh_key(self, key, user) :
         return [ 
                  ("id", key.id),
+                 ("user", user),
                  ("name", key.name),
-                 ("pubkey", key.pubkey),
+                 ("pubkey", key.public_key),
                  ("fingerprint", key.fingerprint),
                 ]
 

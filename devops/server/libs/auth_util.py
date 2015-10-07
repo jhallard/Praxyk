@@ -125,7 +125,6 @@ class authUtil :
         return {'username' : user[0], 'pwhash' : user[1], 'email' : user[2], 'auth' : auth}
 
     # @info - gets the auth level for the given user from the database and returns it
-    # @TODO - NEED TO TEST
     def get_auth_level(self, username) :
         if not self.check_user_exists(username) :
             return self.logger.log_event(self.logclient, "USER AUTH FETCH", 'f', ['User'], (username), "User Doesn't Exist")
@@ -139,16 +138,15 @@ class authUtil :
         return None
 
     # @info - makes sure that the given users auth level is at or below the given level
-    # @TODO - NEED TO TEST
     def verify_auth_level(self, username, auth_level) :
         self.logger.log_event(self.logclient, "VERIFY AUTH", 'a', ['User', 'Auth Level'], (username, str(auth_level)))
-        user = self.get_user(user)
+        user = self.get_user(username)
 
-        if not user :
+        if not username :
             return self.logger.log_event(self.logclient, "VERIFY AUTH", 'f', ['User', 'Auth Level'], (username, str(auth_level)),
                                          "User Doesn't Exist")
 
-        verified = (user['auth'] <= auth_level)
+        verified = (user['auth'] >= auth_level)
         return self.logger.log_event(self.logclient, "VERIFY AUTH", 's' if verified else 'f', ['User'], (username))
 
 

@@ -40,6 +40,7 @@ class devopsUtil :
         self.rootuser = devopsargs['rootuser']
         self.rootpwdhash = self.hashpw(self.rootuser, devopsargs['rootpwd'])
         self.rootemail = devopsargs['rootemail']
+        self.rootkey = devopsargs['sshkey']
 
         self.regions = ['sfo1', 'nyc1', 'nyc2']
         self.providers = ['DO', 'AWS', 'GCE']
@@ -55,11 +56,30 @@ class devopsUtil :
         self.ndbSSHKeys = "SSHKeys"
         self.ndbRegions = "Regions"
 
+    # @info - adds an ssh key to both the registered ssh key lists for the various service providers
+    #         and adds it to the database for our own tracking purposes.
+    def add_ssh_key(self, user, keyname, keyargs) :
+        self.logger.log_event(self.logclient, "ADD NEW SSHKEY", 'a', ['User', 'Keyname'], (user, keyname))
+        keyargs['name'] = keyname
+        newkey = self.vmutil.add_ssh_key(keyargs)
+        if not newkey :
+            return self.logger.log_event(self.logclient, "ADD NEW SSHKEY", 'f', ['User', 'Keyname'], (user, keyname))
+        else :
+            self.logger.log_event(self.logclient, "ADD NEW SSHKEY", 'i', ['User', 'Keyname'], (user, keyname), "Added to IaaS Providers")
+
+        key_formatted = self.vmutil.format_ssh_key(newkey, user)
+
+        res = self.dbutil.insert_or_update(self.ndbSSHKeys, key_formatted, "id='%s'"%str(newkey.id))
+        self.logger.log_event(self.logclient, "ADD NEW SSHKEY", 's' if res else 'f', ['User', 'Keyname'], (user, keyname), "Added to IaaS Providers")
+
+        return newkey
+
 
     # @info - gets the existing instances that the user has access to and returns their names, id's, 
     #         and ip addresses.
     def get_all_instances(self) :
         # @TODO add logging
+        self.logger.log_event(self.logclient, "GET ALL INSTANCES", 'a')
         return self.vmutil.get_vm_instances(self)
 
     # @info - uses the dbUtil class to build the database that contains all of the devops info,
@@ -87,6 +107,9 @@ class devopsUtil :
                     'email'    : self.rootemail,
                     'auth'     : self.authutil.AUTH_ROOT}
 
+        userkeyargs = {'public_key' : self.rootkey['public_key'],
+                       'fingerprint': self.rootkey['fingerprint']}
+
         create_user_res = self.authutil.create_user(userargs)
 
         if not create_user_res :
@@ -97,6 +120,15 @@ class devopsUtil :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 's',
                                   ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                   "Root User Added to DB")
+
+        if not self.add_ssh_key(self.rootuser, self.rootkey['name'], userkeyargs) :
+            self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
+                                  ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                  "Failed to Add Root SSH Key")
+        else :
+            self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
+                                  ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                  "Root SSH Key Added")
 
         if not self.add_existing_regions() :
             self.logger.log_event(self.logclient, "FILLING DATABASE", 'f',
@@ -175,8 +207,6 @@ class devopsUtil :
                     else :
                         self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', ['Snapshot ID', 'Instance ID'], 
                                               (xid, instance[1]), "Snapshot Added to DB")
-        if keys :
-            pass
 
         return True
 

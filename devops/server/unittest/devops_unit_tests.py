@@ -25,6 +25,7 @@ class devopsUnitTest(UnitTest) :
 	
         self.dbutil = dbUtil(dbargs)
         self.dbutil.login()
+        self.rootkey = devopsargs['sshkey']
         self.devopsutil = devopsUtil(dbargs, vmargs, authargs, devopsargs)
 
 	self.drop_test_databases([self.dbname])

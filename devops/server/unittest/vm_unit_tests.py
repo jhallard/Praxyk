@@ -31,6 +31,7 @@ class vmUnitTest(UnitTest) :
         self.snapshot_id1 = 0  # used by our snapshot tests, need to store id of created
                                # ones to delete in further tests
         self.instance_id1 = 0 # vm built from scratch in create_instance()
+        self.sshkey = vmargs['sshkey']
 
     def run(self) :
         ret = True
@@ -57,6 +58,7 @@ class vmUnitTest(UnitTest) :
     
         if 'd' in self.flags :
             # standard health check
+            ret = ret and self.test_get_sshkeys()
             ret = ret and self.test_get_boot_images()
             ret = ret and self.test_get_snapshots()
             ret = ret and self.test_get_running_instances()
@@ -71,6 +73,9 @@ class vmUnitTest(UnitTest) :
         if 'f' in self.flags :
             ret = ret and self.test_create_snapshot()
             ret = ret and self.test_delete_snapshot()
+
+        if 'g' in self.flags :
+            ret = ret and self.test_add_sshkey()
 
         self.logtail(ret)
         return ret
@@ -112,6 +117,17 @@ class vmUnitTest(UnitTest) :
         return self.maintest(sys._getframe().f_code.co_name, desc, True) # if res is none it just means we
                                                                          # have no images currently
 
+    def test_get_sshkeys(self) :
+        desc = "Get the Available SSH Keys in Bulk then One By One"
+        self.subtest(sys._getframe().f_code.co_name, "Logging In with IaaS Provider", self.vmutil.login())
+        keys = self.vmutil.get_ssh_keys() 
+        res = self.subtest(sys._getframe().f_code.co_name, "Get All SSH Keys", keys != None)
+
+        for key in keys :
+            key_2 = self.vmutil.get_ssh_key(key.id)
+            res = res and self.subtest(sys._getframe().f_code.co_name, "Get single SSH Key", key_2 != None)
+
+        return self.maintest(sys._getframe().f_code.co_name, desc, res)
 
     def test_get_running_instances(self) :
         desc = "Get Any VMs Currently Running in the Cloud."
@@ -274,6 +290,19 @@ class vmUnitTest(UnitTest) :
             return self.maintest(sys._getframe().f_code.co_name, "Instance Never Went Active to Destroy", False)
         res = self.vmutil.destroy_vm_instance(self.instance_id1)
         return self.maintest(sys._getframe().f_code.co_name, desc, res)
+
+
+    def test_add_sshkey(self) :
+        """This test takes a given ssh key (public key, fingerprint, name assigned to it) and puts it onto the digital ocean account"""
+        desc = "Add a new SSH Key to the IaaS account"
+
+        keyargs = {'name' : self.sshkey['name'],
+                   'public_key' : self.sshkey['public_key'],
+                   'fingerprint' : self.sshkey['fingerprint'] }
+
+        key = self.vmutil.add_ssh_key(keyargs)
+
+        return self.maintest(sys._getframe().f_code.co_name, desc, key is not None)
 
 
 
