@@ -17,9 +17,11 @@ std::string get_string_from_image(
     if (api->Init(NULL, "eng")) {
         throw std::runtime_error("Failed to initialize Tesseract.");
     }
-
-    // Open input image with leptonica library
     Pix *image = pixRead(filename.c_str());
+    if(image == NULL){
+      die("Error reading image\n");
+    }
+    // Open input image with leptonica library
     api->SetImage(image);
     // Get OCR result
     outText = api->GetUTF8Text();
