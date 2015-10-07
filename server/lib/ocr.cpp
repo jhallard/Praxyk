@@ -1,4 +1,4 @@
-#include <praxyk/praxyk.hpp>
+#include <praxyk/ocr.hpp>
 
 #include <tesseract/baseapi.h>
 #include <leptonica/allheaders.h>

@@ -1,7 +1,7 @@
 SET(praxyk_headers
     config.hpp
-    praxyk.hpp
-    src2.hpp
+    ocr.hpp
+    spam.hpp
 )
 
 INSTALL(

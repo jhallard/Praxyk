@@ -1,17 +1,23 @@
 SET(praxyk_sources
-    praxyk.cpp
-    src2.cpp
+    ocr.cpp
+    spam.cpp
 )
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${FANN_INCLUDE_DIRS}
     ${Tesseract_INCLUDE_DIR}
+)
+
+SET(praxyk_libs
+    ${FANN_LIBRARIES}
+    ${Tesseract_LIBRARIES}
 )
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
 ADD_LIBRARY(praxyk SHARED ${praxyk_sources})
-TARGET_LINK_LIBRARIES(praxyk ${Tesseract_LIBRARIES})
+TARGET_LINK_LIBRARIES(praxyk ${praxyk_libs})
 
 INSTALL(
     TARGETS praxyk
