@@ -19,7 +19,7 @@ std::string get_string_from_image(
     }
     Pix *image = pixRead(filename.c_str());
     if(image == NULL){
-      die("Error reading image\n");
+      throw std::runtime_error("Error reading image\n");
     }
     // Open input image with leptonica library
     api->SetImage(image);
