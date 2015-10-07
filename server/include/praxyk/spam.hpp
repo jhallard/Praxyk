@@ -1,5 +1,9 @@
 #include <praxyk/config.hpp>
 
-namespace praxyk {
+#include <string>
 
+namespace praxyk {
+    PRAXYK_API float get_spam_chance(
+        const std::string &message
+    );
 }
