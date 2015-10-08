@@ -42,6 +42,8 @@ class devopsUtil :
         self.rootemail = devopsargs['rootemail']
         self.rootkey = devopsargs['sshkey']
 
+        self.dbutil.use_database(self.dbname)
+
         self.regions = ['sfo1', 'nyc1', 'nyc2']
         self.providers = ['DO', 'AWS', 'GCE']
 
@@ -69,16 +71,101 @@ class devopsUtil :
 
         key_formatted = self.vmutil.format_ssh_key(newkey, user)
 
-        res = self.dbutil.insert_or_update(self.ndbSSHKeys, key_formatted, "id='%s'"%str(newkey.id))
-        self.logger.log_event(self.logclient, "ADD NEW SSHKEY", 's' if res else 'f', ['User', 'Keyname'], (user, keyname), "Added to IaaS Providers")
+        res = self.dbutil.insert(self.ndbSSHKeys, key_formatted)
+        self.logger.log_event(self.logclient, "ADD NEW SSHKEY", 's' if res else 'f', ['User', 'Keyname'],
+                              (user, keyname), "Added to IaaS Providers")
 
         return newkey
+
+    # @info - creates a new virtual machine with the user's SSH keys added 
+    def create_vm_instance(self, user, vmargs) :
+        self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 'a', ['User', 'VM Name'], (user, vmargs['name']))
+        ssh_keys = self.get_ssh_keys(user)
+        droplet = self.vmutil.create_vm_instance(vmargs, ssh_keys)
+
+        if not droplet :
+            return self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 'f', ['User', 'VM Name'], (user, vmargs['name']))
+        else :
+            self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 's', ['User', 'VM Name'], (user, vmargs['name']))
+
+        active = self.vmutil.wait_for_state(droplet.id, ['active'], 180)
+        if active : # to propagate the updated state
+            droplet = self.vmutil.get_vm_instance(droplet.id)
+
+        result = self.add_instance_db(droplet, user)
+        self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 's' if result else 'f', ['User', 'VM Name'],
+                              (user, vmargs['name']))
+
+        return droplet
+
+    # @info - returns a list of dictionaries that completely describe all of the instances if xid is not given
+    #         else only returns that instance given by the xid. 
+    #         Instances returned are formatted for the API.
+    def get_vm_instances(self, xid=None) :
+        if not xid :
+            instances = self.dbutil.query(self.ndbInstances, "*")
+        else :
+            instances = self.dbutil.query(self.ndbInstances, "*", "id='%s'"%xid, limit=1)
+        ret = []
+
+        for inst in instances :
+            formatted = { 
+                "id"     : inst[0],
+                "name"   : inst[1],
+                "image"  : inst[2],
+                "ip"     : inst[3],
+                "class"  : inst[5],
+                "disk"   : inst[6],
+                "status" : inst[8],
+                "creator" :inst[9],
+                "created_at" : str(inst[10]),
+            }
+            ret.append(formatted)
+        return ret
+
+    # @info - gets a users info - the name, email, and current running instances.
+    def get_user(self, username) :
+        instances = self.get_vm_instances()
+        users_instances = [inst['id'] for inst in instances if inst['creator'] == username]
+        user = self.authutil.get_user(username)
+        if user :
+            return {'name' : user['username'], 'email' : user['email'], 'instances' : users_instances}
+        else :
+            return {}
+
+    def create_user(self, userargs) :
+        return self.authutil.create_user(userargs)
+
+    
+
+    # @info - creates a snapshot of an active image , shut it down if user gives shutdown argument. Add snapshot info
+    #         to the database.
+    def create_vm_snapshot(self, snapargs) :
+        self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'a', ['User', 'VM Name'], (user, snapargs['name']))
+	# @TODO
+
+
+    # @info - get all of the ssh keys from the database for either one user or all of them (Depending on user argument)
+    def get_ssh_keys(self, user=None) :
+        self.logger.log_event(self.logclient, "GET SSH KEYS", 'a', ['User'], (user if user else "All"))
+        if user :
+            auth_level = self.authutil.get_auth_level(user)
+            # keyids = self.dbutil.query(self.ndbSSHKeys, 'id', ""%user)
+            keyids = self.dbutil.query("""(SSHKeys JOIN Auth ON (SSHKeys.user=Auth.user))""", 'SSHKeys.id', "Auth.level>='%s'"%auth_level)
+        else :
+            keyids = self.dbutil.query(self.ndbSSHKeys, 'id')
+
+        self.logger.log_event(self.logclient, "GET SSH KEYS", 'f' if not keyids else 's',
+                              ['User', 'Num Keys'], ( (user if user else "All"), str(len(keyids if keyids else '0')) ) )
+        if keyids :
+            return [int(key[0]) for key in keyids]
+        else :
+            return []
 
 
     # @info - gets the existing instances that the user has access to and returns their names, id's, 
     #         and ip addresses.
-    def get_all_instances(self) :
-        # @TODO add logging
+    def get_all_instances_do(self) :
         self.logger.log_event(self.logclient, "GET ALL INSTANCES", 'a')
         return self.vmutil.get_vm_instances(self)
 
@@ -166,6 +253,11 @@ class devopsUtil :
                                          ['DB Name', 'User Name'], (self.dbname, self.rootuser),
                                          "Could not Add All Snapshots to DB")
 
+        return self.logger.log_event(self.logclient, "FILLING DATABASE", 's',
+                                     ['DB Name', 'User Name'], (self.dbname, self.rootuser),
+                                     "Database Filled")
+
+
 
     # @info - adds a VM instance to the database. Takes in an instance (returned from get_vm_instance
     #         in vmUtil) and a creator (username of the caller) and puts the new instance in the db.
@@ -174,7 +266,7 @@ class devopsUtil :
                               ['DB Name', 'Instance Name', 'Instance ID', 'Creator'],
                               (self.dbname, instance.name, instance.id, creator))
 
-        (instance, imgs, keys) = self.vmutil.format_do_instance(instance, self.rootuser)
+        (instance, imgs, keys) = self.vmutil.format_do_instance(instance, creator)
 
         if not instance :
             return self.logger.log_event(self.logclient, "ADDING VM INSTANCE", 'f', 
@@ -242,7 +334,7 @@ class devopsUtil :
         for img in imgs :
             ret = ret and self.dbutil.insert(self.ndbImages, img)
 
-        return self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 's' if ret else 'f', ['Num Images'], len(imgs))
+        return self.logger.log_event(self.logclient, "ADDING BOOT IMAGES", 's', ['Num Images'], len(imgs))
 
     # @info - grabs any existing snapshots and adds them to the database
     def add_existing_snapshots(self) :
@@ -257,7 +349,7 @@ class devopsUtil :
         for snapshot in snapshots :
             ret = ret and self.dbutil.insert(self.ndbSnapshots, snapshot) 
 
-        return self.logger.log_event(self.logclient, "ADDING EXISTING SNAPSHOTS", 's' if ret else 'f', ['Num Snapshots'], len(snapshots))
+        return self.logger.log_event(self.logclient, "ADDING EXISTING SNAPSHOTS", 's', ['Num Snapshots'], len(snapshots))
 
 
     # @info - takes a dictionary {'name' : 'value'} and formats it into the list of tuples [('name', 'value') ...]

@@ -76,16 +76,19 @@ class authUtil :
     # @info - ensures that a given token exists in the token database
     def validate_token(self, tok) :
         self.logger.log_event(self.logclient, "TOKEN VALIDATE", 'a')
-        results = self.dbutil.query(self.ndbTokens, 'val', "val='%s'", "created_at ASC", limit=1)
-        ret = (len(results) > 1)
-        return self.logger.log_event(self.logclient, "TOKEN VALIDATE", 's' if ret else 'f')
+        results = self.dbutil.query(self.ndbTokens, 'val, user', "val='%s'"%tok, "created_at ASC", limit=1)
+        ret = None if not results else (len(results) >= 1)
+        if not ret :
+            return self.logger.log_event(self.logclient, "TOKEN VALIDATE", 'f')
+        return results[0][1] # return the user name
+
 
     # @info - takes a username and a pwhash and validates that the credential are correct. 
     #         normally only used to get validate a user when their token expires and they
     #         need a new one.
     def validate_user(self, username, pwhash) :
         self.logger.log_event(self.logclient, "USER VALIDATE", 'a', ['User'], (username))
-        user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%namename, limit=1)
+        user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%username, limit=1)
 
         if user :
             user = user[0] # it's the first and only row returned.
@@ -114,7 +117,8 @@ class authUtil :
     # @info - get a users attributes from the database base on the username
     def get_user(self, username) :
         if not self.check_user_exists(username) :
-            return self.logger.log_event(self.logclient, "USER INFO FETCH", 'f', ['User'], (username), "User Doesn't Exist")
+            self.logger.log_event(self.logclient, "USER INFO FETCH", 'f', ['User'], (username), "User Doesn't Exist")
+            return {}
         user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%username, limit=1)
 
         if user :

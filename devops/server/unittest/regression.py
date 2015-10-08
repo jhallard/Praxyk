@@ -168,8 +168,10 @@ def devops_unittest(globalargs, testargs) :
     dbargs['dbip'] = dbargs['dbipv4']
     dbargs['logutil'] = testargs['logutil']
     dbargs['logclient'] = DB_LOG_CLIENT
+    dbutil = dbUtil(dbargs)
 
     authargs = {}
+    authargs['dbutil'] = dbutil
     authargs['logclient'] = AUTH_LOG_CLIENT
     authargs['logutil'] = logutil
 

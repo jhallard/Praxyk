@@ -10,7 +10,7 @@ from devops_util import *
 class devopsUnitTest(UnitTest) :
 
     def __init__(self, dbargs, vmargs, authargs, devopsargs, testargs) :
-        self.title = 'Authorization Util'
+        self.title = 'DevOps Util'
         self.logger = testargs['logutil']
         self.logclient = testargs['logclient']
 	self.schema = testargs['schema']
@@ -25,8 +25,10 @@ class devopsUnitTest(UnitTest) :
 	
         self.dbutil = dbUtil(dbargs)
         self.dbutil.login()
+        self.rootuser = devopsargs['rootuser']
         self.rootkey = devopsargs['sshkey']
         self.devopsutil = devopsUtil(dbargs, vmargs, authargs, devopsargs)
+        self.authutil = self.devopsutil.authutil
 
 	self.drop_test_databases([self.dbname])
 
@@ -58,7 +60,10 @@ class devopsUnitTest(UnitTest) :
         if 'a' in self.flags :
             ret = ret and self.test_build_database()
             ret = ret and self.test_fill_database()
-            # ret = ret and self.test_add_user()
+            ret = ret and self.test_add_user()
+            ret = ret and self.test_create_instance_root()
+            ret = ret and self.test_create_instance_user()
+            ret = ret and self.test_get_user()
             # ret = ret and self.test_get_user_token()
             # ret = ret and self.test_drop_database()
 
@@ -72,21 +77,74 @@ class devopsUnitTest(UnitTest) :
 	# ret = ret and self.test_drop_database()
 
     def test_add_user(self) :
-        dec = "Adding a single new user to the database"
+        desc = "Adding a single new user to the database"
+	self.logteststart(sys._getframe().f_code.co_name, desc)
 
-	userargs = devopsargs
+	TESTUSER = 'testuser'
+	TESTHASH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	TESTEMAIL = 'test@test.com'
+        TESTAUTH = 2
+
+	TESTUSER2 = 'noobuser'
+	TESTHASH2 = 'ABCDDDDDDDDIJKLMNOPQRSTUVWXYZ'
+	TESTEMAIL2 = 'peaches@test.com'
+        TESTAUTH2 = 1
+
+	userargs = {'username' : TESTUSER,
+		    'pwhash'   : TESTHASH,
+		    'email'    : TESTEMAIL,
+		    'auth'     : TESTAUTH}
+
+	userargs2 = {'username' : TESTUSER2,
+		    'pwhash'   : TESTHASH2,
+		    'email'    : TESTEMAIL2,
+		    'auth'     : TESTAUTH2}
+                    
 
         create_user_res = self.authutil.create_user(userargs)
 	self.user_token1 = create_user_res
 	self.maintest(sys._getframe().f_code.co_name, desc, create_user_res is not None)
 
-    def test_get_user_token(self) :
-        dec = "Get a recently added user's token from the DB"
+        create_user_res = self.authutil.create_user(userargs2)
+	self.user_token1 = create_user_res
+        return	self.maintest(sys._getframe().f_code.co_name, desc, create_user_res is not None)
 
-	userargs = devopsargs
-        create_user_res = self.authutil.create_user(userargs)
-	self.maintest(sys._getframe().f_code.co_name, desc, create_user_res is not None)
 
+    def test_create_instance_root(self) :
+        desc = "Creating a single instance, checking it's live and adding it to the DB."
+	self.logteststart(sys._getframe().f_code.co_name, desc)
+
+        vmargs = { 'name' : 'TEST-INST-ALPH',
+                   'region' : 'sfo1',
+                   'image'  : 'ubuntu-14-04-x64',
+                   'class'  : '1gb'
+                   }
+
+        res = self.devopsutil.create_vm_instance(self.rootuser, vmargs)
+	return self.maintest(sys._getframe().f_code.co_name, desc, res)
+
+    def test_create_instance_user(self) :
+        desc = "Creating a single instance, checking it's live and adding it to the DB."
+	self.logteststart(sys._getframe().f_code.co_name, desc)
+	TESTUSER = 'testuser'
+	TESTHASH = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	TESTEMAIL = 'test@test.com'
+        TESTAUTH = 2
+
+        vmargs = { 'name' : 'TEST-INST-BETA',
+                   'region' : 'sfo1',
+                   'image'  : 'ubuntu-14-04-x64',
+                   'class'  : '2gb'
+                   }
+
+        res = self.devopsutil.create_vm_instance(TESTUSER, vmargs)
+	return self.maintest(sys._getframe().f_code.co_name, desc, res)
+
+    def test_get_user(self) :
+        desc = "Creating a single instance, checking it's live and adding it to the DB."
+	self.logteststart(sys._getframe().f_code.co_name, desc)
+        user = self.devopsutil.get_user("root")
+	return self.maintest(sys._getframe().f_code.co_name, desc, user is not None)
 
     def test_build_database(self) :
 	desc = "Building the test Database"

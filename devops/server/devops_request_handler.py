@@ -30,11 +30,12 @@ import argparse
 import datetime
 import json
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, Response, g
+from functools import wraps
 
 
 ## logging directories
-BASEDIR = "../logs/"
+BASEDIR = "logs/"
 LOG_DIR_VM = BASEDIR + "vm-logs/"
 LOG_DIR_DB = BASEDIR + "db-logs/"
 LOG_DIR_SERVER = BASEDIR + 'server-logs'
@@ -51,6 +52,9 @@ AUTH_LOG_CLIENT = 'authclient'
 SERVER_LOG_CLIENT = 'serverclnt'
 DEVOPS_LOG_CLIENT = 'devopsclnt'
 HANDLER_LOG_CLIENT = 'handlerclnt'
+
+global CONFIG
+global SCHEMA
 
 DEVOPS_HANDLER_APP = Flask(__name__)
 
@@ -119,35 +123,170 @@ def init_logutil() :
                AUTH_LOG_CLIENT          : [formatfn(LOG_DIR_AUTH, AUTH_LOG_CLIENT, dt)],
                SERVER_LOG_CLIENT        : [formatfn(LOG_DIR_SERVER, SERVER_LOG_CLIENT, dt)],
                DEVOPS_LOG_CLIENT        : [formatfn(LOG_DIR_DEVOPS, DEVOPS_LOG_CLIENT, dt)],
-               HANDLER_LOG_CLIENT       : [sys.stdout, formatfn(LOG_DIR_HANDLER, HANDLER_LOG_CLIENT, dt)],
-               logutil.error_client_name: [sys.stderr], # uncmnt to direct all errors to stderr
+               HANDLER_LOG_CLIENT       : [formatfn(LOG_DIR_HANDLER, HANDLER_LOG_CLIENT, dt)],
+               logutil.error_client_name: [], #sys.stderr], # uncmnt to direct all errors to stderr
                logutil.combined_client_name : [formatfn(LOG_DIR_COMB, logutil.combined_client_name, dt)]}
     logutil.set_clients(clients)
     return (logutil, dt) 
 
+def get_log() :
+    logutil = getattr(g, '_logutil', None)
+    if logutil is None :
+        (logutil, dt) = init_logutil()
+    return logutil
 
 
-tasks = [
-    {
-        'id': 1,
-        'title': u'Buy groceries',
-        'description': u'Milk, Cheese, Pizza, Fruit, Tylenol', 
-        'done': False
-    },
-    {
-        'id': 2,
-        'title': u'Learn Python',
-        'description': u'Need to find a good Python tutorial on the web', 
-        'done': False
-    }
-]
+def get_db_args() :
+    logutil = get_log()
+    dbargs = CONFIG['dbargs']
+    dbargs['logutil'] = logutil
+    dbargs['logclient'] = DB_LOG_CLIENT 
+    return dbargs
 
-@DEVOPS_HANDLER_APP.route('/todo/api/v1.0/tasks', methods=['GET'])
-def get_tasks():
-    return jsonify({'tasks': tasks})
+def get_db() :
+    dbutil = getattr(g, '_dbutil', None)
+    if dbutil is None :
+        dbargs = get_db_args()
+        dbutil = g._dbutil = dbUtil(dbargs)
+        dbutil.login()
+        dbutil.use_database(SCHEMA['dbname'])
+    return dbutil
+
+def get_vm_args() :
+    logutil = get_log()
+    vmargs = CONFIG['vmargs']
+    vmargs['logutil'] = logutil
+    vmargs['logclient'] = VM_LOG_CLIENT 
+    return vmargs
+
+def get_vm() :
+    vmutil = getattr(g, '_vmutil', None)
+    if vmutil is None :
+        vmargs = get_vm_args()
+        vmutil = g._vmutil = vmUtil(vmargs)
+        vmutil.login()
+    return vmutil
+
+def get_auth_args() :
+    logutil = get_log()
+    dbutil = get_db()
+    authargs = {'dbutil' : dbutil, 'logutil' : logutil, 'logclient' : AUTH_LOG_CLIENT}
+    return authargs
+
+def get_auth() :
+    authutil = getattr(g, '_authutil', None)
+    if authutil is None:
+        authargs = get_auth_args()
+        authutil = g._authutil = authUtil(authargs) 
+    return  authutil
+
+def get_devops() :
+    devopsutil = getattr(g, '_devopsutil', None)
+    if devopsutil is None :
+        logutil = get_log()
+        dbargs = get_db_args()
+        vmargs = get_vm_args()
+        authargs = get_auth_args()
+        devopsargs = CONFIG['devopsargs']
+        devopsargs['logutil'] = logutil
+        devopsargs['logclient'] = DEVOPS_LOG_CLIENT
+        devopsargs['schema'] = SCHEMA
+
+        rootkey = devopsargs['sshkey']
+        pubkey_text = ""
+        with open(rootkey['pubkey_file'], 'r+') as fh :
+            pubkey_text = fh.read()
+        rootkey['public_key'] = pubkey_text
+        devopsargs['sshkey'] = rootkey
+        devopsutil = devopsUtil(dbargs, vmargs, authargs, devopsargs)
+    return devopsutil
+
+
+
+def authenticate():
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def not_found(what) :
+    return Response(
+        'Could not find %s resource with given URL. \n'%str(what), 404,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.values.get('token')
+        if not auth :
+            auth = request.json.get('token')
+        authutil = get_auth()
+        if not auth or not authutil.validate_token(auth):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+def requires_root(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.values.get('token')
+        if not auth :
+            auth = request.json.get('token')
+        authutil = get_auth()
+        user = authutil.validate_token(auth)
+        if not auth or not user :
+            return authenticate()
+        if not authutil.verify_auth_level(user, authutil.AUTH_ROOT) :
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
+
+### Users Handling ###
+@DEVOPS_HANDLER_APP.route('/users/<string:username>', methods=['GET'])
+@requires_auth
+def get_user(username):
+    devopsutil = get_devops()
+    user = devopsutil.get_user(username)
+    if user :
+        return jsonify(devopsutil.get_user(username))
+    else :
+        return not_found("user")
+
+
+
+@DEVOPS_HANDLER_APP.route('/users/', methods=['POST'])
+@requires_root
+def create_user():
+    devopsutil = get_devops()
+    username = request.json.get('name')
+    email = request.json.get('email')
+    pwhash = devopsutil.hashpw(username, request.json.get('pwd'))
+    auth = request.json.get('auth')
+    token = devopsutil.create_user({'username' : username,
+                                          'email' : email,
+                                          'pwhash' : pwhash,
+                                          'auth' : auth})
+    return jsonify({'username' : username, 'email' : email})
+
+
+### Token Handling ###
+
+
+### Compute Handling ###
+
+
+### Snapshot Handling ###
+
+
+### SSHKey Handling ###
+
 
 if __name__ == '__main__':
-    (logutil, db) = init_logutil()
+    global CONFIG
+    global SCHEMA
+
+    (logutil, dt) = init_logutil()
     logclient = HANDLER_LOG_CLIENT
 
     args = parse_args(sys.argv)
@@ -155,14 +294,14 @@ if __name__ == '__main__':
         self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No Config File Given")
         sys.exit(1)
 
-    if not args.schema :
+    if not args.schemaf :
         self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No DB Schema File Given")
         sys.exit(1)
 
-    config = load_json_file(args.config) 
-    schema = load_json_file(args.schemaf)
+    CONFIG = load_json_file(args.config) 
+    SCHEMA = load_json_file(args.schemaf)
 
-    if not config:
+    if not CONFIG:
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
 
