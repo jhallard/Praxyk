@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 import _fix_path_
 from db_util import *
 from unit_test import *

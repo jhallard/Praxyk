@@ -58,6 +58,8 @@ class devopsUtil :
         self.ndbSSHKeys = "SSHKeys"
         self.ndbRegions = "Regions"
 
+    ########## SSH Keys ##########
+
     # @info - adds an ssh key to both the registered ssh key lists for the various service providers
     #         and adds it to the database for our own tracking purposes.
     def add_ssh_key(self, user, keyname, keyargs) :
@@ -76,6 +78,8 @@ class devopsUtil :
                               (user, keyname), "Added to IaaS Providers")
 
         return newkey
+
+    ########## VM Instances ##########
 
     # @info - creates a new virtual machine with the user's SSH keys added 
     def create_vm_instance(self, user, vmargs) :
@@ -98,6 +102,20 @@ class devopsUtil :
                               (user, vmargs['name']))
 
         return droplet
+
+    # @info - deletes the vm-instance with the given ID
+    def delete_vm_instance(self, xid) :
+        self.logger.log_event(self.logclient, "DELETE INSTANCE", 'a', ['VM ID'], str(xid))
+
+        if not self.get_vm_instances(xid) :
+            return self.logger.log_event(self.logclient, "DELETE INSTANCE", 'f', ['VM ID'], str(xid), "Instance not Found.")
+
+        if not self.vmutil.destroy_vm_instance(xid) :
+            return self.logger.log_event(self.logclient, "DELETE INSTANCE", 'f', ['VM ID'], str(xid), "Instance Destroy Call Failed")
+
+        ret = self.dbutil.delete(self.ndbInstances, "id='%s'"%str(xid))
+
+        return ret
 
     # @info - returns a list of dictionaries that completely describe all of the instances if xid is not given
     #         else only returns that instance given by the xid. 
@@ -124,6 +142,74 @@ class devopsUtil :
             ret.append(formatted)
         return ret
 
+
+    ########## SNAPSHOTS ##########
+    # @info - creates a new virtual machine with the user's SSH keys added 
+    def create_vm_snapshot(self, inst_id, snap_name, description="") :
+        self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'a', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name))
+
+        if self.dbutil.query(self.ndbSnapshots, '*', "name='%s'"%snap_name, limit=1) :
+            self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'f', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name),
+                                  "A snapshot with that name already exists in the database, names must be unique.")
+            return None
+        snap_action = self.vmutil.create_vm_snapshot(inst_id, snap_name)
+
+        if not snap_action :
+            self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'f', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name))
+            return None
+        else :
+            self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 's', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name))
+
+        snap_action.wait(5)
+
+        inst_name = self.dbutil.query(self.ndbInstances, 'name', "id='%s'"%inst_id)
+
+        if inst_name :
+            inst_name = inst_name[0][0]
+        else :
+            inst_name = ""
+        
+        snapshot = self.vmutil.get_snapshot_by_name(snap_name, inst_name=inst_name, desc=description)
+
+        if not snapshot :
+            self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'f', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name),
+                                  "get_snapshot_by_name call failed after snapshot creation.")
+            return None
+
+        if not self.dbutil.insert(self.ndbSnapshots, snapshot) :
+            self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'f', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name), 
+                                  "Insert Snapshot into DB Failed.")
+            return None
+            
+        self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 's', ['Inst ID', 'Snapshot Name'], (inst_id, snap_name))
+
+        find_new_snap = self.get_vm_snapshots(snapshot[1][1]) # format the snapshot for the api
+        if find_new_snap :
+            return find_new_snap[0]
+        else :
+            return None
+
+    # @info - returns a list of dictionaries that completely describe the requested snapshot(s). This function
+    #         can be called with no arguments, in which case all snapshots are grabbed, or it can be called with
+    #         a snapshot id to only return that one specific snapshot as the element of a list.
+    def get_vm_snapshots(self, xid=None) :
+        if not xid :
+            snapshots = self.dbutil.query(self.ndbSnapshots, "*")
+        else :
+            snapshots = self.dbutil.query(self.ndbSnapshots, "*", "id='%s'"%xid, limit=1)
+        ret = []
+
+        for snap in snapshots :
+            formatted = { 
+                "name"       : snap[0],
+                "id"         : snap[1],
+                "inst_name"  : snap[2],
+                "created_at" : str(snap[3]),
+                "description": snap[5],
+            }
+            ret.append(formatted)
+        return ret
+
     # @info - gets a users info - the name, email, and current running instances.
     def get_user(self, username) :
         instances = self.get_vm_instances()
@@ -134,16 +220,15 @@ class devopsUtil :
         else :
             return {}
 
+    # @info - add a user to the database
     def create_user(self, userargs) :
         return self.authutil.create_user(userargs)
 
-    
+    # @info - upfate an existing user with new info, can only change password and email address for user.
+    def update_user(self, userargs) :
+        return self.authutil.update_user(userargs)
 
-    # @info - creates a snapshot of an active image , shut it down if user gives shutdown argument. Add snapshot info
-    #         to the database.
-    def create_vm_snapshot(self, snapargs) :
-        self.logger.log_event(self.logclient, "CREATE NEW SNAPSHOT", 'a', ['User', 'VM Name'], (user, snapargs['name']))
-	# @TODO
+    
 
 
     # @info - get all of the ssh keys from the database for either one user or all of them (Depending on user argument)

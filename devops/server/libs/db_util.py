@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 import MySQLdb
 import getpass
 import datetime

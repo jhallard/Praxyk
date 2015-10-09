@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+## @auth John Allard
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 # @info - Unit testing suite for the auth util class which handles all user authentication
 #         for the shared resource server.
 from unit_test import *

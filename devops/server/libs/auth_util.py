@@ -71,6 +71,25 @@ class authUtil :
             return None
 
         return  self.make_new_token(un)
+
+    # @info - updates a currently existing user in the database. The only attributes that can be updated are a users password 
+    #         and email, the username cannot be changed, neither can the auth level.
+    def update_user(self,userargs) :
+        un = userargs['username']
+
+
+        if not self.check_user_exists(un) :
+            return self.logger.log_event(self.logclient, "UPDATEUSER", "f", ['Username', 'Email'], (un, email), "User Doesn't Exist in DB")
+        user = self.get_user(un)
+
+        
+        pwhash = userargs.get('pwhash', user['pwhash'])
+        email = userargs.get('email', "email")
+        vals = [("username", un), ("pwhash", pwhash), ("email", email)]
+        if self.dbutil.update(self.ndbUsers, vals, "username='%s'"%str(un)) : 
+            return self.logger.log_event(self.logclient, "UPDATE USER", 's', ['Username', 'Email'], (un, email))
+        else :
+            return self.logger.log_event(self.logclient, "UPDATE USER", 'f', ['Username', 'Email'], (un, email))
         
 
     # @info - ensures that a given token exists in the token database

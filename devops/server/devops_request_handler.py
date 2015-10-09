@@ -18,6 +18,7 @@
 #
 #
 ########################################################################################
+
 import _fix_path_
 from vm_util import *
 from auth_util import *
@@ -284,6 +285,27 @@ def create_user():
     return jsonify({'username' : username, 'email' : email})
 
 
+@DEVOPS_HANDLER_APP.route('/users/<string:username>', methods=['PATCH'])
+@requires_auth
+def update_user(username):
+    devopsutil = get_devops()
+    authutil = devopsutil.authutil
+    caller = getattr(g, '_caller_id', None)
+
+    # only root users or the creator of an instance can destroy it
+    if not authutil.verify_auth_level(caller, authutil.AUTH_ROOT)  and caller != username : 
+        return authenticate()
+
+    email = request.json.get('email', None)
+    pw = request.json.get('pwd', None)
+    pwhash = None if not pw else devopsutil.hashpw(username, pw)
+    result= devopsutil.update_user({'username' : username,
+                                    'email' : email,
+                                    'pwhash' : pwhash})
+    user = authutil.get_user(username)
+    return jsonify({'username' : username, 'email' : user['email']})
+
+
 ### Token Handling ###
 
 @DEVOPS_HANDLER_APP.route('/tokens/', methods=['POST'])
@@ -296,7 +318,7 @@ def get_token() :
         tok = authutil.get_token(name)
         return jsonify({'name' : name, 'token' : str(tok)})
     else :
-        return not_found("User Auth")
+        return bad_args("User Auth")
 
 
 
@@ -350,14 +372,103 @@ def create_instance() :
     if not instance :
         return bad_args("Instance Could not be Made Properly")
     instance = devopsutil.get_vm_instances(instance.id)
+    
+    if not instance :
+        return bad_args("Instance could not be added to the DB correctly. Inform the admin of this please.")
     return jsonify(instance=instance[0])
+
+
+@DEVOPS_HANDLER_APP.route('/compute/<string:instance_id>', methods=['DELETE'])
+@requires_auth
+def delete_instance(instance_id) :
+    devopsutil = get_devops()
+    authutil = devopsutil.authutil
+    caller = getattr(g, '_caller_id', None)
+    take_snapshot = request.values.get('take_snapshot', False)
+
+    instance = devopsutil.get_vm_instances(instance_id)
+    if not instance :
+        return bad_args("Instance with Instance ID %s Not Found"%str(instance_id))
+    instance = instance[0] # only item in the list returned
+
+    # only root users or the creator of an instance can destroy it
+    if not authutil.verify_auth_level(caller, authutil.AUTH_ROOT)  and caller != instance['creator'] : 
+        return authenticate()
+
+    ret = devopsutil.delete_vm_instance(instance_id)
+
+    return jsonify({"instance" : {'name' : instance['name'], 'id' : str(instance_id)}} )
 
 
 
 ### Snapshot Handling ###
 
+@DEVOPS_HANDLER_APP.route('/snapshots/<string:snapshot_id>', methods=['GET'])
+@requires_auth
+def get_snapshot(snapshot_id):
+    devopsutil = get_devops()
+    snapshot = devopsutil.get_vm_snapshots(snapshot_id)
+    if snapshot :
+        return jsonify(snapshot=snapshot[0])
+    else :
+        return not_found("Snapshot")
+
+@DEVOPS_HANDLER_APP.route('/snapshots/', methods=['GET'])
+@requires_auth
+def get_snapshots():
+    devopsutil = get_devops()
+    snapshots = devopsutil.get_vm_snapshots()
+    if snapshots :
+        return jsonify(snapshots=snapshots)
+    else :
+        return not_found("Snapshot")
+
+
+@DEVOPS_HANDLER_APP.route('/snapshots/', methods=['POST'])
+@requires_auth
+def create_snapshot() :
+    devopsutil = get_devops()
+    authutil = devopsutil.authutil
+    caller = getattr(g, '_caller_id', None)
+    snap_name = request.json.get('snapshot_name', None)
+    inst_id = request.json.get('inst_id', None)
+    description =  request.json.get('description', "")
+    shutdown = request.json.get('shutdown', True)
+
+    if not inst_id or not snap_name :
+        return bad_args("Need to include Instance Id and Snapshot Name (unique)")
+    snapshot = devopsutil.create_vm_snapshot(inst_id, snap_name, description)
+
+    if not snapshot:
+        return bad_args("Snapshot Could not be Made Properly")
+    return jsonify(instance=snapshot)
+
 
 ### SSHKey Handling ###
+@DEVOPS_HANDLER_APP.route('/sshkeys/', methods=['POST'])
+@requires_auth
+def create_sshkey() :
+    devopsutil = get_devops()
+    authutil = devopsutil.authutil
+    caller = getattr(g, '_caller_id', None)
+    username = request.json.get("username", caller)
+    keyname = request.json.get("key_name", None)
+    pubkey = request.json.get("pubkey_text", None)
+    fingerprint = request.json.get("fingerprint", "")
+
+    # only root users or the owner of the ssh key can add one to the system.
+    if not authutil.verify_auth_level(caller, authutil.AUTH_ROOT)  and caller != username : 
+        return authenticate()
+
+    if not pubkey or not keyname or not username :
+        return bad_args("Need public key text, keyname, and username to add SSHKey")
+
+    key = devopsutil.add_ssh_key(username, keyname, {'public_key' : pubkey, 'fingerprint' : fingerprint})
+
+    if key :
+        return jsonify(key={'name' : keyname, 'username' : username, 'id' : str(key.id)})
+    else :
+        return bad_args("Key could not be added to system. Check with Admin")
 
 
 if __name__ == '__main__':
@@ -383,6 +494,6 @@ if __name__ == '__main__':
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
 
-    DEVOPS_HANDLER_APP.run(debug=True)
+    DEVOPS_HANDLER_APP.run(debug=True, threaded=True)
 
 

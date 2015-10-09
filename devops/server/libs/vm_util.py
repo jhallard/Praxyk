@@ -100,22 +100,22 @@ class vmUtil :
             return None
 
     # @info - this gets all the snapshots and looks for the one with the given name
-    def get_snapshot_by_name(self, name) :
+    def get_snapshot_by_name(self, name, inst_name="", desc="") :
         snapshots = self.get_snapshots()
         for ss in snapshots :
-            if ss[0] == name :
-                return self.format_snapshot(ss)
+            if ss[0][1] == name :
+                return self.get_snapshot(ss[1][1], inst_name=inst_name, desc=desc)
         return None
 
     # @info - takes the id of a snapshot and grabs it from IaaS providers API
-    def get_snapshot(self, xid) :
+    def get_snapshot(self, xid, inst_name="", desc="") :
         self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 'a', ['Snapshot ID'], str(xid))
         if self.manager :
             try :
                 img = self.manager.get_image(image_id=xid)
                 if img :
                     self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 's', ['Image Name'], img.name)
-                    return self.format_snapshot(img)
+                    return self.format_snapshot(img, inst_name, desc)
                 else :
                     self.logger.log_event(self.logclient, 'GET CUSTOM IMAGE', 'f', [], "", "Image ID not Found")
                     return None
@@ -129,8 +129,6 @@ class vmUtil :
     # @info - create a new vm instance, right now only works through digital ocean. Wouldn't be hard to integrate
     #          other IaaS APIs though.
     def create_vm_instance(self, vmargs, sshkeys=[]) :
-        print str(vmargs) 
-        print str(sshkeys)
         try :
             droplet = digitalocean.Droplet(token=self.tok,
                                            name=vmargs['name'],
@@ -177,8 +175,7 @@ class vmUtil :
     #         instance at the time it was taken. Note that images can only be taken when the instance
     #         is shut down, so if the instance isn't shut down then this function will not work.
     #         returns the action object for the shutdown
-    def create_vm_snapshot(self, xid, snap_name) :
-        # @TODO - create snapshot of instance
+    def create_vm_snapshot(self, xid, snap_name, power_off=True) :
         inst = self.get_vm_instance(xid)
         if not inst :
             self.logger.log_event(self.logclient, "CREATE VM SNAPSHOT", 'f', ['Instance ID'], xid, 
@@ -406,14 +403,14 @@ class vmUtil :
                 ]
 
     # @info - formats a snapshot dictionary so it can be stored in the database
-    def format_snapshot(self, image, inst_name="") :
+    def format_snapshot(self, image, inst_name="", desc="") :
         return [ 
                 ("name", image.name),
                 ("id", image.id),
                 ("instancename", inst_name),
                 ("created_at", self.format_time_str(str(image.created_at))),
                 ("provider", "DO"),
-                ("description", ""),
+                ("description", desc),
                 ("region", image.regions[0]),
                 ]
 
