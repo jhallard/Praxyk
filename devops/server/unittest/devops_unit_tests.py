@@ -60,10 +60,10 @@ class devopsUnitTest(UnitTest) :
         if 'a' in self.flags :
             ret = ret and self.test_build_database()
             ret = ret and self.test_fill_database()
-            ret = ret and self.test_add_user()
-            ret = ret and self.test_create_instance_root()
-            ret = ret and self.test_create_instance_user()
-            ret = ret and self.test_get_user()
+            # ret = ret and self.test_add_user()
+            # ret = ret and self.test_create_instance_root()
+            # ret = ret and self.test_create_instance_user()
+            # ret = ret and self.test_get_user()
             # ret = ret and self.test_get_user_token()
             # ret = ret and self.test_drop_database()
 

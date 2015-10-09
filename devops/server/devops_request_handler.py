@@ -53,6 +53,12 @@ SERVER_LOG_CLIENT = 'serverclnt'
 DEVOPS_LOG_CLIENT = 'devopsclnt'
 HANDLER_LOG_CLIENT = 'handlerclnt'
 
+IMAGE_DEFAULT = 13089493 # ubuntu 140-04 x64
+CLASS_SLUG_DEFAULT = '2gb'
+
+PROVIDER_DEFAULT = "DO"
+REGION_DEFAULT = "sfo1"
+
 global CONFIG
 global SCHEMA
 
@@ -214,6 +220,11 @@ def not_found(what) :
         'Could not find %s resource with given URL. \n'%str(what), 404,
         {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
+def bad_args(what) :
+    return Response(
+        'This Endpoint was not called with the proper arguments.(%s)'%what, 400,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -221,8 +232,10 @@ def requires_auth(f):
         if not auth :
             auth = request.json.get('token')
         authutil = get_auth()
-        if not auth or not authutil.validate_token(auth):
+        user = authutil.validate_token(auth)
+        if not auth or not user :
             return authenticate()
+        g._caller_id = user
         return f(*args, **kwargs)
     return decorated
 
@@ -238,6 +251,7 @@ def requires_root(f):
             return authenticate()
         if not authutil.verify_auth_level(user, authutil.AUTH_ROOT) :
             return authenticate()
+        g._caller_id = user
         return f(*args, **kwargs)
     return decorated
 
@@ -264,16 +278,80 @@ def create_user():
     pwhash = devopsutil.hashpw(username, request.json.get('pwd'))
     auth = request.json.get('auth')
     token = devopsutil.create_user({'username' : username,
-                                          'email' : email,
-                                          'pwhash' : pwhash,
-                                          'auth' : auth})
+                                    'email' : email,
+                                    'pwhash' : pwhash,
+                                    'auth' : auth})
     return jsonify({'username' : username, 'email' : email})
 
 
 ### Token Handling ###
 
+@DEVOPS_HANDLER_APP.route('/tokens/', methods=['POST'])
+def get_token() :
+    devopsutil = get_devops()
+    authutil = devopsutil.authutil
+    name = request.json.get('username')
+    pwhash = devopsutil.hashpw(name, request.json.get('pwd'))
+    if authutil.validate_user(name, pwhash) :
+        tok = authutil.get_token(name)
+        return jsonify({'name' : name, 'token' : str(tok)})
+    else :
+        return not_found("User Auth")
+
+
+
 
 ### Compute Handling ###
+@DEVOPS_HANDLER_APP.route('/compute/<string:instance_id>', methods=['GET'])
+@requires_auth
+def get_instance(instance_id):
+    devopsutil = get_devops()
+    instance = devopsutil.get_vm_instances(instance_id)
+    if instance :
+        return jsonify(instance=instance[0])
+    else :
+        return not_found("Instance")
+
+
+@DEVOPS_HANDLER_APP.route('/compute/', methods=['GET'])
+@requires_auth
+def get_instances():
+    devopsutil = get_devops()
+    username = request.values.get('username')
+    instances = devopsutil.get_vm_instances()
+    if instances :
+        if username :
+            return jsonify([inst for inst in instances if inst['creator'] == username])
+        return jsonify(instances=[inst for inst in instances])
+    else :
+        return not_found("Instance(s)")
+
+
+@DEVOPS_HANDLER_APP.route('/compute/', methods=['POST'])
+@requires_auth
+def create_instance() :
+    devopsutil = get_devops()
+    authutil = devopsutil.authutil
+    caller = getattr(g, '_caller_id', None)
+    inst_name = request.json.get('instance_name')
+    image = request.json.get('image', IMAGE_DEFAULT)
+    class_slug = request.json.get('class',  CLASS_SLUG_DEFAULT)
+
+    provider = PROVIDER_DEFAULT 
+    region = REGION_DEFAULT
+
+    if not inst_name :
+        return bad_args("Need to include Instance Name")
+
+    instance = devopsutil.create_vm_instance(caller, {'name' : inst_name,
+                                                      'image' : image,
+                                                      'region' : region,
+                                                      'class' : class_slug})
+    if not instance :
+        return bad_args("Instance Could not be Made Properly")
+    instance = devopsutil.get_vm_instances(instance.id)
+    return jsonify(instance=instance[0])
+
 
 
 ### Snapshot Handling ###

@@ -84,7 +84,8 @@ class devopsUtil :
         droplet = self.vmutil.create_vm_instance(vmargs, ssh_keys)
 
         if not droplet :
-            return self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 'f', ['User', 'VM Name'], (user, vmargs['name']))
+            self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 'f', ['User', 'VM Name'], (user, vmargs['name']))
+            return None
         else :
             self.logger.log_event(self.logclient, "CREATE NEW INSTANCE", 's', ['User', 'VM Name'], (user, vmargs['name']))
 

@@ -129,6 +129,8 @@ class vmUtil :
     # @info - create a new vm instance, right now only works through digital ocean. Wouldn't be hard to integrate
     #          other IaaS APIs though.
     def create_vm_instance(self, vmargs, sshkeys=[]) :
+        print str(vmargs) 
+        print str(sshkeys)
         try :
             droplet = digitalocean.Droplet(token=self.tok,
                                            name=vmargs['name'],

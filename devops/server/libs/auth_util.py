@@ -112,7 +112,7 @@ class authUtil :
             if self.dt_to_str(expires_at) <  self.dt_to_str(datetime.datetime.now()) :
                 return self.make_new_token(user)
             else :
-                return tok[0][1] # the token value
+                return tok[0][0] # the token value
 
     # @info - get a users attributes from the database base on the username
     def get_user(self, username) :
