@@ -39,7 +39,7 @@ from functools import wraps
 BASEDIR = "logs/"
 LOG_DIR_VM = BASEDIR + "vm-logs/"
 LOG_DIR_DB = BASEDIR + "db-logs/"
-LOG_DIR_SERVER = BASEDIR + 'server-logs'
+LOG_DIR_SERVER = BASEDIR + 'server-logs/'
 LOG_DIR_COMB = BASEDIR + "comb-logs/"
 LOG_DIR_AUTH = BASEDIR + "auth-logs/"
 LOG_DIR_DEVOPS = BASEDIR + "devops-logs/"
@@ -54,8 +54,8 @@ SERVER_LOG_CLIENT = 'serverclnt'
 DEVOPS_LOG_CLIENT = 'devopsclnt'
 HANDLER_LOG_CLIENT = 'handlerclnt'
 
-IMAGE_DEFAULT = 13089493 # ubuntu 140-04 x64
-CLASS_SLUG_DEFAULT = '2gb'
+IMAGE_DEFAULT = 13089493 # ubuntu 14.04 x64
+CLASS_SLUG_DEFAULT = '2gb' # 2cores, 2gb ram, 40gb disc
 
 PROVIDER_DEFAULT = "DO"
 REGION_DEFAULT = "sfo1"
@@ -91,9 +91,9 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
-    parser.add_argument('--builddb', help="If present, the DB represented by the given schema file will be"+\
+    parser.add_argument('--builddb', action='store_true', help="If present, the DB represented by the given schema file will be"+\
                                     "built from scratch but not filled, given that it doesn't exist already.")
-    parser.add_argument('--filldb', help="If present, the devops DB that was just built will be synced with"+\
+    parser.add_argument('--filldb', action='store_true', help="If present, the devops DB that was just built will be synced with"+\
                                     "the current info provided by IaaS providers.")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
@@ -470,7 +470,6 @@ def create_sshkey() :
     else :
         return bad_args("Key could not be added to system. Check with Admin")
 
-
 if __name__ == '__main__':
     global CONFIG
     global SCHEMA
@@ -493,6 +492,21 @@ if __name__ == '__main__':
     if not CONFIG:
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
+
+    with DEVOPS_HANDLER_APP.app_context():
+        if args.builddb :
+            devopsutil = get_devops()
+            if not devopsutil.build_database() :
+                sys.stderr.write("Failed to build database")
+                sys.exit(1)
+            sys.stdout.write("Database Built Successfully.")
+        if args.filldb :
+            devopsutil = get_devops()
+            if not devopsutil.fill_database() :
+                sys.stderr.write("Failed to fill database")
+                sys.exit(1)
+            sys.stderr.write("Database filled and Synced.")
+            sys.exit(0)
 
     DEVOPS_HANDLER_APP.run(debug=True, threaded=True)
 

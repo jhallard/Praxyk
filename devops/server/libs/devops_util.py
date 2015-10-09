@@ -229,8 +229,6 @@ class devopsUtil :
         return self.authutil.update_user(userargs)
 
     
-
-
     # @info - get all of the ssh keys from the database for either one user or all of them (Depending on user argument)
     def get_ssh_keys(self, user=None) :
         self.logger.log_event(self.logclient, "GET SSH KEYS", 'a', ['User'], (user if user else "All"))
