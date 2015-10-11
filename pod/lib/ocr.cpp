@@ -12,15 +12,18 @@ std::string get_string_from_image(
 ) {
     std::string outText;
 
+    // Create Tesseract instance
     tesseract::TessBaseAPI *api = new tesseract::TessBaseAPI();
-    // Initialize tesseract-ocr with English, without specifying tessdata path
     if (api->Init(NULL, "eng")) {
         throw std::runtime_error("Failed to initialize Tesseract.");
     }
+
+    // Read image
     Pix *image = pixRead(filename.c_str());
-    if(image == NULL){
-      throw std::runtime_error("Error reading image\n");
+    if(!image == NULL){
+        throw std::runtime_error("Error reading image");
     }
+
     // Open input image with leptonica library
     api->SetImage(image);
     // Get OCR result
