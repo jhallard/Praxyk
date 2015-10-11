@@ -20,7 +20,7 @@ std::string get_string_from_image(
 
     // Read image
     Pix *image = pixRead(filename.c_str());
-    if(!image == NULL){
+    if(!image){
         throw std::runtime_error("Error reading image");
     }
 
@@ -32,6 +32,11 @@ std::string get_string_from_image(
     // Destroy used object and release memory
     api->End();
     pixDestroy(&image);
+
+    // Remove duplicate newlines from end of string
+    while(outText[outText.length()-1] == '\n') {
+        outText.pop_back();
+    }
 
     return outText;
 }
