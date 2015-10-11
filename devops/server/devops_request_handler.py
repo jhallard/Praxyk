@@ -226,6 +226,9 @@ def bad_args(what) :
         'This Endpoint was not called with the proper arguments.(%s)'%what, 400,
         {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
+# @info - decorator function, any function that this decorator is applied to will
+#         have to have it's token argument validated with the auth util. All this
+#         does is make sure the given token exists in the database and isn't expired.
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -240,6 +243,9 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+# @info - decorator that not only validates a user's token but also ensures that the specific 
+#         token given belongs to a user with root priviledges. Thus this wrapper ensures that a
+#         function that it wraps can only be called if a root-token is given.
 def requires_root(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -264,10 +270,21 @@ def get_user(username):
     devopsutil = get_devops()
     user = devopsutil.get_user(username)
     if user :
-        return jsonify(devopsutil.get_user(username))
+        return jsonify(user)
     else :
         return not_found("user")
 
+
+@DEVOPS_HANDLER_APP.route('/users/', methods=['GET'])
+@requires_root
+def get_users():
+    devopsutil = get_devops()
+    users = devopsutil.get_users()
+    print users
+    if users :
+        return jsonify(code=200, users=users)
+    else :
+        return not_found("user")
 
 
 @DEVOPS_HANDLER_APP.route('/users/', methods=['POST'])
@@ -276,16 +293,16 @@ def create_user():
     devopsutil = get_devops()
     username = request.json.get('name')
     email = request.json.get('email')
-    pwhash = devopsutil.hashpw(username, request.json.get('pwd'))
+    pwhash = devopsutil.hashpw(username, request.json.get('password'))
     auth = request.json.get('auth')
     token = devopsutil.create_user({'username' : username,
                                     'email' : email,
                                     'pwhash' : pwhash,
                                     'auth' : auth})
-    return jsonify({'username' : username, 'email' : email})
+    return jsonify({'code' : 200, 'username' : username, 'email' : email})
 
 
-@DEVOPS_HANDLER_APP.route('/users/<string:username>', methods=['PATCH'])
+@DEVOPS_HANDLER_APP.route('/users/<string:username>', methods=['PUT'])
 @requires_auth
 def update_user(username):
     devopsutil = get_devops()
@@ -297,13 +314,13 @@ def update_user(username):
         return authenticate()
 
     email = request.json.get('email', None)
-    pw = request.json.get('pwd', None)
+    pw = request.json.get('password', None)
     pwhash = None if not pw else devopsutil.hashpw(username, pw)
     result= devopsutil.update_user({'username' : username,
                                     'email' : email,
                                     'pwhash' : pwhash})
     user = authutil.get_user(username)
-    return jsonify({'username' : username, 'email' : user['email']})
+    return jsonify({'code' : 200, 'username' : username, 'email' : user['email']})
 
 
 ### Token Handling ###
@@ -313,10 +330,10 @@ def get_token() :
     devopsutil = get_devops()
     authutil = devopsutil.authutil
     name = request.json.get('username')
-    pwhash = devopsutil.hashpw(name, request.json.get('pwd'))
+    pwhash = devopsutil.hashpw(name, request.json.get('password'))
     if authutil.validate_user(name, pwhash) :
         tok = authutil.get_token(name)
-        return jsonify({'name' : name, 'token' : str(tok)})
+        return jsonify({'code' : 200, 'username' : name, 'token' : str(tok)})
     else :
         return bad_args("User Auth")
 
@@ -330,7 +347,7 @@ def get_instance(instance_id):
     devopsutil = get_devops()
     instance = devopsutil.get_vm_instances(instance_id)
     if instance :
-        return jsonify(instance=instance[0])
+        return jsonify(code=200, instance=instance[0])
     else :
         return not_found("Instance")
 
@@ -340,11 +357,13 @@ def get_instance(instance_id):
 def get_instances():
     devopsutil = get_devops()
     username = request.values.get('username')
+    if not username :
+        username = request.get_json().get('username')
     instances = devopsutil.get_vm_instances()
     if instances :
         if username :
-            return jsonify([inst for inst in instances if inst['creator'] == username])
-        return jsonify(instances=[inst for inst in instances])
+            return jsonify(code=200, instances=[inst for inst in instances if inst['creator'] == username])
+        return jsonify(code=200, instances=[inst for inst in instances])
     else :
         return not_found("Instance(s)")
 
@@ -375,7 +394,7 @@ def create_instance() :
     
     if not instance :
         return bad_args("Instance could not be added to the DB correctly. Inform the admin of this please.")
-    return jsonify(instance=instance[0])
+    return jsonify(code=200, instance=instance[0])
 
 
 @DEVOPS_HANDLER_APP.route('/compute/<string:instance_id>', methods=['DELETE'])
@@ -397,7 +416,7 @@ def delete_instance(instance_id) :
 
     ret = devopsutil.delete_vm_instance(instance_id)
 
-    return jsonify({"instance" : {'name' : instance['name'], 'id' : str(instance_id)}} )
+    return jsonify({'code' : 200, "instance" : {'name' : instance['name'], 'id' : str(instance_id)}} )
 
 
 
@@ -409,7 +428,7 @@ def get_snapshot(snapshot_id):
     devopsutil = get_devops()
     snapshot = devopsutil.get_vm_snapshots(snapshot_id)
     if snapshot :
-        return jsonify(snapshot=snapshot[0])
+        return jsonify(code=200, snapshot=snapshot[0])
     else :
         return not_found("Snapshot")
 
@@ -419,7 +438,7 @@ def get_snapshots():
     devopsutil = get_devops()
     snapshots = devopsutil.get_vm_snapshots()
     if snapshots :
-        return jsonify(snapshots=snapshots)
+        return jsonify(code=200, snapshots=snapshots)
     else :
         return not_found("Snapshot")
 
@@ -441,7 +460,7 @@ def create_snapshot() :
 
     if not snapshot:
         return bad_args("Snapshot Could not be Made Properly")
-    return jsonify(instance=snapshot)
+    return jsonify(code=200, instance=snapshot)
 
 
 ### SSHKey Handling ###
@@ -466,10 +485,13 @@ def create_sshkey() :
     key = devopsutil.add_ssh_key(username, keyname, {'public_key' : pubkey, 'fingerprint' : fingerprint})
 
     if key :
-        return jsonify(key={'name' : keyname, 'username' : username, 'id' : str(key.id)})
+        return jsonify(code=200, key={'name' : keyname, 'username' : username, 'keyid' : str(key.id)})
     else :
         return bad_args("Key could not be added to system. Check with Admin")
 
+# @info - Main function, parse the inputs to see if the database needs to be either build or created
+#         if so, build, fill and exit. IF not, then just run in a infinite loop waiting for requests to 
+#         handle
 if __name__ == '__main__':
     global CONFIG
     global SCHEMA
@@ -493,6 +515,8 @@ if __name__ == '__main__':
         sys.stderr.write("Failed to parse input configuration file.")
         sys.exit(1)
 
+    # @info - if builddb/filldb args are given we execute those commands then exit with a proper
+    #         status code and message.
     with DEVOPS_HANDLER_APP.app_context():
         if args.builddb :
             devopsutil = get_devops()
@@ -500,6 +524,7 @@ if __name__ == '__main__':
                 sys.stderr.write("Failed to build database")
                 sys.exit(1)
             sys.stdout.write("Database Built Successfully.")
+            sys.exit(0) if not args.filldb else None
         if args.filldb :
             devopsutil = get_devops()
             if not devopsutil.fill_database() :

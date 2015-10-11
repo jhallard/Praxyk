@@ -216,9 +216,19 @@ class devopsUtil :
         users_instances = [inst['id'] for inst in instances if inst['creator'] == username]
         user = self.authutil.get_user(username)
         if user :
-            return {'name' : user['username'], 'email' : user['email'], 'instances' : users_instances}
+            return {'username' : user['username'], 'email' : user['email'], 'instances' : users_instances}
         else :
             return {}
+
+
+    # @info - gets all users info - the name, email, and current running instances.
+    def get_users(self) :
+        users = self.dbutil.query(self.ndbUsers, 'username')
+        users_list = []
+        for user in users :
+            user = self.get_user(user[0])
+            users_list.append(user)
+        return users_list
 
     # @info - add a user to the database
     def create_user(self, userargs) :

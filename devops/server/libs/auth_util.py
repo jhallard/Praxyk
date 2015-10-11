@@ -84,7 +84,11 @@ class authUtil :
 
         
         pwhash = userargs.get('pwhash', user['pwhash'])
-        email = userargs.get('email', "email")
+        email = userargs.get('email', user["email"])
+        if not email :
+            email = user['email']
+        if not pwhash :
+            pwhash = user['pwhash']
         vals = [("username", un), ("pwhash", pwhash), ("email", email)]
         if self.dbutil.update(self.ndbUsers, vals, "username='%s'"%str(un)) : 
             return self.logger.log_event(self.logclient, "UPDATE USER", 's', ['Username', 'Email'], (un, email))
