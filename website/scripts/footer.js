@@ -6,10 +6,11 @@ footer = '<div class="divPanel">\
 <h3>About Company</h3>\
 <p>Our goal is to implement the most popular machine-learning tools and offer access to their predictive capabilities as a service through a dedicated API. This makes the predictive power of machine-learning more accessible, especially for small businesses.</p>\
 <p> \
-<a href="#" title="Terms of Use">Terms of Use</a><br />\
+<a href="#" title="Terms & Conditions">Terms & Conditions</a><br />\
 <a href="#" title="Privacy Policy">Privacy Policy</a><br />\
 <a href="#" title="FAQ">FAQ</a><br />\
-<a href="#" title="Sitemap">Sitemap</a>\
+<a href="#" title="Sitemap">Sitemap</a><br />\
+<a href="http://www.github.com/jhallard/praxyk" title="Github">Github</a>\
 </p>\
 </div>\
 <div class="span3" id="footerArea2"></div>\
@@ -40,7 +41,6 @@ USA\
 </ul>\
 </div>\
 </div>\
-<br /><br />\
 <div class="row-fluid">\
 <div class="span12">\
 <p class="copyright">Copyright &copy; 2015 Praxyk Group. All Rights Reserved.</p>\
