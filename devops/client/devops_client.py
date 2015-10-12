@@ -20,7 +20,7 @@ NOUNS = ['instance', 'instances', 'snapshot', 'snapshots', 'user', 'users']
 
 
 # BASE_URL = 'http://devops.praxyk.com/'
-BASE_URL = 'http://127.0.0.1:5000/'
+BASE_URL = 'http://devops.praxyk.com:5000/'
 TOKENS_URL =  BASE_URL+'tokens/'
 COMPUTE_URL = BASE_URL+'compute/'
 SNAPSHOTS_URL = BASE_URL+'snapshots/'
