@@ -76,7 +76,7 @@ class dbUtil :
         self.db_logf('NEW CONNECTION', 'a', ['DB_IP', 'LOGIN-IP', 'USER'],
                      (self.dbip, socket.getfqdn(), self.DB_USER) )
         ps= self.PW 
-        self.db = MySQLdb.connect(host=self.dbipv6, user=self.DB_USER, passwd=ps, charset='utf8')
+        self.db = MySQLdb.connect(host=self.dbip, user=self.DB_USER, passwd=ps, charset='utf8')
 
         if self.db :
             self.db_logf('NEW CONNECTION', 's', ['DB_IP', 'LOGIN-IP', 'USER'],
