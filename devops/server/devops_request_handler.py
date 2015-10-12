@@ -34,6 +34,11 @@ import json
 from flask import Flask, jsonify, request, Response, g
 from functools import wraps
 
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+#from devops_request_handler import DEVOPS_HANDLER_APP
+
 
 ## logging directories
 BASEDIR = "logs/"
@@ -91,6 +96,7 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
+    parser.add_argument('--local', action='store_true', help="Use this flag to run the server on localhost:5000 instead of as a live server.")
     parser.add_argument('--builddb', action='store_true', help="If present, the DB represented by the given schema file will be"+\
                                     "built from scratch but not filled, given that it doesn't exist already.")
     parser.add_argument('--filldb', action='store_true', help="If present, the devops DB that was just built will be synced with"+\
@@ -242,7 +248,8 @@ def requires_auth(f):
                 return authenticate()
             g._caller_id = user
             return f(*args, **kwargs)
-        except :
+        except Exception, e:
+	    print str(e)
             return authenticate()
     return decorated
 
@@ -264,7 +271,8 @@ def requires_root(f):
                 return authenticate()
             g._caller_id = user
             return f(*args, **kwargs)
-        except :
+        except Exception, e:
+	    print str(e)
             return authenticate()
     return decorated
 
@@ -504,11 +512,11 @@ if __name__ == '__main__':
     args = parse_args(sys.argv)
     if not args.config :
         self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No Config File Given")
-        sys.exit(1)
+    #    sys.exit(1)
 
     if not args.schemaf :
         self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No DB Schema File Given")
-        sys.exit(1)
+     #   sys.exit(1)
 
     CONFIG = load_json_file(args.config) 
     SCHEMA = load_json_file(args.schemaf)
@@ -535,6 +543,12 @@ if __name__ == '__main__':
             sys.stderr.write("Database filled and Synced.")
             sys.exit(0)
 
-    DEVOPS_HANDLER_APP.run(debug=True, threaded=True)
+	if args.local :
+		DEVOPS_HANDLER_APP.run(debug=True, threaded=True)
+	else :
+		http_server = HTTPServer(WSGIContainer(DEVOPS_HANDLER_APP))
+		http_server.listen(5000)
+		IOLoop.instance().start()
+
 
 
