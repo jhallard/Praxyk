@@ -90,6 +90,7 @@ def get_input_choices(desc, choices) :
     inp = None 
     while not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
         inp = sys.stdin.readline().strip()
+        print int(inp)
         if not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
             print "Incorrect Choice. Select Again."
     
@@ -506,9 +507,10 @@ def create_instance(argv=None, ret_json=False) :
         if not classslug :
             sys.stderr.write("Invalid Class Slug Given (%s)" % str(slugname))
             return False
-    while not slugname or not classslug or classslug >= len(classes) or classslug < 0 :
+    while slugname is None or classslug is None  :
         classslug = get_input_choices("Select the Compute Class for your Instance", classes)
         slugname = classes[classslug]
+
     payload['class'] = slugname
     payload['provider'] = 'DO'
 
