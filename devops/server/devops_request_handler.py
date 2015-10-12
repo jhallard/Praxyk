@@ -232,15 +232,18 @@ def bad_args(what) :
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.values.get('token')
-        if not auth :
-            auth = request.json.get('token')
-        authutil = get_auth()
-        user = authutil.validate_token(auth)
-        if not auth or not user :
+        try :
+            auth = request.values.get('token')
+            if not auth :
+                auth = request.json.get('token')
+            authutil = get_auth()
+            user = authutil.validate_token(auth)
+            if not auth or not user :
+                return authenticate()
+            g._caller_id = user
+            return f(*args, **kwargs)
+        except :
             return authenticate()
-        g._caller_id = user
-        return f(*args, **kwargs)
     return decorated
 
 # @info - decorator that not only validates a user's token but also ensures that the specific 
@@ -249,17 +252,20 @@ def requires_auth(f):
 def requires_root(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth = request.values.get('token')
-        if not auth :
-            auth = request.json.get('token')
-        authutil = get_auth()
-        user = authutil.validate_token(auth)
-        if not auth or not user :
+        try :
+            auth = request.values.get('token')
+            if not auth :
+                auth = request.json.get('token')
+            authutil = get_auth()
+            user = authutil.validate_token(auth)
+            if not auth or not user :
+                return authenticate()
+            if not authutil.verify_auth_level(user, authutil.AUTH_ROOT) :
+                return authenticate()
+            g._caller_id = user
+            return f(*args, **kwargs)
+        except :
             return authenticate()
-        if not authutil.verify_auth_level(user, authutil.AUTH_ROOT) :
-            return authenticate()
-        g._caller_id = user
-        return f(*args, **kwargs)
     return decorated
 
 
