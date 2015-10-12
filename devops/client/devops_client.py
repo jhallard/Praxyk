@@ -90,6 +90,8 @@ def get_input_choices(desc, choices) :
     inp = None 
     while not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
         inp = sys.stdin.readline().strip()
+        if not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
+            print "Incorrect Choice. Select Again."
     
     return int(inp)-1
 
@@ -340,8 +342,8 @@ def create_user(argv=None) :
     
     username = get_input("Select a name for the new user")
     email = get_input("Enter an email for the new user") 
-    password = get_passwd("Enter a default password for the new user")
-    password2 = get_passwd("Confirm the default password for the new user")
+    password = get_passwd("Enter a default password for the new user : ")
+    password2 = get_passwd("Confirm the default password for the new user : ")
     
     if password != password2 :
         sys.stderr.write("Passwords don't match, try again.")
@@ -454,12 +456,144 @@ def get_users(argv=None) :
     return True
 
 # @info - walk the user through the steps of creating a new instance
-def create_instance(argv=None) :
-    pass
+def create_instance(argv=None, ret_json=False) :
+    data = load_auth_info()
+    if not data :
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        return False
+
+    token = data['token']
+
+    payload = {'token' : token}
+    headers = {'content-type': 'application/json'}
+    instance_name = ""
+    image_id = None
+    classslug = ""
+    boot_images = [("Ubuntu 14.04 x64", "13089493", "(Default Boot Image)")]
+    snapshots = get_snapshots(ret_json=True)['snapshots']
+    snapshots = [(snap['name'], snap['id'], "(Custom Snapshot)") for snap in snapshots]
+    total_images =  [(x[0], x[1], x[2])  for x in (boot_images+snapshots)]
+    image_names = [x[0] + " : " + x[1] for x in total_images]
+    classes = ['1gb', '2gb', '4gb']
+    slugname = None
+
+    if argv and len(argv) > 0 :
+       instance_name = argv[0]
+    while not instance_name or len(instance_name) < 6 or len(instance_name) >= 50 or any(i in instance_name for i in '_=+\|/,') :
+        instance_name = get_input("Please Enter a Name for the New Instance ([A-Z,a-z,1-9,-])")
+    payload['instance_name'] = instance_name
+
+    if argv and len(argv) > 1 :
+        image_id = argv[1]
+        for image in total_images :
+            if image_id == image[1] :
+                image_name = image[0]
+        if not image_name  :
+            sys.stderr.write("Image Id (%s) is not valid. Try another."%str(image_id))
+            return False
+        
+    while image_id is None :
+        choice = get_input_choices("Select the Boot Image for your new Instance.", image_names)
+        image_id = total_images[choice][1]
+        image_name = total_images[choice][0]
+    payload['image'] = image_id
+
+    if argv and len(argv) > 2 :
+        slugname = argv[2]
+        for x in range(len(classes)) :
+            if slugname == classes[x] :
+                classslug = x
+        if not classslug :
+            sys.stderr.write("Invalid Class Slug Given (%s)" % str(slugname))
+            return False
+    while not slugname or not classslug or classslug >= len(classes) or classslug < 0 :
+        classslug = get_input_choices("Select the Compute Class for your Instance", classes)
+        slugname = classes[classslug]
+    payload['class'] = slugname
+    payload['provider'] = 'DO'
+
+    print "New Instance Details : "
+    print "Name (%s)" % instance_name
+    print "Boot Image (%s)" % image_name
+    print "VM Class (%s)" % classes[classslug]
+    if not get_yes_no("Is this Information Correct?") :
+        sys.stderr.write("Instance Creation Canceled. Feel free to try again.")
+        return False
+     
+    print "Creating Instance (%s). This might take up to 3 minutes to complete, please be patient."%instance_name
+    print "When finished, you will recieve a description of your new instance."
+    r = requests.post(COMPUTE_URL, data=json.dumps(payload), headers=headers)
+
+    if not r or not r.text:
+        print str(r)
+        sys.stderr.write("Request could not be Completed. Try again and check info.")
+        return False
+
+    response = json.loads(r.text)
+
+    if ret_json : #return early without printing if the caller wants such
+        return response
+
+
+    inst = response.get('instance', None)
+
+    print "Instance Name  : %s" % (inst['name'])
+    print "Inst ID : %s " % inst['id']
+    print "Inst IP : %s" % inst['ip']
+    print "Inst Status : %s" % inst['status']
+    print "Inst Creator: %s" % inst['creator']
+    print "Created At : %s" % str(inst['created_at'])
+    print ""
+    return response
 
 # @info - walk the user through the steps of destroying an instance
-def destroy_instance(argv=None) :
-    pass
+def destroy_instance(argv=None, ret_json=False) :
+    data = load_auth_info()
+    if not data :
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        return False
+
+    if argv and len(argv) > 0 :
+        inst_id = argv[0]
+    else :
+        instances = get_instances(ret_json=True)['instances']
+        inst_list = ["Name : %s" % (inst['name']) + ", Owner : (%s)" % inst['creator']  for inst in instances]
+        choice = get_input_choices("Choose an Existing Instance To Destroy", inst_list)
+        inst_id = instances[choice]['id']
+
+    if data['username'] != instances[choice]['creator'] :
+        print "Remember, only the root user can delete instances that they do not own."
+
+    if not get_yes_no("Please Confirm that you do want to delete instance %s owned by %s" % (instances[choice]['name'],
+                                                                                             instances[choice]['creator'])) :
+        sys.stderr.write("Instance Deletion Canceled. Exiting.")
+        return False
+
+    if get_yes_no("Would you like to create a snapshot for this instance?") :
+        res = create_snapshot(argv=[inst_id])
+
+    token = data['token']
+    
+    payload = {'token' : token}
+    headers = {'content-type': 'application/json'}
+    r = requests.delete(COMPUTE_URL+str(inst_id), data=json.dumps(payload), headers=headers)
+
+    if not r or not r.text:
+        print str(r)
+        sys.stderr.write("Request could not be Completed. Try again and check info.")
+        return False
+
+    response = json.loads(r.text)
+
+    if ret_json : #return early without printing if the caller wants such
+        return response
+    
+    inst = response.get('instance', None)
+    print "Deletion Successful, Details : " 
+    print "Instance Name  : %s" % (inst['name'])
+    print "Inst ID : %s " % inst['id']
+    print ""
+    return response
 
 # @info - grab info on all instances
 def get_instances(argv=None, ret_json=False) :
@@ -542,17 +676,163 @@ def get_instance(argv=None, ret_json=False) :
     print ""
     return response
 
-def create_snapshot() :
-    pass
 
-def destroy_snapshot() :
-    pass
 
-def get_snapshot() : 
-    pass
+#### SNAPSHOTS ######
 
-def get_snapshots() :
-    pass
+# @info - walk the user through the process of creating a snapshot from an exisiting instance
+def create_snapshot(argv=None, ret_json=False) :
+    data = load_auth_info()
+    if not data :
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        return False
+
+    token = data['token']
+
+    payload = {'token' : token}
+    headers = {'content-type': 'application/json'}
+    inst_id = None
+    snapshot_name = ""
+    description = ""
+    shutdown = False
+
+    if argv and len(argv) > 0 :
+       snapshot_name = argv[0]
+    while not snapshot_name or len(snapshot_name) < 6 or len(snapshot_name) >= 40 or any(i in snapshot_name for i in '_=+\|/,') :
+        snapshot_name = get_input("Please Enter a Name for this new Snapshot")
+    payload['snapshot_name'] = snapshot_name
+
+    if argv and len(argv) > 1 :
+        inst_id = argv[1]
+    else :
+        instances = get_instances(ret_json=True)['instances']
+        inst_list = ["Name : %s" % (inst['name']) + ", Owner : (%s)" % inst['creator']  for inst in instances]
+        choice = get_input_choices("Choose an Existing Instance To Snapshot", inst_list)
+        inst_id = instances[choice]['id']
+    payload['inst_id'] =  str(inst_id)
+
+    while not description :
+        description = get_input("Please Enter a Short (1 sentence) description for this Snapshot")
+    payload['description'] = description
+
+    if get_yes_no("If this instance is running, do you want to shut it down for the snapshot?") :
+        shutdown =True
+    payload['shutdown'] = shutdown
+
+
+    print "New Snapshot Details : "
+    print "Snapshot Name  : (%s)" % snapshot_name
+    print "Instance Name  : (%s)" % instances[choice]['name']
+    print "Instance ID    : (%s)" % instances[choice]['id']
+    print "Description    : %s"  % description
+    print "Shutdown Inst? : %s" % ("Yes" if shutdown else "False")
+    if not get_yes_no("Is this Information Correct?") :
+        sys.stderr.write("Snapshot Creation Canceled. Feel free to try again.")
+        return False
+     
+    print "Creating Snapshot (%s). This might take up to 3 minutes to complete, please be patient."%snapshot_name
+    print "When finished, you will recieve a description of your new instance."
+    r = requests.post(SNAPSHOTS_URL, data=json.dumps(payload), headers=headers)
+
+    if not r or not r.text:
+        print str(r)
+        sys.stderr.write("Request could not be Completed. Try again and check info.")
+        return False
+
+    response = json.loads(r.text)
+
+    if ret_json : #return early without printing if the caller wants such
+        return response
+
+
+    snap = response.get('snapshot', None)
+
+    print "Snapshot Creation Successful. Details : "
+    print "Snapshot Name : (%s)" % snap['name']
+    print "Snapshot ID   : (%s)" % snap['id']
+    print "Instance Name : (%s)" % snap['inst_name']
+    print "Created At    : %s" % str(snap['created_at'])
+    print "Description   : %s" % snap['description']
+    print ""
+    return response
+
+
+def get_snapshot(argv=None, ret_json=False) : 
+    data = load_auth_info()
+    if not data :
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        return False
+
+    if argv and len(argv) > 0 :
+        snap_id = argv[0]
+    else :
+        snapshots = get_snapshots(ret_json=True)['snapshots']
+        snap_list = ["%s" % (snap['name']) for snap in snapshots]
+        if not snap_list :
+            print "It doesn't look like any snapshots exist currently."
+            return False
+        choice = get_input_choices("Choose an Existing Snapshots", snap_list)
+        snap_id = instances[choice]['id']
+
+    token = data['token']
+    
+    payload = {'token' : token}
+    headers = {'content-type': 'application/json'}
+    r = requests.get(SNAPSHOTS_URL+str(snap_id), data=json.dumps(payload), headers=headers)
+
+    if not r or not r.text:
+        print str(r)
+        sys.stderr.write("Request could not be Completed. Try again and check info.")
+        return False
+
+    response = json.loads(r.text)
+
+    if ret_json : #return early without printing if the caller wants such
+        return response
+    
+    snap = response.get('snapshot', None)
+
+    print "Snapshot Name  : %s" % (snap['name'])
+    print "Snap ID : %s " % inst['id']
+    print "Snap Status : %s" % inst['status']
+    print "Snap Instance : %s" % inst['inst_name']
+    print "Created At : %s" % str(inst['created_at'])
+    print ""
+    return response
+
+def get_snapshots(argv=None, ret_json=False) :
+    data = load_auth_info()
+    if not data :
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        return False
+
+    token = data['token']
+
+    payload = {'token' : token}
+    headers = {'content-type': 'application/json'}
+
+    r = requests.get(SNAPSHOTS_URL, data=json.dumps(payload), headers=headers)
+
+    if not r or not r.text:
+        print str(r)
+        sys.stderr.write("Request could not be Completed. Try again and check info.")
+        return False
+
+    response = json.loads(r.text)
+
+    if ret_json : #return early without printing if the caller wants such
+        return response
+
+    print "Number of Snapshots : %s" % str(len(response.get('snapshots', [])))
+    
+    for snap in response.get('snapshots', []) :
+        print "Snapshot Name : %s" % (snap['name'])
+        print "Snap ID       : %s " % snap['id']
+        print "Snap Instance : %s" % snap['inst_name']
+        print "Created At    : %s" % str(snap['created_at'])
+        print "Description   : %s" % snap['description']
+        print ""
+    return response
     
 
 ACTION_MAP = {   'create' : { "instance"  : create_instance,
@@ -560,7 +840,7 @@ ACTION_MAP = {   'create' : { "instance"  : create_instance,
                               "user"      : create_user},
                  'update' : { "user"      : update_user},
                  'destroy': { "instance"  : destroy_instance,
-                              "snapshot"  : destroy_snapshot,
+                              # "snapshot"  : destroy_snapshot,
                               "user"      : destroy_user},
                  'get'    : { "instance"  : get_instance,
                               "instances" : get_instances,
@@ -585,17 +865,17 @@ if __name__ == "__main__" :
         res = login_client()
         sys.exit(0 if res else 1)
 
-    if not args.action and args.action not in ACTIONS :
-        sys.stderr.write("Must include a valid Action (%s)"%ACTIONS)
+    if not args.action or args.action not in ACTIONS :
+        sys.stderr.write("Must include a valid Action (%s) "%ACTIONS)
         sys.exit(1)
     
-    if not args.noun and args.noun not in NOUNS :
-        sys.stderr.write("Must include a noun (create, update, destroy, get) for action (%s)"%args.action)
+    if not args.noun or args.noun not in NOUNS :
+        sys.stderr.write("Must include a valid noun (instance[s], user[s], snapshot[s]) for action (%s) "%args.action)
         sys.exit(1)
 
     action_func = ACTION_MAP.get(args.action).get(args.noun, None)
     if not action_func :
-        sys.stderr.write(("It looks like your inpt of [%s] is invalid or unimplementd." +\
+        sys.stderr.write(("It looks like your input of [%s] is invalid or unimplemented." +\
                          " If you think this is wrong tell John.") % (args.action+" " +args.noun)) 
         sys.exit(1)
     res = action_func(argv=args.specifics)

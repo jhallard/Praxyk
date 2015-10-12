@@ -280,7 +280,6 @@ def get_user(username):
 def get_users():
     devopsutil = get_devops()
     users = devopsutil.get_users()
-    print users
     if users :
         return jsonify(code=200, users=users)
     else :
@@ -437,10 +436,7 @@ def get_snapshot(snapshot_id):
 def get_snapshots():
     devopsutil = get_devops()
     snapshots = devopsutil.get_vm_snapshots()
-    if snapshots :
-        return jsonify(code=200, snapshots=snapshots)
-    else :
-        return not_found("Snapshot")
+    return jsonify(code=200, snapshots=snapshots)
 
 
 @DEVOPS_HANDLER_APP.route('/snapshots/', methods=['POST'])
@@ -460,7 +456,7 @@ def create_snapshot() :
 
     if not snapshot:
         return bad_args("Snapshot Could not be Made Properly")
-    return jsonify(code=200, instance=snapshot)
+    return jsonify(code=200, snapshot=snapshot)
 
 
 ### SSHKey Handling ###

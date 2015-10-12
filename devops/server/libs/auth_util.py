@@ -183,7 +183,7 @@ class authUtil :
     def make_new_token(self, user) :
         self.logger.log_event(self.logclient, "CREATE ACCESS TOK", 'a', ['Username'], user)
         tokcreate = datetime.datetime.now()
-        tokexpire = tokcreate + timedelta(days=7)
+        tokexpire = tokcreate + timedelta(days=1)
         tc_str = self.dt_to_str(tokcreate)
         te_str = self.dt_to_str(tokexpire)
 
