@@ -80,8 +80,8 @@ def get_passwd(desc = None) :
     return inp
 
 def get_input_choices(desc, choices) :
-    print desc
-    print "Select One of the Following (by number) : "
+    print desc + " : "
+    # print "Select One of the Following (by number) : "
     count = 1
     for x in choices :
         print str(count) + ".)  " + str(x)
@@ -320,7 +320,7 @@ def setup_client(argv=None) :
     res = login_client()
     
     if not res or not load_auth_info() :
-        sys.stderr.write("Something went wrong, your token and username aren't saved. Try again or report to sysadmin.")
+        sys.stderr.write("Something went wrong, your token and username aren't saved.\n Try again or report to sysadmin.\n")
         return False
     
     if get_yes_no("Now that you have logged in and aquired a token, would you like to change your password?") :
@@ -329,9 +329,9 @@ def setup_client(argv=None) :
     if get_yes_no("Finally, would you like to setup SSH-keys? Without them you won't be able to access VM's you create.") :
         res = setup_ssh_keys()
     
-    print "Setup is complete, you are free to repeat this process whenever. When your token expires, run ./devopsclient login to login" +\
-          "and aquire another token."
-    
+    print "Setup Process Complete : You now have a valid token and can create virtual-machines." 
+    print "Tokens expire every 24 hours"
+    print "If you get errors with a code 401, call\n`devops_client login`\nto obtain another token." 
     sys.exit(0)
 
 
@@ -347,7 +347,7 @@ def create_user(argv=None) :
     password2 = get_passwd("Confirm the default password for the new user : ")
     
     if password != password2 :
-        sys.stderr.write("Passwords don't match, try again.")
+        sys.stderr.write("Passwords don't match, try again.\n")
         return False
     
     auth = get_input_choices("Select an Auth Level for the new user (2 is root)", ['0', '1', '2'])
@@ -358,13 +358,14 @@ def create_user(argv=None) :
     
     print "New User : Username (%s)  Email (%s)  Passwd (%s)  Auth (%s)"%(username, email, password, auth)
     if not get_yes_no("Confirm this information is correct.") :
-        sys.stderr.write("Error creating user, exiting.")
+        sys.stderr.write("User Creation Canceled, exiting.\n")
         return False
 
     r = requests.post(USERS_URL, data=json.dumps(payload), headers=headers)
 
     if not r or not r.text:
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+        sys.stderr.write("Request could not be Completed. Try again and if error persists, tell John.\n" + 
+                          "He probably screwed up somewhere.\n")
         return False
 
     response = json.loads(r.text)
@@ -375,7 +376,7 @@ def create_user(argv=None) :
 def update_user(argv=None) :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("You must have a valid token to update a user, try logging in first.")
+        sys.stderr.write("You must have a valid token to view user information,\n Try logging in first.\n")
         return False
     
     username = get_input("Which user do you want to update?", data['username'])
@@ -393,13 +394,13 @@ def update_user(argv=None) :
 
 
 def destroy_user(argv=None) :
-    sys.stderr.write("This function isn't yet implemented (and only root can delete users anyways)")
+    sys.stderr.write("This function isn't yet implemented (and only root can delete users anyways)\n")
     return False
 
 def get_user(argv=None) :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        sys.stderr.write("You must have a valid token to view user information,\n Try logging in first.\n")
         return False
 
     token = data['token']
@@ -421,17 +422,20 @@ def get_user(argv=None) :
 
     response = json.loads(r.text)
     
+    print ""
+    print "-"*80
     print "Username     : %s" % (response['username'])
     print "Email        : %s " % response['email']
     print "VM's Running : %s" % len(response.get('instances', []))
     print "Instance IDs : %s" % str("[" + ', '.join(response.get('instances', [])) + "]")
+    print "-"*80
     print ""
     return True
 
 def get_users(argv=None) :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        sys.stderr.write("You must have a valid token to view user information,\n Try logging in first.\n")
         return False
 
     token = data['token']
@@ -447,7 +451,9 @@ def get_users(argv=None) :
 
     response = json.loads(r.text)
 
-    print "\n Number of Users : %s\n" % str(len(response.get('users', [])))
+    print ""
+    print "-"*80
+    print "\nNumber of Users : %s\n" % str(len(response.get('users', [])))
     
     for user in response.get('users', []) :
         print "Username     : %s" % (user['username'])
@@ -455,7 +461,10 @@ def get_users(argv=None) :
         print "VM's Running : %s" % len(user.get('instances', []))
         print "Instance IDs : %s" % str("[" + ', '.join(user.get('instances', [])) + "]")
         print ""
-    return True
+    print "-"*80
+    print ""
+
+    return response
 
 # @info - walk the user through the steps of creating a new instance
 def create_instance(argv=None, ret_json=False) :
@@ -515,15 +524,15 @@ def create_instance(argv=None, ret_json=False) :
     payload['class'] = slugname
     payload['provider'] = 'DO'
 
-    print "New Instance Details : "
-    print "Name (%s)" % instance_name
-    print "Boot Image (%s)" % image_name
-    print "VM Class (%s)" % classes[classslug]
+    print "Confirm Instance Details"
+    print "Name       : %s" % instance_name
+    print "Boot Image : %s" % image_name
+    print "VM Class   : %s" % classes[classslug]
     if not get_yes_no("Is this Information Correct?") :
         sys.stderr.write("Instance Creation Canceled. Feel free to try again.")
         return False
      
-    print "Creating Instance (%s). This might take up to 3 minutes to complete, please be patient."%instance_name
+    print "\nCreating Instance (%s). This might take up to 3 minutes to complete, please be patient."%instance_name
     print "When finished, you will recieve a description of your new instance."
     r = requests.post(COMPUTE_URL, data=json.dumps(payload), headers=headers)
 
@@ -539,7 +548,9 @@ def create_instance(argv=None, ret_json=False) :
 
 
     inst = response.get('instance', None)
-    print ""
+
+    print "-"*80
+    print "New Instance Created"
     print "Inst Name   : %s" % (inst['name'])
     print "Inst ID     : %s" % inst['id']
     print "Inst IP     : %s" % inst['ip']
@@ -548,6 +559,7 @@ def create_instance(argv=None, ret_json=False) :
     print "Inst Disk   : %sGB SSD" % inst['disk']
     print "Inst Creator: %s" % inst['creator']
     print "Created At  : %s" % str(inst['created_at'])
+    print "-"*80
     print ""
     return response
 
@@ -562,20 +574,21 @@ def destroy_instance(argv=None, ret_json=False) :
         inst_id = argv[0]
     else :
         instances = get_instances(ret_json=True)['instances']
-        inst_list = ["Name : %s" % (inst['name']) + ", Owner : (%s)" % inst['creator']  for inst in instances]
+        inst_list = [" %s" % inst['name'] + (30-len(inst['name']))*' ' + " | Owner : %s" % inst['creator']  for inst in instances]
         choice = get_input_choices("Choose an Existing Instance To Destroy", inst_list)
         inst_id = instances[choice]['id']
 
     if data['username'] != instances[choice]['creator'] :
         print "Remember, only the root user can delete instances that they do not own."
 
-    if not get_yes_no("Please Confirm that you do want to delete instance %s owned by %s" % (instances[choice]['name'],
-                                                                                             instances[choice]['creator'])) :
-        sys.stderr.write("Instance Deletion Canceled. Exiting.")
-        return False
 
     if get_yes_no("Would you like to create a snapshot for this instance?") :
         res = create_snapshot(argv=[inst_id])
+
+    if not get_yes_no("Confirm that you do want to delete instance %s (owned by %s)" % (instances[choice]['name'],
+                                                                                        instances[choice]['creator'])) :
+        sys.stderr.write("Instance Deletion Canceled. Exiting.")
+        return False
 
     token = data['token']
     
@@ -594,9 +607,12 @@ def destroy_instance(argv=None, ret_json=False) :
         return response
     
     inst = response.get('instance', None)
-    print "Deletion Successful, Details : " 
-    print "Instance Name  : %s" % (inst['name'])
-    print "Inst ID : %s " % inst['id']
+    print ""
+    print "-"*80
+    print "Instance Deletion Successful" 
+    print "Inst Name : %s" % (inst['name'])
+    print "Inst ID   : %s" % inst['id']
+    print "-"*80
     print ""
     return response
 
@@ -626,8 +642,8 @@ def get_instances(argv=None, ret_json=False) :
 
     if ret_json : #return early without printing if the caller wants such
         return response
-
-    print "Number of Instances : %s" % str(len(response.get('instances', [])))
+    
+    print "-"*80
     
     for inst in response.get('instances', []) :
         print "Inst Name   : %s" % (inst['name'])
@@ -639,6 +655,10 @@ def get_instances(argv=None, ret_json=False) :
         print "Inst Creator: %s" % inst['creator']
         print "Created At  : %s" % str(inst['created_at'])
         print ""
+
+    print "Number of Instances : %s" % str(len(response.get('instances', [])))
+    print "-"*80
+
     return response
 
 # @info - grab info on an existing instance
@@ -652,7 +672,7 @@ def get_instance(argv=None, ret_json=False) :
         inst_id = argv[0]
     else :
         instances = get_instances(ret_json=True)['instances']
-        inst_list = ["%s" % (inst['name']) for inst in instances]
+        inst_list = ["%s" % (inst['name'])  + (30-len(inst['name']))*' ' + " | Owner : %s" % inst['creator'] for inst in instances]
         choice = get_input_choices("Choose an existing instance", inst_list)
         inst_id = instances[choice]['id']
 
@@ -674,6 +694,8 @@ def get_instance(argv=None, ret_json=False) :
     
     inst = response.get('instance', None)
 
+    print ""
+    print "-"*80
     print "Inst Name   : %s" % (inst['name'])
     print "Inst ID     : %s" % inst['id']
     print "Inst IP     : %s" % inst['ip']
@@ -682,6 +704,7 @@ def get_instance(argv=None, ret_json=False) :
     print "Inst Disk   : %sGB SSD" % inst['disk']
     print "Inst Creator: %s" % inst['creator']
     print "Created At  : %s" % str(inst['created_at'])
+    print "-"*80
     print ""
 
     return response
