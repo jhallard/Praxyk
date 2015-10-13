@@ -6,8 +6,8 @@ footer = '<div class="divPanel">\
 <h3>About Company</h3>\
 <p>Our goal is to implement the most popular machine-learning tools and offer access to their predictive capabilities as a service through a dedicated API. This makes the predictive power of machine-learning more accessible, especially for small businesses.</p>\
 <p> \
-<a href="#" title="Terms & Conditions">Terms & Conditions</a><br />\
-<a href="#" title="Privacy Policy">Privacy Policy</a><br />\
+<a href="terms_of_service.html" title="Terms of Service">Terms of Service</a><br />\
+<a href="privacy_policy.html" title="Privacy Policy">Privacy Policy</a><br />\
 <a href="#" title="FAQ">FAQ</a><br />\
 <a href="#" title="Sitemap">Sitemap</a><br />\
 <a href="http://www.github.com/jhallard/praxyk" title="Github">Github</a>\
