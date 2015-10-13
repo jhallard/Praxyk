@@ -20,6 +20,8 @@
 }
 
 %include <std_string.i>
+%include <std_vector.i>
+%template(string_vector) std::vector<std::string>;
 
 %include <praxyk/config.hpp>
 %include <praxyk/ocr.hpp>

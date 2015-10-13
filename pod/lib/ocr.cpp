@@ -1,5 +1,7 @@
 #include <praxyk/ocr.hpp>
 
+#include <boost/thread/thread.hpp>
+
 #include <tesseract/baseapi.h>
 #include <leptonica/allheaders.h>
 
@@ -43,6 +45,24 @@ std::string get_string_from_image(
 ) {
     std::string ret;
     _get_string_from_image(filename, &ret);
+    return ret;
+}
+
+std::vector<std::string> get_strings_from_images(
+    const std::vector<std::string> &filenames
+) {
+    std::vector<std::string> ret(filenames.size());
+
+    boost::thread_group thread_group;
+    for(size_t i = 0; i < ret.size(); i++) {
+        thread_group.create_thread(
+            boost::bind(
+                &_get_string_from_image, filenames[i], &ret[i]
+            )
+        );
+    }
+    thread_group.join_all();
+
     return ret;
 }
 

@@ -16,6 +16,11 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 FIND_PACKAGE(FANN REQUIRED)
 FIND_PACKAGE(Tesseract REQUIRED)
 
+SET(BOOST_REQUIRED_COMPONENTS
+    thread
+)
+FIND_PACKAGE(Boost 1.48 COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
+
 ########################################################################
 # Global flags
 ########################################################################
