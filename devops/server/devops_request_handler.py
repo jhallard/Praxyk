@@ -522,7 +522,7 @@ if __name__ == '__main__':
     SCHEMA = load_json_file(args.schemaf)
 
     if not CONFIG:
-        sys.stderr.write("Failed to parse input configuration file.")
+        sys.stderr.write("Failed to parse input configuration file.\n")
         sys.exit(1)
 
     # @info - if builddb/filldb args are given we execute those commands then exit with a proper
@@ -531,14 +531,14 @@ if __name__ == '__main__':
         if args.builddb :
             devopsutil = get_devops()
             if not devopsutil.build_database() :
-                sys.stderr.write("Failed to build database")
+                sys.stderr.write("Failed to build database\n")
                 sys.exit(1)
             sys.stdout.write("Database Built Successfully.")
             sys.exit(0) if not args.filldb else None
         if args.filldb :
             devopsutil = get_devops()
             if not devopsutil.fill_database() :
-                sys.stderr.write("Failed to fill database")
+                sys.stderr.write("Failed to fill database\n")
                 sys.exit(1)
             sys.stderr.write("Database filled and Synced.")
             sys.exit(0)

@@ -19,7 +19,7 @@ ACTIONS = ['setup', 'login', 'create', 'update', 'get', 'destroy']
 NOUNS = ['instance', 'instances', 'snapshot', 'snapshots', 'user', 'users']
 
 
-# BASE_URL = 'http://devops.praxyk.com/'
+# BASE_URL = 'http://127.0.0.1:5000/'
 BASE_URL = 'http://devops.praxyk.com:5000/'
 TOKENS_URL =  BASE_URL+'tokens/'
 COMPUTE_URL = BASE_URL+'compute/'
@@ -88,9 +88,9 @@ def get_input_choices(desc, choices) :
         count += 1
 
     inp = None 
-    while not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
+    while not inp or not inp.isdigit() or (int(inp) <= 0 or int(inp) > len(choices)) :
         inp = sys.stdin.readline().strip()
-        if not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
+        if not inp or not inp.isdigit() or (int(inp) <= 0 or int(inp) > len(choices)) :
             print "Incorrect Choice. Select Again."
     
     return int(inp)-1
@@ -104,6 +104,23 @@ def get_yes_no(desc) :
         inp = sys.stdin.readline().strip()
 
     return inp in ['y', 'Y', 'yes', 'Yes']
+
+# @info - looks at the raw response and prints relevant error messages if necessary
+def check_return(r) :
+    if not r or not r.text :
+        if "404" in r.text :
+            sys.stderr.write("Content Not Found. Double check all content-IDs are correct (username, instance id, etc).\n")
+        elif "401" in r.text :
+            sys.stderr.write("Request Could not be Authorized. If you haven't logged in today, do so. If error persists, contact John.\n")
+        elif "500" in r.text :
+            sys.stderr.write("The Server had a Hiccup, do you mind forwarding this stack trace to John?\n")
+            sys.stderr.write(str(80*'-'+'\n'+r.text+80*'-'+'\n'))
+        else :
+            sys.stderr.write("Request Could not be Fufilled.\nDetails : %s\n"%r.text)
+        return False
+    else :
+        return True
+
 
 # @info - grabs the user's current token and username from a local file and return it to be used.
 def load_auth_info() :
@@ -135,7 +152,7 @@ def gen_ssh_key() :
 def setup_ssh_keys() :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("Must be logged in (have active token) to setup ssh keys")
+        sys.stderr.write("Must be logged in (have active token) to setup ssh keys.\n")
         return False
 
     keyfile = ""
@@ -154,14 +171,14 @@ def setup_ssh_keys() :
             if get_yes_no("Is there an existing SSH-key you would like to use?") :
                 keyfile = get_input("Enter the path to the ssh key (the private key).")
                 if not os.path.isfile(keyfile) :
-                    sys.stderr.write("That doesn't seem to be a path to a valid key, exiting.")
+                    sys.stderr.write("That doesn't seem to be a path to a valid key, double-check and try again.\n")
                     return False
             else :
-                sys.stderr.write("Well you need to either give me an existing key or generate a new one. Try again.")
+                sys.stderr.write("Well you need to either give me an existing key or generate a new one. Try again.\n")
                 return False
     
     if not keyfile or not os.path.isfile(keyfile) or not os.path.isfile(keyfile+".pub") :
-        sys.stderr.write("Something went wrong, keyfile still doesn't exist.")
+        sys.stderr.write("Something went wrong, keyfile still doesn't exist. Did you login okay?\n")
         return False
     
     with open(keyfile+".pub") as fh :
@@ -178,15 +195,13 @@ def setup_ssh_keys() :
     headers = {'content-type': 'application/json'}
     r = requests.post(SSHKEYS_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
-        sys.exit(1)
+    if not check_return(r) :
+        return False
 
     response = json.loads(r.text)
     
     if not response.get('code') == 200 :
-        sys.stderr.write("Bad return code from server. Try again.")
+        sys.stderr.write("Bad return code from server. Try again.\n")
         return False
     
     key = response.get('key')
@@ -221,8 +236,7 @@ def login_client() :
     headers = {'content-type': 'application/json'}
     r = requests.post(TOKENS_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -271,9 +285,7 @@ def change_password(user=None) :
     headers = {'content-type': 'application/json'}
     r = requests.put(USERS_URL+username, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text :
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
-        print str(r)
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -300,9 +312,7 @@ def change_email(user=None) :
     headers = {'content-type': 'application/json'}
     r = requests.put(USERS_URL+username, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text :
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
-        print str(r)
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -362,9 +372,7 @@ def create_user(argv=None) :
 
     r = requests.post(USERS_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        sys.stderr.write("Request could not be Completed. Try again and if error persists, tell John.\n" + 
-                          "He probably screwed up somewhere.\n")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -414,9 +422,7 @@ def get_user(argv=None) :
     headers = {'content-type': 'application/json'}
     r = requests.get(USERS_URL+username, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -443,9 +449,7 @@ def get_users(argv=None) :
     headers = {'content-type': 'application/json'}
     r = requests.get(USERS_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -535,9 +539,7 @@ def create_instance(argv=None, ret_json=False) :
     print "When finished, you will recieve a description of your new instance."
     r = requests.post(COMPUTE_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -566,8 +568,8 @@ def create_instance(argv=None, ret_json=False) :
 def destroy_instance(argv=None, ret_json=False) :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
-        return False
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.\n")
+        return {} 
 
     if argv and len(argv) > 0 :
         inst_id = argv[0]
@@ -586,8 +588,8 @@ def destroy_instance(argv=None, ret_json=False) :
 
     if not get_yes_no("Confirm that you do want to delete instance %s (owned by %s)" % (instances[choice]['name'],
                                                                                         instances[choice]['creator'])) :
-        sys.stderr.write("Instance Deletion Canceled. Exiting.")
-        return False
+        sys.stderr.write("Instance Deletion Canceled. Exiting.\n")
+        return {} 
 
     token = data['token']
     
@@ -595,9 +597,7 @@ def destroy_instance(argv=None, ret_json=False) :
     headers = {'content-type': 'application/json'}
     r = requests.delete(COMPUTE_URL+str(inst_id), data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -619,7 +619,7 @@ def destroy_instance(argv=None, ret_json=False) :
 def get_instances(argv=None, ret_json=False) :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.\n")
         return False
 
     token = data['token']
@@ -632,9 +632,7 @@ def get_instances(argv=None, ret_json=False) :
     
     r = requests.get(COMPUTE_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -664,7 +662,7 @@ def get_instances(argv=None, ret_json=False) :
 def get_instance(argv=None, ret_json=False) :
     data = load_auth_info()
     if not data :
-        sys.stderr.write("You must have a valid token to view user information, try logging in first.")
+        sys.stderr.write("You must have a valid token to view user information, try logging in first.\n")
         return False
 
     if argv and len(argv) > 0 :
@@ -682,9 +680,7 @@ def get_instance(argv=None, ret_json=False) :
     headers = {'content-type': 'application/json'}
     r = requests.get(COMPUTE_URL+str(inst_id), data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -767,9 +763,7 @@ def create_snapshot(argv=None, ret_json=False) :
     print "When finished, you will recieve a description of your new instance."
     r = requests.post(SNAPSHOTS_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -780,12 +774,15 @@ def create_snapshot(argv=None, ret_json=False) :
 
     snap = response.get('snapshot', None)
 
+    print ""
+    print "-"*80
     print "Snapshot Creation Successful. "
     print "Snapshot Name : (%s)" % snap['name']
     print "Snapshot ID   : (%s)" % snap['id']
     print "Instance Name : (%s)" % snap['inst_name']
     print "Created At    : %s" % str(snap['created_at'])
     print "Description   : %s" % snap['description']
+    print "-"*80
     print ""
     return response
 
@@ -805,7 +802,7 @@ def get_snapshot(argv=None, ret_json=False) :
             print "It doesn't look like any snapshots exist currently."
             return False
         choice = get_input_choices("Choose an Existing Snapshots", snap_list)
-        snap_id = instances[choice]['id']
+        snap_id = snapshots[choice]['id']
 
     token = data['token']
     
@@ -813,9 +810,7 @@ def get_snapshot(argv=None, ret_json=False) :
     headers = {'content-type': 'application/json'}
     r = requests.get(SNAPSHOTS_URL+str(snap_id), data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -825,11 +820,14 @@ def get_snapshot(argv=None, ret_json=False) :
     
     snap = response.get('snapshot', None)
 
-    print "Snapshot Name  : %s" % (snap['name'])
-    print "Snap ID : %s " % inst['id']
-    print "Snap Status : %s" % inst['status']
-    print "Snap Instance : %s" % inst['inst_name']
-    print "Created At : %s" % str(inst['created_at'])
+    print ""
+    print "-"*80
+    print "Snapshot Name : (%s)" % snap['name']
+    print "Snapshot ID   : (%s)" % snap['id']
+    print "Instance Name : (%s)" % snap['inst_name']
+    print "Created At    : %s" % str(snap['created_at'])
+    print "Description   : %s" % snap['description']
+    print "-"*80
     print ""
     return response
 
@@ -846,9 +844,7 @@ def get_snapshots(argv=None, ret_json=False) :
 
     r = requests.get(SNAPSHOTS_URL, data=json.dumps(payload), headers=headers)
 
-    if not r or not r.text:
-        print str(r)
-        sys.stderr.write("Request could not be Completed. Try again and check info.")
+    if not check_return(r) :
         return False
 
     response = json.loads(r.text)
@@ -856,6 +852,8 @@ def get_snapshots(argv=None, ret_json=False) :
     if ret_json : #return early without printing if the caller wants such
         return response
 
+    print ""
+    print "-"*80
     print "Number of Snapshots : %s" % str(len(response.get('snapshots', [])))
     
     for snap in response.get('snapshots', []) :
@@ -865,6 +863,9 @@ def get_snapshots(argv=None, ret_json=False) :
         print "Created At    : %s" % str(snap['created_at'])
         print "Description   : %s" % snap['description']
         print ""
+
+    print "-"*80
+    print ""
     return response
     
 
@@ -899,17 +900,17 @@ if __name__ == "__main__" :
         sys.exit(0 if res else 1)
 
     if not args.action or args.action not in ACTIONS :
-        sys.stderr.write("Must include a valid Action (%s) "%ACTIONS)
+        sys.stderr.write("Must include a valid Action (%s) \n"%ACTIONS)
         sys.exit(1)
     
     if not args.noun or args.noun not in NOUNS :
-        sys.stderr.write("Must include a valid noun (instance[s], user[s], snapshot[s]) for action (%s) "%args.action)
+        sys.stderr.write("Must include a valid noun (instance[s], user[s], snapshot[s]) for action (%s)\n "%args.action)
         sys.exit(1)
 
     action_func = ACTION_MAP.get(args.action).get(args.noun, None)
     if not action_func :
         sys.stderr.write(("It looks like your input of [%s] is invalid or unimplemented." +\
-                         " If you think this is wrong tell John.") % (args.action+" " +args.noun)) 
+                         " If you think this is wrong tell John. \n") % (args.action+" " +args.noun)) 
         sys.exit(1)
     res = action_func(argv=args.specifics)
     
