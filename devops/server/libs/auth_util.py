@@ -111,12 +111,8 @@ class authUtil :
     #         need a new one.
     def validate_user(self, username, pwhash) :
         self.logger.log_event(self.logclient, "USER VALIDATE", 'a', ['User'], (username))
-        user = self.dbutil.query(self.ndbUsers, '*', "username='%s'"%username, limit=1)
-
-        if user :
-            user = user[0] # it's the first and only row returned.
-
-        ret = (user[1] == pwhash)
+        user = self.get_user(username)
+        ret = (user is not None and pwhash == user['pwhash'])
         return self.logger.log_event(self.logclient, "USER VALIDATE", 's' if ret else 'f', ['User'], (username))
 
     # @info - takes a user and gets a valid token for them. If none are available it makes a new one and returns
@@ -127,7 +123,7 @@ class authUtil :
 
         tok = self.dbutil.query(self.ndbTokens, '*', "user='%s'"%user, order_by="created_at ASC", limit=1)
 
-        if not tok :
+        if not tok or not tok[0] :
             self.logger.log_event(self.logclient, "TOKEN FETCH", 'f', ['User'], (user), "No Tokens Found")
             return None
         else :
@@ -148,8 +144,10 @@ class authUtil :
             user = user[0] # it's the first and only row returned.
 
         auth = self.get_auth_level(username)
-        
-        return {'username' : user[0], 'pwhash' : user[1], 'email' : user[2], 'auth' : auth}
+        if user and len(user) >= 3 : 
+            return {'username' : user[0], 'pwhash' : user[1], 'email' : user[2], 'auth' : auth}
+        else :
+            return {}
 
     # @info - gets the auth level for the given user from the database and returns it
     def get_auth_level(self, username) :
