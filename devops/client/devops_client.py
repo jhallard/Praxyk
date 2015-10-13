@@ -421,10 +421,11 @@ def get_user(argv=None) :
 
     response = json.loads(r.text)
     
-    print "User %s's Info : " % (response['username'])
-    print "Email : %s " % response['email']
-    print "Instances Running : %s" % len(response.get('instances', []))
-    print "Instances : %s" % str(response.get('instances', "None"))
+    print "Username     : %s" % (response['username'])
+    print "Email        : %s " % response['email']
+    print "VM's Running : %s" % len(response.get('instances', []))
+    print "Instance IDs : %s" % str("[" + ', '.join(response.get('instances', [])) + "]")
+    print ""
     return True
 
 def get_users(argv=None) :
@@ -446,13 +447,13 @@ def get_users(argv=None) :
 
     response = json.loads(r.text)
 
-    print "Number of Users : %s" % str(len(response.get('users', [])))
+    print "\n Number of Users : %s\n" % str(len(response.get('users', [])))
     
     for user in response.get('users', []) :
-        print "User  : %s" % (user['username'])
-        print "Email : %s " % user['email']
-        print "Instances Running : %s" % len(user.get('instances', []))
-        print "Instances : %s" % str(user.get('instances', "None"))
+        print "Username     : %s" % (user['username'])
+        print "Email        : %s " % user['email']
+        print "VM's Running : %s" % len(user.get('instances', []))
+        print "Instance IDs : %s" % str("[" + ', '.join(user.get('instances', [])) + "]")
         print ""
     return True
 
@@ -538,13 +539,15 @@ def create_instance(argv=None, ret_json=False) :
 
 
     inst = response.get('instance', None)
-
-    print "Instance Name  : %s" % (inst['name'])
-    print "Inst ID : %s " % inst['id']
-    print "Inst IP : %s" % inst['ip']
+    print ""
+    print "Inst Name   : %s" % (inst['name'])
+    print "Inst ID     : %s" % inst['id']
+    print "Inst IP     : %s" % inst['ip']
     print "Inst Status : %s" % inst['status']
+    print "Inst Class  : %s RAM" % inst['class']
+    print "Inst Disk   : %sGB SSD" % inst['disk']
     print "Inst Creator: %s" % inst['creator']
-    print "Created At : %s" % str(inst['created_at'])
+    print "Created At  : %s" % str(inst['created_at'])
     print ""
     return response
 
@@ -627,12 +630,14 @@ def get_instances(argv=None, ret_json=False) :
     print "Number of Instances : %s" % str(len(response.get('instances', [])))
     
     for inst in response.get('instances', []) :
-        print "Instance Name  : %s" % (inst['name'])
-        print "Inst ID : %s " % inst['id']
-        print "Inst IP : %s" % inst['ip']
+        print "Inst Name   : %s" % (inst['name'])
+        print "Inst ID     : %s" % inst['id']
+        print "Inst IP     : %s" % inst['ip']
         print "Inst Status : %s" % inst['status']
+        print "Inst Class  : %s RAM" % inst['class']
+        print "Inst Disk   : %sGB SSD" % inst['disk']
         print "Inst Creator: %s" % inst['creator']
-        print "Created At : %s" % str(inst['created_at'])
+        print "Created At  : %s" % str(inst['created_at'])
         print ""
     return response
 
@@ -669,13 +674,16 @@ def get_instance(argv=None, ret_json=False) :
     
     inst = response.get('instance', None)
 
-    print "Instance Name  : %s" % (inst['name'])
-    print "Inst ID : %s " % inst['id']
-    print "Inst IP : %s" % inst['ip']
+    print "Inst Name   : %s" % (inst['name'])
+    print "Inst ID     : %s" % inst['id']
+    print "Inst IP     : %s" % inst['ip']
     print "Inst Status : %s" % inst['status']
+    print "Inst Class  : %s RAM" % inst['class']
+    print "Inst Disk   : %sGB SSD" % inst['disk']
     print "Inst Creator: %s" % inst['creator']
-    print "Created At : %s" % str(inst['created_at'])
+    print "Created At  : %s" % str(inst['created_at'])
     print ""
+
     return response
 
 
@@ -722,7 +730,7 @@ def create_snapshot(argv=None, ret_json=False) :
     payload['shutdown'] = shutdown
 
 
-    print "New Snapshot Details : "
+    print "New Snapshot Details "
     print "Snapshot Name  : (%s)" % snapshot_name
     print "Instance Name  : (%s)" % instances[choice]['name']
     print "Instance ID    : (%s)" % instances[choice]['id']
@@ -749,7 +757,7 @@ def create_snapshot(argv=None, ret_json=False) :
 
     snap = response.get('snapshot', None)
 
-    print "Snapshot Creation Successful. Details : "
+    print "Snapshot Creation Successful. "
     print "Snapshot Name : (%s)" % snap['name']
     print "Snapshot ID   : (%s)" % snap['id']
     print "Instance Name : (%s)" % snap['inst_name']
