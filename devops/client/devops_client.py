@@ -90,7 +90,6 @@ def get_input_choices(desc, choices) :
     inp = None 
     while not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
         inp = sys.stdin.readline().strip()
-        print int(inp)
         if not inp or (int(inp) <= 0 or int(inp) > len(choices)) :
             print "Incorrect Choice. Select Again."
     
@@ -671,7 +670,8 @@ def get_instance(argv=None, ret_json=False) :
     if argv and len(argv) > 0 :
         inst_id = argv[0]
     else :
-        instances = get_instances(ret_json=True)['instances']
+        instances = get_instances(ret_json=True)
+        instances = instances['instances'] if instances else []
         inst_list = ["%s" % (inst['name'])  + (30-len(inst['name']))*' ' + " | Owner : %s" % inst['creator'] for inst in instances]
         choice = get_input_choices("Choose an existing instance", inst_list)
         inst_id = instances[choice]['id']

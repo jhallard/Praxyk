@@ -157,12 +157,12 @@ def get_db_args() :
     return dbargs
 
 def get_db() :
-    dbutil = getattr(g, '_dbutil', None)
-    if dbutil is None :
-        dbargs = get_db_args()
-        dbutil = g._dbutil = dbUtil(dbargs)
-        dbutil.login()
-        dbutil.use_database(SCHEMA['dbname'])
+    # dbutil = getattr(g, '_dbutil', None)
+    # if dbutil is None :
+    dbargs = get_db_args()
+    dbutil = g._dbutil = dbUtil(dbargs)
+    dbutil.login()
+    dbutil.use_database(SCHEMA['dbname'])
     return dbutil
 
 def get_vm_args() :
