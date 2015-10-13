@@ -20,6 +20,9 @@ SET(BOOST_REQUIRED_COMPONENTS
     thread
 )
 FIND_PACKAGE(Boost 1.48 COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
+IF(NOT ${Boost_FOUND})
+    MESSAGE(FATAL_ERROR "Boost.Thread is required.")
+ENDIF(NOT ${Boost_FOUND})
 
 ########################################################################
 # Global flags
