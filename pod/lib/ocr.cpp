@@ -7,11 +7,10 @@
 
 namespace praxyk {
 
-std::string get_string_from_image(
-    const std::string &filename
+void _get_string_from_image(
+    const std::string &filename,
+    std::string *ret
 ) {
-    std::string outText;
-
     // Create Tesseract instance
     tesseract::TessBaseAPI *api = new tesseract::TessBaseAPI();
     if (api->Init(NULL, "eng")) {
@@ -27,18 +26,24 @@ std::string get_string_from_image(
     // Open input image with leptonica library
     api->SetImage(image);
     // Get OCR result
-    outText = api->GetUTF8Text();
+    *ret = api->GetUTF8Text();
 
     // Destroy used object and release memory
     api->End();
     pixDestroy(&image);
 
     // Remove duplicate newlines from end of string
-    while(outText[outText.length()-1] == '\n') {
-        outText.pop_back();
+    while((*ret)[ret->length()-1] == '\n') {
+        ret->pop_back();
     }
+}
 
-    return outText;
+std::string get_string_from_image(
+    const std::string &filename
+) {
+    std::string ret;
+    _get_string_from_image(filename, &ret);
+    return ret;
 }
 
 }
