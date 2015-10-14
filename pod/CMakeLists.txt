@@ -3,6 +3,7 @@
 ########################################################################
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT(praxyk C CXX)
+ENABLE_TESTING()
 
 SET(praxyk_VERSION_MAJOR 0)
 SET(praxyk_VERSION_MINOR 0)
@@ -60,6 +61,7 @@ SET(DOCS_DIR share/doc/praxyk)
 ADD_SUBDIRECTORY(include)
 ADD_SUBDIRECTORY(lib)
 ADD_SUBDIRECTORY(python)
+ADD_SUBDIRECTORY(tests)
 
 ####################################################################
 # Final Display
