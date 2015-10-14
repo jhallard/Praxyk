@@ -11,7 +11,8 @@ MACRO(PRAXYK_ADD_PYTHON_TEST test)
 ENDMACRO(PRAXYK_ADD_PYTHON_TEST)
 
 SET(PRAXYK_PYTHON_TESTS
-    praxyk_ocr_test
+    pod_ocr_test
+    pod_spam_test
 )
 
 FOREACH(test ${PRAXYK_PYTHON_TESTS})
