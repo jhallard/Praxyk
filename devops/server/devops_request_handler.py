@@ -543,12 +543,12 @@ if __name__ == '__main__':
             sys.stderr.write("Database filled and Synced.")
             sys.exit(0)
 
-	if args.local :
-		DEVOPS_HANDLER_APP.run(debug=True, threaded=True)
-	else :
-		http_server = HTTPServer(WSGIContainer(DEVOPS_HANDLER_APP))
-		http_server.listen(5000)
-		IOLoop.instance().start()
+    if args.local :
+            DEVOPS_HANDLER_APP.run(debug=True, threaded=True)
+    else :
+            http_server = HTTPServer(WSGIContainer(DEVOPS_HANDLER_APP))
+            http_server.listen(5000)
+            IOLoop.instance().start()
 
 
 
