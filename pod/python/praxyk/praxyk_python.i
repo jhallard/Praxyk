@@ -23,6 +23,8 @@
 %include <std_vector.i>
 %template(string_vector) std::vector<std::string>;
 
+%include <praxyk_docstrings.i>
 %include <praxyk/config.hpp>
 %include <praxyk/ocr.hpp>
 %include <praxyk/spam.hpp>
+
