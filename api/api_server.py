@@ -1,26 +1,25 @@
 #!/usr/bin/env python
 
-## @auth John Allard
+## @auth John Allard, Nick Church, others
 ## @date Oct 2015
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
 
 ########################################################################################
-#                                DEVOPS REQUEST HANDLER                                #
-#                    " Server-side shared-resource API manager  "                      #
-#  This is the main request handler for the shared-compute-resource management         #
-#  system. It exposes an API to create, image, and destroy virtual machines            #
-#  of various sizes from mutiple different service providers. All API calls            #
-#  must be validated with 512bit tokens that the user stores locally.                  #
-#                                                                                      #
+#                                  Praxyk API Server                                   #
+#  This is the main request handling code for the user-facing API server. It defines   #
+#  exactly how to respond to all of the valid route requests that we recieve from      #
+#  users. It depends on a series of util classes defined in /libs/, these abstract the #
+#  process of authentication and user-data distribution out from the actual request    #
+#  handling code.                                                                      #
 #                                     Arguments                                        #
 #  Use -h or --help to print script help                                               #
-#
-#
+#                                                                                      #
+#  See https://github.com/jhallard/Praxyk/wiki/Praxyk-API for complete API guide.      #
 ########################################################################################
 
 import _fix_path_
-# import utils
+from libs import *
 
 import sys, os
 import argparse
