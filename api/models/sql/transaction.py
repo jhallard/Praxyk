@@ -22,6 +22,8 @@ class Transaction(db.model) :
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     command_url = db.Column(db.String(500))
     data_url = db.Column(db.String(500)) # url to access the input data associated with transaction
-
+    results_url = db.Column(db.String(500)) # url for user to retrieve results api.praxyk.com/results/$id
+    status = db.Column(db.String(100)) # something like 'new', 'active', 'orphaned', etc.
+ 
     def __repr__(self):
         return '<Transaction %r>' % (self.id)
