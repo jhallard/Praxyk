@@ -1,7 +1,9 @@
 #include <praxyk/spam.hpp>
-
+#include <mlpack/core.hpp>
 #include <floatfann.h> // Needs to be included before fann_cpp.h
 #include <fann_cpp.h>
+
+using namespace mlpack;
 
 namespace praxyk {
     static PRAXYK_INLINE FANN::neural_net _init_spam_net() {
@@ -25,11 +27,20 @@ namespace praxyk {
      * this will segfault.
      */
     float get_spam_chance(const std::string &message) {
-        fann_type dummy_inputs[3];
-        dummy_inputs[0] = 1;
-        dummy_inputs[1] = 1;
-        dummy_inputs[2] = 1;
-
-        return *(_nnet.run(dummy_inputs));
+      return 0.5;
+      
     }
+
+  std::string exec(const char* cmd) {
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) return "ERROR";
+    char buffer[128];
+    std::string result = "";
+    while (!feof(pipe)) {
+      if (fgets(buffer, 128, pipe) != NULL)
+	result += buffer;
+    }
+    pclose(pipe);
+    return result;
+  }
 }

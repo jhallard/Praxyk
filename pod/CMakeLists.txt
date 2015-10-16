@@ -16,6 +16,8 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 ########################################################################
 FIND_PACKAGE(FANN REQUIRED)
 FIND_PACKAGE(Tesseract REQUIRED)
+FIND_PACKAGE(MLPack REQUIRED)
+FIND_PACKAGE(LibXml2 2.6.0 REQUIRED)
 
 SET(BOOST_REQUIRED_COMPONENTS
     thread
