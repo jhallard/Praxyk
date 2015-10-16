@@ -184,11 +184,11 @@ if __name__ == '__main__':
     args = parse_args(sys.argv)
     if not args.config :
         self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No Config File Given")
-    #    sys.exit(1)
+        sys.exit(1)
 
     if not args.schemaf :
         self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No DB Schema File Given")
-     #   sys.exit(1)
+        sys.exit(1)
 
     CONFIG = load_json_file(args.config) 
     SCHEMA = load_json_file(args.schemaf)
@@ -197,23 +197,10 @@ if __name__ == '__main__':
         sys.stderr.write("Failed to parse input configuration file.\n")
         sys.exit(1)
 
-    # @info - if builddb/filldb args are given we execute those commands then exit with a proper
-    #         status code and message.
+    # @info - you can do stuff here before the app actually starts running, like setup db connections
+    #         or make sure other servers are active, etc.
     with PRAXYK_API_APP.app_context():
-        if args.builddb :
-            devopsutil = get_devops()
-            if not devopsutil.build_database() :
-                sys.stderr.write("Failed to build database\n")
-                sys.exit(1)
-            sys.stdout.write("Database Built Successfully.")
-            sys.exit(0) if not args.filldb else None
-        if args.filldb :
-            devopsutil = get_devops()
-            if not devopsutil.fill_database() :
-                sys.stderr.write("Failed to fill database\n")
-                sys.exit(1)
-            sys.stderr.write("Database filled and Synced.")
-            sys.exit(0)
+        pass
 
     # will run on localhost:5000 if --local flag is given
     if args.local :
