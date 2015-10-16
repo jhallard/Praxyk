@@ -8,6 +8,7 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${FANN_INCLUDE_DIRS}
     ${Tesseract_INCLUDE_DIR}
+    ${MLPack_INCLUDE_DIR}
 )
 
 SET(praxyk_libs
