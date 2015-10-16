@@ -36,6 +36,8 @@
     <script src="scripts/menu.js" type="text/javascript"></script>
     <script src="scripts/footer.js" type="text/javascript"></script>
     <script src="scripts/init.js" type="text/javascript"></script>
+    <script src="scripts/dashboard.js" type="text/javascript"></script>
+    <script src="scripts/praxyk.js" type="text/javascript"></script>
     <script type="text/javascript">
 		if(sessionStorage.getItem("login") == null || sessionStorage.getItem("login") == false){
 			window.location = "login.html";
@@ -77,6 +79,15 @@
 
                     <h1 id="page_title">Dashboard</h1>
                     <hr>
+                    <h2>POD</h2>
+                    <div id="error_message"></div>
+                    <input type="file" id="pod_input" />
+                    <select id="pod_service">
+                    	<option value="false">SELECT A POD SERVICE</option>
+                        <option value="false">--------------------</option>
+                    	<option value="ocr">OCR</option>
+                    </select>
+                    <button class="btn" onClick="evaluate_service()">Evaluate</button>
                 </div>
             <!--End Main Content Area-->
             </div>
