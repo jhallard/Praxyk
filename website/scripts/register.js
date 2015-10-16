@@ -1,21 +1,38 @@
 // JavaScript Document
+	var first;
+	var last;
+	var email;
+	var email_comp;
+	var password;
+	var password_comp;
+	var terms;
+
 function register(){
 	$("#form_error").html("");
 	$("#form_error").removeClass("alert alert-error");
+   $("#form_error").removeClass("alert alert-success");
+   
+   first = $("#first_name").val();
+	last = $("#last_name").val();
+	email = $("#email").val();
+	email_comp = $("#confirm_email").val();
+	password = $("#password").val();
+	password_comp = $("#confirm_password").val();
+	terms = $("#agree").prop("checked");
 	
 	if(validate()){
-	alert("everything is fine");
+      if(register_user(first,last,email,password)){
+         $("#form_error").html("Registration Successful");
+         $("#form_error").addClass("alert alert-success");
+      }else{
+         $("#form_error").html("Registration Not Successful");
+         $("#form_error").addClass("alert alert-error");
+      }
+      
 	}
 }
 
 function validate(){
-	var first = $("#first_name").val();
-	var last = $("#last_name").val();
-	var email = $("#email").val();
-	var email_comp = $("#confirm_email").val();
-	var password = $("#password").val();
-	var password_comp = $("#confirm_password").val();
-	var terms = $("#agree").prop("checked");
 	
 	var error = false;	
 	var error_message = "<h3>Error</h3>";
@@ -27,7 +44,7 @@ function validate(){
 	}
 	
 	if(last == null || last == ""){
-		error_message += "<h4>Last Name</h4><p>Make sure that the <strong>Last Name field</strong> is filled</p>";
+		error_message += "<h4>Last Name</h4><p>Make sure that the <strong>Last Name</strong> field is filled</p>";
 		error = true;
 	}
 	
@@ -52,9 +69,14 @@ function validate(){
 		error_message += "<h4>Password</h4><p>Make sure that the <strong>Confirm Password</strong> field is filled</p>";
 		error = true;
 	}
+   
+   if(password.length < 5){
+      error_message += "<h4>Password</h4><p>Make sure your <strong>Password</strong> contains atleast 6 characters!</p>";
+		error = true;
+	}
 	
 	if(!terms){
-		error_message += "<h4>Terms & Conditions</h4><p>Please agree to the <strong>Terms & Conditions</strong>!</p>";
+		error_message += "<h4>Terms of Service</h4><p>Please agree to the <strong>Terms of Service</strong>!</p>";
 		error =true;
 	}
 	

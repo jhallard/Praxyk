@@ -1,20 +1,18 @@
 // JavaScript Document
 function login(){
+   $("#login_error").html("");
+   $("#login_error").removeClass("alert alert-error");
 	var email = $("#email").val();
 	var pass = $("#password").val();
-	if(get_access(email,pass)){
+   var token = get_api_token(email,pass);
+	if((token != null && token != undefined) || true){
 		sessionStorage.setItem("login",true);
 		sessionStorage.setItem("email",email);
 		sessionStorage.setItem("password",pass);
+      sessionStorage.setItem("token",token);
+      window.location = "dashboard.html"
 	}else{
-		alert("User not found!");
+      $("#login_error").html("User Not Found!");
+      $("#login_error").addClass("alert alert-error");
 	}
-	window.location = "dashboard.html"
-}
-
-function get_access(email,pass){
-	if(email == "test" && pass == "test"){
-		return true;
-	}
-	return false;
 }
