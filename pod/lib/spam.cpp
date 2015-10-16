@@ -5,6 +5,7 @@
 
 using namespace mlpack;
 
+
 namespace praxyk {
     static PRAXYK_INLINE FANN::neural_net _init_spam_net() {
         /*
