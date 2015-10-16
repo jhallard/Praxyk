@@ -5,8 +5,9 @@
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
 
-## @info - This file defines the users model and any models that are directly related
-##         to the users of Praxyk services.
+## @info - This file defines the transaction model and any models that are directly related
+##         to the transactions that are created as a result of user interaction with praxyk
+##         services.
 
 ## Note - This model definition is shared across multiple servers and code branches, DO NOT
 ##        change this file unless you have permission or know exactly what you're doing. 
