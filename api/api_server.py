@@ -18,13 +18,15 @@
 #  See https://github.com/jhallard/Praxyk/wiki/Praxyk-API for complete API guide.      #
 ########################################################################################
 
-import _fix_path_
-from libs import *
-
 import sys, os
 import argparse
 import datetime
 import json
+
+from __init__ import PRAXYK_API_APP
+
+from libs import *
+from models import *
 
 from flask import Flask, jsonify, request, Response, g
 from flask import Flask, jsonify, abort, make_response
@@ -49,7 +51,8 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
-    parser.add_argument('--local', action='store_true', help="Use this flag to run the server on localhost:5000 instead of as a live server.")
+    parser.add_argument('--local', action='store_true', help="Use this flag to run the server on " + \
+                                                            "localhost:5000 instead of as a live server.")
     parser.add_argument('config', help="Full path to the config file for this regression. It should include " + \
                                        "the vm tokens, dbip, dbpw, and dbuser.")
     parser.add_argument('schemaf', help="Full path to the .schema file for a database.")
@@ -178,16 +181,16 @@ if __name__ == '__main__':
     global CONFIG
     global SCHEMA
 
-    (logutil, dt) = init_logutil()
-    logclient = HANDLER_LOG_CLIENT
+    # (logutil, dt) = init_logutil()
+    # logclient = HANDLER_LOG_CLIENT
 
     args = parse_args(sys.argv)
     if not args.config :
-        self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No Config File Given")
+        # self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No Config File Given")
         sys.exit(1)
 
     if not args.schemaf :
-        self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No DB Schema File Given")
+        # self.logger.log_event(logclient, "HANDLER STARTUP", 'f', [], "", "No DB Schema File Given")
         sys.exit(1)
 
     CONFIG = load_json_file(args.config) 
