@@ -39,20 +39,25 @@ transaction_fields = {
     'uri' : fields.Url(USER_ENDPOINT, absolute=True)
 }
 
+transactions_fields = {
+    'transactions' : fields.Nested(transaction_fields),
+    'user_id' : fields.Integer
+}
+
 # @info - class with routes that contain a transaction id 
 # ie `GET api.praxyk.com/transactions/12345`
 class TransactionRoute(Resource) :
 
     def __init__(self) :
         self.transaction_id = None
-        super(TransactionsRoute, self).__init__()
+        super(TransactionRoute, self).__init__()
 
     @marshal_with(transaction_fields, envelope='user')
     def get(self, id) :
-        user =  User.query.get(id)
-        if not user :
-            abort(403)
-        return user
+        trans =  Transaction.query.get(id)
+        if not trans :
+            abort(404)
+        return trans
 
     @marshal_with(transaction_fields, envelope='user')
     def put(self, id) :
@@ -60,7 +65,7 @@ class TransactionRoute(Resource) :
         user = User.query.get(id)
 
         if not user :
-            abort(403)
+            abort(404)
 
         if args['email'] :
             user.email = args['email']
@@ -70,7 +75,6 @@ class TransactionRoute(Resource) :
         db.session.add(user)
         db.session.commit()
         return user
-
 
     def delete(id) :
         pass

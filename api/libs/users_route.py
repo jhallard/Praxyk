@@ -16,15 +16,18 @@ import argparse
 import datetime
 import json
 
-from flask import Flask, jsonify, request, Response, g
-from flask import Flask, jsonify, abort, make_response
+from flask import Flask, jsonify, request, Response, g, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 from flask.ext.httpauth import HTTPBasicAuth
+from flask_jwt import JWT, jwt_required, current_identity
+
+from flask.ext.security import (Security, SQLAlchemyUserDatastore, login_required, 
+                                roles_required, auth_token_required, UserMixin, RoleMixin)
 
 from functools import wraps
 
 from api import db, USER_ENDPOINT, USERS_ENDPOINT
-from models.sql.user import User
+from api import User, Role, user_datastore
 
 
 user_fields = {
@@ -50,7 +53,7 @@ class UserRoute(Resource) :
     def get(self, id) :
         user =  User.query.get(id)
         if not user :
-            abort(403)
+            abort(404)
         return user
 
     @marshal_with(user_fields, envelope='user')
@@ -59,19 +62,20 @@ class UserRoute(Resource) :
         user = User.query.get(id)
 
         if not user :
-            abort(403)
+            abort(404)
 
         if args['email'] :
             user.email = args['email']
         if args['password'] :
-            user.pwhash = user.hashpw(args['password'])
+            user.pwhash = args['password'] # hashed automatically upon set
 
         db.session.add(user)
         db.session.commit()
         return user
 
-
-    def delete(id) :
+    # @roles_required('user')
+    @auth_token_required
+    def delete(self, id) :
         pass
 
 
@@ -91,11 +95,11 @@ class UsersRoute(Resource) :
     @marshal_with(user_fields, envelope='user')
     def post(self) :
         args = self.reqparse.parse_args()
-        new_user = User(name=args.name, email=args.email, password=args.password)
-        if not new_user :
-            abort(403)
 
-        db.session.add(new_user)
+        new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password)
+
+        user_role = Role(name="user")
+        db.session.add(user_role)
         db.session.commit()
         return new_user
     

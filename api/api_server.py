@@ -23,11 +23,9 @@ import argparse
 import datetime
 import json
 
-from __init__ import PRAXYK_API_APP
-
-from libs.users_route import *
-from libs.transactions_route import *
-from libs.results_route import *
+from libs.users_route import UserRoute, UsersRoute
+from libs.transactions_route import TransactionRoute, TransactionsRoute
+from libs.results_route import ResultsRoute
 
 from models import *
 
@@ -42,7 +40,7 @@ from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
-from api import *
+from api import * # imports all defines from top-level __init__
 
 
 DESCRIPTION = """
@@ -60,25 +58,14 @@ def parse_args(argv) :
                                                             "localhost:5000 instead of as a live server.")
     return parser.parse_args()
 
-@auth.get_password
-def get_password(username):
-    if username == 'miguel':
-        return 'python'
-    return None
 
-
-@auth.error_handler
-def unauthorized():
-    # return 403 instead of 401 to prevent browsers from displaying the default
-    # auth dialog
-    return make_response(jsonify({'message': 'Unauthorized access'}), 403)
-
-
+# @info - start adding the API endpoints. Each endpoint gets its own class. 
+#         The classes are in /praxyk/api/libs/*_route.py
 api.add_resource(UserRoute, '/users/<int:id>', endpoint=USER_ENDPOINT)
 api.add_resource(UsersRoute, '/users/', endpoint=USERS_ENDPOINT)
 
 api.add_resource(TransactionsRoute, '/transactions/', endpoint=TRANSACTIONS_ENDPOINT)
-api.add_resource(TransactionRoute, '/transaction/<int:id>', endpoint=TRANSACTION_ENDPOINT)
+api.add_resource(TransactionRoute, '/transactions/<int:id>', endpoint=TRANSACTION_ENDPOINT)
 
 api.add_resource(ResultsRoute, '/results/<int:id>', endpoint=RESULTS_ENDPOINT)
 

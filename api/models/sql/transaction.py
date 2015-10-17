@@ -13,7 +13,12 @@
 ##        change this file unless you have permission or know exactly what you're doing. 
 
 import __init__
-from api import db
+
+from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
+from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT
+
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
+from flask import url_for
 
 
 class Transaction(db.Model) :
@@ -24,8 +29,11 @@ class Transaction(db.Model) :
     user_id = db.Column(db.Integer, db.ForeignKey('Users.id'))
     command_url = db.Column(db.String(500))
     data_url = db.Column(db.String(500)) # url to access the input data associated with transaction
-    results_url = db.Column(db.String(500)) # url for user to retrieve results api.praxyk.com/results/$id
     status = db.Column(db.String(100)) # something like 'new', 'active', 'orphaned', etc.
+
+    @hybrid_property
+    def results_url(self) :
+       return url_for(RESULTS_ENDPOINT, id=self.id, _external=True) 
 
     def __init__(self, user_id, status="new") :
         self.created_at = datetime.datetime.now()
