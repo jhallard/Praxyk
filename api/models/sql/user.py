@@ -17,6 +17,7 @@ from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
 from transaction import *
 
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
+from flask import url_for
 import hashlib
 
 class User(db.Model):
@@ -29,7 +30,7 @@ class User(db.Model):
 
     @hybrid_property
     def transactions_url(self) :
-       return BASE_URL+TRANSACTIONS_ROUTE+"%s/" % (self.id)
+       return url_for('transactions', user_id=self.id, _external=True) 
 
     def __init__(self, name, email, password) :
         self.name = name

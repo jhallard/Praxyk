@@ -26,6 +26,9 @@ import json
 from __init__ import PRAXYK_API_APP
 
 from libs.users_route import *
+from libs.transactions_route import *
+from libs.results_route import *
+
 from models import *
 
 from flask import Flask, jsonify, request, Response, g
@@ -39,6 +42,8 @@ from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
+from api import *
+
 
 DESCRIPTION = """
 ##### Write a Description of this Script Here #####
@@ -50,23 +55,10 @@ def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
                                              "about the meta-database for storing log files.")
+    parser.add_argument('--builddb', action='store_true', help="This will cause all of the tables to be dropped and remade.")
     parser.add_argument('--local', action='store_true', help="Use this flag to run the server on " + \
                                                             "localhost:5000 instead of as a live server.")
     return parser.parse_args()
-
-
-# @info - takes a given json file and loads it into an active dictionary for return
-def load_json_file(fn) :
-    if os.path.isfile(fn) :
-        with open(fn, 'r+') as fh :
-            data = json.load(fh)
-        return data
-    return None
-
-PRAXYK_API_APP = Flask(__name__, static_url_path="")
-api = Api(PRAXYK_API_APP)
-auth = HTTPBasicAuth()
-
 
 @auth.get_password
 def get_password(username):
@@ -82,8 +74,13 @@ def unauthorized():
     return make_response(jsonify({'message': 'Unauthorized access'}), 403)
 
 
-api.add_resource(UserRoute, '/users/<string:user_id>', endpoint='user')
-api.add_resource(UsersRoute, '/users/', endpoint='users')
+api.add_resource(UserRoute, '/users/<int:id>', endpoint=USER_ENDPOINT)
+api.add_resource(UsersRoute, '/users/', endpoint=USERS_ENDPOINT)
+
+api.add_resource(TransactionsRoute, '/transactions/', endpoint=TRANSACTIONS_ENDPOINT)
+api.add_resource(TransactionRoute, '/transaction/<int:id>', endpoint=TRANSACTION_ENDPOINT)
+
+api.add_resource(ResultsRoute, '/results/<int:id>', endpoint=RESULTS_ENDPOINT)
 
 
 # @info - Main function, parse the inputs to see if the database needs to be either build or created
@@ -95,7 +92,10 @@ if __name__ == '__main__':
     # @info - you can do stuff here before the app actually starts running, like setup db connections
     #         or make sure other servers are active, etc.
     with PRAXYK_API_APP.app_context():
-        pass
+        if args.builddb :
+           db.drop_all()
+           db.create_all()
+           sys.exit(0)
 
     # will run on localhost:5000 if --local flag is given
     if args.local :

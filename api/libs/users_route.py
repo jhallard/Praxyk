@@ -23,16 +23,15 @@ from flask.ext.httpauth import HTTPBasicAuth
 
 from functools import wraps
 
-from api import db
+from api import db, USER_ENDPOINT, USERS_ENDPOINT
 from models.sql.user import User
 
-USER_ENDPOINT = 'user'
 
 user_fields = {
     'name' : fields.String,
     'email' : fields.String,
-    'id' : fields.String,
-    # 'uri' : fields.Url(USER_ENDPOINT),
+    'user_id' : fields.String(attribute="id"),
+    'uri' : fields.Url(USER_ENDPOINT, absolute=True),
     'transactions_url' : fields.String
 }
 
@@ -48,13 +47,16 @@ class UserRoute(Resource) :
         super(UserRoute, self).__init__()
 
     @marshal_with(user_fields, envelope='user')
-    def get(self, user_id) :
-        return User.query.get(user_id)
+    def get(self, id) :
+        user =  User.query.get(id)
+        if not user :
+            abort(403)
+        return user
 
     @marshal_with(user_fields, envelope='user')
-    def put(self, user_id) :
+    def put(self, id) :
         args = self.reqparse.parse_args()
-        user = User.query.get(user_id)
+        user = User.query.get(id)
 
         if not user :
             abort(403)
@@ -64,11 +66,12 @@ class UserRoute(Resource) :
         if args['password'] :
             user.pwhash = user.hashpw(args['password'])
 
-        db.session.add(new_user)
+        db.session.add(user)
         db.session.commit()
+        return user
 
 
-    def delete(user_id) :
+    def delete(id) :
         pass
 
 

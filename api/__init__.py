@@ -5,7 +5,7 @@
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
 
-from flask import Flask
+from flask import Flask, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify, request, Response, g, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
@@ -25,6 +25,13 @@ BASE_URL = "api.praxyk.com"
 TRANSACTIONS_ROUTE= "/transactions/"
 USERS_ROUTE = "/users/"
 RESULTS_ROUTE = "/results/"
+
+TRANSACTIONS_ENDPOINT = 'transactions'
+TRANSACTION_ENDPOINT = 'transaction'
+USER_ENDPOINT = 'user'
+USERS_ENDPOINT = 'users'
+RESULTS_ENDPOINT = 'results'
+
 
 
 # Base = declarative_base() # base model for models to derive from
