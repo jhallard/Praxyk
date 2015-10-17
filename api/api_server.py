@@ -25,7 +25,7 @@ import json
 
 from __init__ import PRAXYK_API_APP
 
-from libs import *
+from libs.users_route import *
 from models import *
 
 from flask import Flask, jsonify, request, Response, g
@@ -83,14 +83,15 @@ def unauthorized():
 
 
 api.add_resource(UserRoute, '/users/<string:user_id>', endpoint='user')
-api.add_resource(UserRoute, '/users/', endpoint='users')
+api.add_resource(UsersRoute, '/users/', endpoint='users')
 
 
 # @info - Main function, parse the inputs to see if the database needs to be either build or created
 #         if so, build, fill and exit. IF not, then just run in a infinite loop waiting for requests to 
 #         handle
 if __name__ == '__main__':
-
+    
+    args = parse_args(sys.argv)
     # @info - you can do stuff here before the app actually starts running, like setup db connections
     #         or make sure other servers are active, etc.
     with PRAXYK_API_APP.app_context():

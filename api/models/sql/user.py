@@ -12,10 +12,12 @@
 ##        change this file unless you have permission or know exactly what you're doing. 
 
 import __init__
-from api import db
+
+from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
 from transaction import *
 
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
+import hashlib
 
 class User(db.Model):
     __tablename__ = 'Users'
@@ -27,7 +29,7 @@ class User(db.Model):
 
     @hybrid_property
     def transactions_url(self) :
-       return "/transactions/%s/" % (self.id)
+       return BASE_URL+TRANSACTIONS_ROUTE+"%s/" % (self.id)
 
     def __init__(self, name, email, password) :
         self.name = name
@@ -38,5 +40,5 @@ class User(db.Model):
         return '<ID %r, Email %r>' % (self.id, self.email)
 
     def hashpw(self, password) :
-        salt = str(self.id) + str(self.email) + str(self.id/2)
-        return hashlib.sha512(salt + passwordw).hexdigest()
+        salt = str(self.name) + str(self.email) + str(self.name)
+        return hashlib.sha512(salt + password).hexdigest()

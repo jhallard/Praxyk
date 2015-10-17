@@ -18,19 +18,21 @@ import json
 
 from flask import Flask, jsonify, request, Response, g
 from flask import Flask, jsonify, abort, make_response
-from flask.ext.restful import Api, Resource, reqparse, fields, marshal
+from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 from flask.ext.httpauth import HTTPBasicAuth
 
 from functools import wraps
 
-from api import models
-from models import user, transaction
+from api import db
+from models.sql.user import User
+
+USER_ENDPOINT = 'user'
 
 user_fields = {
     'name' : fields.String,
     'email' : fields.String,
     'id' : fields.String,
-    'uri' : fields.Url(USER_ENDPOINT)
+    # 'uri' : fields.Url(USER_ENDPOINT),
     'transactions_url' : fields.String
 }
 
@@ -40,17 +42,31 @@ class UserRoute(Resource) :
 
     def __init__(self) :
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('email', type=str, required=True, location='json')
-        self.reqparse.add_argument('password', type=str, required=True, location='json')
+        self.reqparse.add_argument('email', type=str, required=False, location='json')
+        self.reqparse.add_argument('password', type=str, required=False, location='json')
+        self.reqparse.add_argument('name', type=str, required=False, location='json')
         super(UserRoute, self).__init__()
 
-    @marshall_with(user_fields, envelope='user')
-    def get(user_id) :
-        return User.get(user_id)
+    @marshal_with(user_fields, envelope='user')
+    def get(self, user_id) :
+        return User.query.get(user_id)
 
-    @marshall_with(user_fields, envelope='user')
-    def put(user_id) :
-        pass
+    @marshal_with(user_fields, envelope='user')
+    def put(self, user_id) :
+        args = self.reqparse.parse_args()
+        user = User.query.get(user_id)
+
+        if not user :
+            abort(403)
+
+        if args['email'] :
+            user.email = args['email']
+        if args['password'] :
+            user.pwhash = user.hashpw(args['password'])
+
+        db.session.add(new_user)
+        db.session.commit()
+
 
     def delete(user_id) :
         pass
@@ -65,13 +81,20 @@ class UsersRoute(Resource) :
         self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('email', type=str, required=True, location='json')
+        self.reqparse.add_argument('name', type=str, required=True, location='json')
         self.reqparse.add_argument('password', type=str, required=True, location='json')
         super(UsersRoute, self).__init__()
 
-    def post() :
+    @marshal_with(user_fields, envelope='user')
+    def post(self) :
         args = self.reqparse.parse_args()
+        new_user = User(name=args.name, email=args.email, password=args.password)
+        if not new_user :
+            abort(403)
 
-        pass
+        db.session.add(new_user)
+        db.session.commit()
+        return new_user
     
 
 

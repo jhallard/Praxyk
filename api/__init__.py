@@ -21,6 +21,12 @@ api = Api(PRAXYK_API_APP)
 auth = HTTPBasicAuth()
 db = SQLAlchemy(PRAXYK_API_APP)
 
+BASE_URL = "api.praxyk.com"
+TRANSACTIONS_ROUTE= "/transactions/"
+USERS_ROUTE = "/users/"
+RESULTS_ROUTE = "/results/"
+
+
 # Base = declarative_base() # base model for models to derive from
 
 # from api import libs, models

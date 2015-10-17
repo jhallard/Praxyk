@@ -1,4 +1,10 @@
 #!/usr/bin/python
+import os                                                                                                                                        
+import sys
 
-# @TODO - fill out the list below with lib files
-# __all__ = ['File1', 'File2', ..etc]
+sys.path.append('../') 
+
+import api
+from models.sql import *
+
+__all__ = ['users_route', 'results_route']
