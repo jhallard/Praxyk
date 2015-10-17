@@ -11,10 +11,16 @@ from flask import Flask, jsonify, request, Response, g, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
 
-PRAXYK_API_APP = Flask(__name__, static_url_path="")
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
+
+import config
+
+PRAXYK_API_APP = Flask(__name__)
 PRAXYK_API_APP.config.from_object('config')
 api = Api(PRAXYK_API_APP)
 auth = HTTPBasicAuth()
 db = SQLAlchemy(PRAXYK_API_APP)
+
+# Base = declarative_base() # base model for models to derive from
 
 # from api import libs, models

@@ -23,4 +23,57 @@ from flask.ext.httpauth import HTTPBasicAuth
 
 from functools import wraps
 
-import auth_util
+from api import models
+from models import user, transaction
+
+user_fields = {
+    'name' : fields.String,
+    'email' : fields.String,
+    'id' : fields.String,
+    'uri' : fields.Url(USER_ENDPOINT)
+    'transactions_url' : fields.String
+}
+
+# @info - class with routes that contain a user id 
+# ie `GET api.praxyk.com/users/12345`
+class UserRoute(Resource) :
+
+    def __init__(self) :
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('email', type=str, required=True, location='json')
+        self.reqparse.add_argument('password', type=str, required=True, location='json')
+        super(UserRoute, self).__init__()
+
+    @marshall_with(user_fields, envelope='user')
+    def get(user_id) :
+        return User.get(user_id)
+
+    @marshall_with(user_fields, envelope='user')
+    def put(user_id) :
+        pass
+
+    def delete(user_id) :
+        pass
+
+
+
+# @info - class with routes that don't contain a user id 
+# ie `POST api.praxyk.com/users/`
+class UsersRoute(Resource) :
+
+    def __init__(self) :
+        self.transaction_id = None
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('email', type=str, required=True, location='json')
+        self.reqparse.add_argument('password', type=str, required=True, location='json')
+        super(UsersRoute, self).__init__()
+
+    def post() :
+        args = self.reqparse.parse_args()
+
+        pass
+    
+
+
+
+

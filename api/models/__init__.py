@@ -5,6 +5,6 @@ import sys
 sys.path.append('../')
 
 import api
-import sql.users
+import sql.user
 
 __all__ = ["sql"]

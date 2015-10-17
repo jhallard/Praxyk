@@ -16,10 +16,10 @@ import __init__
 from api import db
 
 
-class Transaction(db.model) :
+class Transaction(db.Model) :
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'))
     command_url = db.Column(db.String(500))
     data_url = db.Column(db.String(500)) # url to access the input data associated with transaction
     results_url = db.Column(db.String(500)) # url for user to retrieve results api.praxyk.com/results/$id

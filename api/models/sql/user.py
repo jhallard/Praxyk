@@ -13,13 +13,30 @@
 
 import __init__
 from api import db
+from transaction import *
 
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
 
 class User(db.Model):
+    __tablename__ = 'Users'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), index=True)
     email = db.Column(db.String(120), index=True, unique=True)
-    password = db.Column(db.String(128))
+    pwhash = db.Column(db.String(128))
     transactions = db.relationship('Transaction', backref='Creator', lazy='dynamic')
 
+    @hybrid_property
+    def transactions_url(self) :
+       return "/transactions/%s/" % (self.id)
+
+    def __init__(self, name, email, password) :
+        self.name = name
+        self.email = email
+        self.pwhash = self.hashpw(password)
+
     def __repr__(self):
-        return '<User %r>' % (self.nickname)
+        return '<ID %r, Email %r>' % (self.id, self.email)
+
+    def hashpw(self, password) :
+        salt = str(self.id) + str(self.email) + str(self.id/2)
+        return hashlib.sha512(salt + passwordw).hexdigest()
