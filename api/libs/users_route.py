@@ -29,6 +29,8 @@ from functools import wraps
 from api import db, USER_ENDPOINT, USERS_ENDPOINT
 from api import User, Role, user_datastore
 
+from auth_route import *
+
 
 user_fields = {
     'name' : fields.String,
@@ -50,14 +52,28 @@ class UserRoute(Resource) :
         super(UserRoute, self).__init__()
 
     @marshal_with(user_fields, envelope='user')
+    @requires_auth
     def get(self, id) :
+        caller = g._caller
+        if not caller or not validate_owner(caller, id) :
+            abort(404)
+
         user =  User.query.get(id)
+
         if not user :
             abort(404)
+
         return user
 
+    # @auth_token_required
     @marshal_with(user_fields, envelope='user')
+    @requires_auth
     def put(self, id) :
+
+        caller = g._caller
+        if not caller or not validate_owner(caller, id) :
+            abort(404)
+
         args = self.reqparse.parse_args()
         user = User.query.get(id)
 
@@ -66,6 +82,7 @@ class UserRoute(Resource) :
 
         if args['email'] :
             user.email = args['email']
+
         if args['password'] :
             user.pwhash = args['password'] # hashed automatically upon set
 
@@ -73,10 +90,16 @@ class UserRoute(Resource) :
         db.session.commit()
         return user
 
-    # @roles_required('user')
-    @auth_token_required
+    @marshal_with(user_fields, envelope='user')
+    @requires_auth
     def delete(self, id) :
-        pass
+        caller = g._caller
+        if not caller or not validate_owner(caller, id) :
+            abort(404)
+        user = User.query.get(id)
+        db.session.delete(user)
+        db.session.commit()
+        return user
 
 
 
@@ -97,9 +120,9 @@ class UsersRoute(Resource) :
         args = self.reqparse.parse_args()
 
         new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password)
+        role = user_datastore.find_role(Role.ROLE_USER)
+        user_datastore.add_role_to_user(new_user, role)
 
-        user_role = Role(name="user")
-        db.session.add(user_role)
         db.session.commit()
         return new_user
     

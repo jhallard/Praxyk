@@ -26,6 +26,7 @@ import json
 from libs.users_route import UserRoute, UsersRoute
 from libs.transactions_route import TransactionRoute, TransactionsRoute
 from libs.results_route import ResultsRoute
+from libs.auth_route import AuthRoute
 
 from models import *
 
@@ -61,6 +62,10 @@ def parse_args(argv) :
 
 # @info - start adding the API endpoints. Each endpoint gets its own class. 
 #         The classes are in /praxyk/api/libs/*_route.py
+api.add_resource(AuthRoute, '/tokens/', endpoint=TOKEN_ENDPOINT)
+api.add_resource(AuthRoute, '/auth/', endpoint=AUTH_ENDPOINT)
+api.add_resource(AuthRoute, '/login/', endpoint=LOGIN_ENDPOINT)
+
 api.add_resource(UserRoute, '/users/<int:id>', endpoint=USER_ENDPOINT)
 api.add_resource(UsersRoute, '/users/', endpoint=USERS_ENDPOINT)
 
@@ -69,6 +74,21 @@ api.add_resource(TransactionRoute, '/transactions/<int:id>', endpoint=TRANSACTIO
 
 api.add_resource(ResultsRoute, '/results/<int:id>', endpoint=RESULTS_ENDPOINT)
 
+def create_initial_users() :
+    with PRAXYK_API_APP.app_context():
+	db.session.add(Role(name=Role.ROLE_ROOT))
+	db.session.add(Role(name=Role.ROLE_ADMIN))
+	db.session.add(Role(name=Role.ROLE_USER))
+	db.session.add(Role(name=Role.ROLE_TEST))
+	db.session.commit()
+
+        for user in INITIAL_USERS:
+            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'])
+            user_datastore.activate_user(new_user)
+	    role = user_datastore.find_role(user['role'])
+	    user_datastore.add_role_to_user(new_user, role)
+            # user_datastore.add_role_to_user(new_user, Role(name=user['role']))
+            db.session.commit()
 
 # @info - Main function, parse the inputs to see if the database needs to be either build or created
 #         if so, build, fill and exit. IF not, then just run in a infinite loop waiting for requests to 
@@ -80,9 +100,10 @@ if __name__ == '__main__':
     #         or make sure other servers are active, etc.
     with PRAXYK_API_APP.app_context():
         if args.builddb :
-           db.drop_all()
-           db.create_all()
-           sys.exit(0)
+            db.drop_all()
+            db.create_all()
+            create_initial_users()
+            # sys.exit(0)
 
     # will run on localhost:5000 if --local flag is given
     if args.local :

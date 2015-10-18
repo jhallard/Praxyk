@@ -20,7 +20,8 @@ from flask.ext.httpauth import HTTPBasicAuth
 from functools import wraps
 
 from api import db, USER_ENDPOINT, USERS_ENDPOINT
-from models.sql.transaction import Transaction
+from api import Transaction
+# from models.sql.transaction import Transaction
 
 DEFAULT_NUM_PAGES = 1
 DEFAULT_PAGE_SIZE = 100

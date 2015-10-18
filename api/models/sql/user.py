@@ -17,31 +17,17 @@ from api import db, bcrypt, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_R
 from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT
 from api import PRAXYK_API_APP
 
+# flask stuff (networking and security)
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required
+from flask.ext.security.utils import encrypt_password, verify_password
 from flask import url_for
 
+# grab other models we depend on
+from token import *
+from transaction import *
+from role import *
 
-
-roles_users = db.Table('roles_users',
-        db.Column('user_id', db.Integer(), db.ForeignKey('Users.id')),
-        db.Column('role_id', db.Integer(), db.ForeignKey('Roles.id')))
-
-
-class Role(db.Model, RoleMixin):
-    __tablename__ = "Roles"
-
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    description = db.Column(db.String(500))
-
-    names = ["user", "test", "admin"]
-    def __init__(self, name="user", description=None) :
-        if name not in name :
-            self.name = "user"
-        else :
-            self.name = name
-        self.description = description
 
 class User(db.Model, UserMixin):
     __tablename__ = 'Users'
@@ -49,11 +35,19 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), index=True)
     email = db.Column(db.String(120), index=True, unique=True)
-    password = db.Column(db.String(255))
+    _password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
-    confirmed_at = db.Column(db.DateTime())
-    transactions = db.relationship('Transaction', backref='Creator', lazy='dynamic')
-    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users', lazy='dynamic'))
+    transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
+    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
+    tokens = db.relationship('Token', backref='user', lazy='dynamic')
+
+    @hybrid_property
+    def password(self) :
+        return self._password
+
+    @password.setter
+    def set_password(self, plaintext) :
+        self._password = encrypt_password(plaintext)
 
     @hybrid_property
     def transactions_url(self) :
@@ -73,8 +67,9 @@ class User(db.Model, UserMixin):
         return '<ID %r, Email %r>' % (self.id, self.email)
 
     def verifypw(self, plaintext) :
-        return bcrypt.check_password_hash(self._password, plaintext)
+        return verify_password(plaintext, self._password) #bcrypt.check_password_hash(self._password, plaintext)
 
+    @staticmethod
     def authenticate(email, plaintext) :
         user = User.query.filter_by(email=email).first()
         if user and user.verifypw(plaintext) :
