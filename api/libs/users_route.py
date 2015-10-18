@@ -119,7 +119,7 @@ class UsersRoute(Resource) :
         args = self.reqparse.parse_args()
         email=args.email
         if User.query.filter_by(email=email).first() :
-            return jsonify({"code" : 400, "error" : "Email Already Exists"})
+            abort(400)
 
         new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password, active=False)
         role = user_datastore.find_role(Role.ROLE_USER)
