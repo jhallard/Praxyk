@@ -115,7 +115,7 @@ class UsersRoute(Resource) :
 
     @marshal_with(user_fields, envelope='user')
     def post(self) :
-        subject = "Confirm Your Praxyk Account Email"
+        subject = "Confirm Your Praxyk Machine-Learning Services Account"
         args = self.reqparse.parse_args()
         email=args.email
         if User.query.filter_by(email=email).first() :
@@ -128,7 +128,7 @@ class UsersRoute(Resource) :
 
         token = self.generate_confirmation_token(email)
         confirm_url = confirm_url=url_for(CONFIRM_ENDPOINT, id=token, _external=True)
-        template = render_template('confirm_email.html', confirm_url=confirm_url)
+        template = render_template('confirm_email.html', confirm_url=confirm_url, user_name=args.name)
         self.send_email(email, subject, template)
 
         return new_user

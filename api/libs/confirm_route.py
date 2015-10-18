@@ -11,7 +11,7 @@
 ##         can submit their full account information for registration,
 
 
-from flask import Flask, jsonify, request, Response, g, abort, make_response
+from flask import Flask, jsonify, request, Response, g, abort, make_response, redirect
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 from flask.ext.security import Security, SQLAlchemyUserDatastore
 
@@ -34,10 +34,9 @@ user_fields = {
 
 
 
-# @info - class that users can post full account info to, in order to register. The specific
-#         id they post to (api.praxyk.com/confirm/{ID}) contains hashed inside of it the user's
-#         email address that we sent the confirm code to. We use that email toregister the user
-#         under.
+# @info - class that users can post/get from , in order to active their account that they previously registered.
+#         The specific id they post to (api.praxyk.com/confirm/{ID}) contains hashed inside of it the user's
+#         email address that we sent the confirm code to. We use that email to register the user under.
 class ConfirmRoute(Resource) :
 
     def __init__(self) :
@@ -45,7 +44,6 @@ class ConfirmRoute(Resource) :
         self.reqparse = reqparse.RequestParser()
         super(ConfirmRoute, self).__init__()
 
-    @marshal_with(user_fields, envelope='user')
     def post(self, id) :
         args = self.reqparse.parse_args()
         email = self.confirm_token(id)
@@ -56,20 +54,11 @@ class ConfirmRoute(Resource) :
         user.active=True
 
         db.session.commit()
-        return new_user
+        return redirect("http://www.praxyk.com/login.html", code=302)
 
-    @marshal_with(user_fields, envelope='user')
+    # @marshal_with(user_fields, envelope='user')
     def get(self, id) :
-        args = self.reqparse.parse_args()
-        email = self.confirm_token(id)
-        if not email :
-            return abort(404)	
-        
-        user = User.query.filter_by(email=email).first()
-        user.active=True
-
-        db.session.commit()
-        return user
+        return self.post(id)
     
     def confirm_token(self, token, expiration=3600):
         serializer = URLSafeTimedSerializer(PRAXYK_API_APP.config['SECRET_KEY'])
