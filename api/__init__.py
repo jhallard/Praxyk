@@ -11,6 +11,7 @@ from flask import Flask, jsonify, request, Response, g, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.bcrypt import Bcrypt
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, roles_required
+from flask_mail import Mail
 
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 
@@ -20,12 +21,14 @@ from config import apiconf
 
 PRAXYK_API_APP = Flask(__name__) # our main flask app object
 PRAXYK_API_APP.config.from_object('api.config') # our main flask app object configured from 'config.py'
+
+# security and auth default args
 PRAXYK_API_APP.config['SECURITY_TOKEN_AUTHENTICATION_KEY'] = 'token'
 PRAXYK_API_APP.config['SECURITY_PASSWORD_HASH'] = apiconf['security_password_hash']
 PRAXYK_API_APP.config['SECURITY_PASSWORD_SALT'] = apiconf['security_password_salt']
 PRAXYK_API_APP.config['WTF_CSRF_ENABLED'] = False
 
-INITIAL_USERS = apiconf['users'] 
+INITIAL_USERS = apiconf['users'] # list of initial users (root, admins, etc) to add to database upon creation
 
 api = Api(PRAXYK_API_APP) # our flask.restful api object that we use for routing
 db = SQLAlchemy(PRAXYK_API_APP) # this is our handle to the database
@@ -35,6 +38,7 @@ BASE_URL = "api.praxyk.com"
 TRANSACTIONS_ROUTE= "/transactions/"
 USERS_ROUTE = "/users/"
 RESULTS_ROUTE = "/results/"
+CONFIRM_ROUTE = "/confirm/"
 
 TRANSACTIONS_ENDPOINT = 'transactions'
 TRANSACTION_ENDPOINT = 'transaction'
@@ -44,7 +48,23 @@ RESULTS_ENDPOINT = 'results'
 TOKEN_ENDPOINT = 'tokens'
 AUTH_ENDPOINT = 'auth'
 LOGIN_ENDPOINT = 'login'
+CONFIRM_ENDPOINT = 'confirm'
+ 
+# mail settings
+PRAXYK_API_APP.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+PRAXYK_API_APP.config['MAIL_PORT'] = 587
+PRAXYK_API_APP.config['MAIL_USE_TLS'] = True
+PRAXYK_API_APP.config['MAIL_USE_SSL'] = False
+# gmail authentication
+PRAXYK_API_APP.config['MAIL_USERNAME'] = apiconf['email']
+PRAXYK_API_APP.config['MAIL_PASSWORD'] = apiconf['emailpassword']
 
+mail = Mail(PRAXYK_API_APP)
+
+# mail accounts
+PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER'] = 'from@example.com'
+
+# default access token expiration time (24 hours)
 TOKEN_EXPIRATION = apiconf['token_expiration']
 
 
@@ -53,6 +73,3 @@ from models.sql.user import User, Role, Transaction, Token
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(PRAXYK_API_APP, user_datastore)
 # PRAXYK_API_APP.config['SECURITY_CONFIRMABLE']
-# Base = declarative_base() # base model for models to derive from
-
-# from api import libs, models

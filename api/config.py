@@ -21,7 +21,7 @@ def load_json_file(fn) :
 
 
 DB_CONF_FILE = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
-API_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/config"
+API_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
 dbconf = load_json_file(DB_CONF_FILE)
 apiconf = load_json_file(API_CONF_FILE)
 

@@ -22,6 +22,7 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required
 from flask.ext.security.utils import encrypt_password, verify_password
 from flask import url_for
+from datetime import datetime as dt
 
 # grab other models we depend on
 from token import *
@@ -37,6 +38,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), index=True, unique=True)
     _password = db.Column(db.String(255))
     active = db.Column(db.Boolean())
+    created_at = db.Column(db.DateTime)
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
     roles = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
     tokens = db.relationship('Token', backref='user', lazy='dynamic')
@@ -53,15 +55,13 @@ class User(db.Model, UserMixin):
     def transactions_url(self) :
        return url_for(TRANSACTIONS_ENDPOINT, user_id=self.id, _external=True) 
 
-    def __init__(self, name, email, password, active, roles) :
+    def __init__(self, name, email, password, active=False, roles=None) :
         self.name = name
         self.email = email
         self.password = password
+        self.created_at = dt.now()
         self.active = active
         self.roles = roles
-
-    def is_authenticated(self) :
-        return True
 
     def __repr__(self):
         return '<ID %r, Email %r>' % (self.id, self.email)
@@ -72,10 +72,8 @@ class User(db.Model, UserMixin):
     @staticmethod
     def authenticate(email, plaintext) :
         user = User.query.filter_by(email=email).first()
+        if not user.active :
+            return None
         if user and user.verifypw(plaintext) :
             return user
         return None
-
-    def identity(payload) :
-        user_id = payload['identity']
-        return User.query.get(user_id, None)

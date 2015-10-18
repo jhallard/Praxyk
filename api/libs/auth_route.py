@@ -18,8 +18,6 @@ import json
 
 from flask import Flask, jsonify, request, Response, g, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
-from flask.ext.httpauth import HTTPBasicAuth
-from flask_jwt import JWT, jwt_required, current_identity
 
 from flask.ext.security import (Security, SQLAlchemyUserDatastore, login_required, current_user,
                                 roles_required, auth_token_required, UserMixin, RoleMixin)
@@ -59,14 +57,16 @@ def validate_owner(caller, owner_id) :
     if caller.id == owner_id :
         return True
     roles = caller.roles
+    if not roles :
+        return False
     for role in roles :
         if role == Role.ROLE_ROOT or role == ROLE_ADMIN :
             return True
     return False
 
 
-# @info - class with routes that contain a user id 
-# ie `GET api.praxyk.com/users/12345`
+# @info - this route can be used to post credentials and recieve a token in response.
+#         The /login/ /auth/ and other routes point here
 class AuthRoute(Resource) :
 
     def __init__(self) :

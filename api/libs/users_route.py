@@ -16,22 +16,21 @@ import argparse
 import datetime
 import json
 
-from flask import Flask, jsonify, request, Response, g, abort, make_response
+from flask import Flask, jsonify, request, Response, g, abort, make_response, render_template, url_for
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
-from flask.ext.httpauth import HTTPBasicAuth
-from flask_jwt import JWT, jwt_required, current_identity
+from flask.ext.mail import Message
+from flask_mail import Mail
 
-from flask.ext.security import (Security, SQLAlchemyUserDatastore, login_required, 
-                                roles_required, auth_token_required, UserMixin, RoleMixin)
+from flask.ext.security import Security, SQLAlchemyUserDatastore
 
-from functools import wraps
+from itsdangerous import URLSafeTimedSerializer
 
-from api import db, USER_ENDPOINT, USERS_ENDPOINT
-from api import User, Role, user_datastore
+from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT
+from api import User, Role, user_datastore, mail
 
 from auth_route import *
 
-
+# this map defines how a user db object get's transformed into a user api return object.
 user_fields = {
     'name' : fields.String,
     'email' : fields.String,
@@ -65,7 +64,6 @@ class UserRoute(Resource) :
 
         return user
 
-    # @auth_token_required
     @marshal_with(user_fields, envelope='user')
     @requires_auth
     def put(self, id) :
@@ -80,11 +78,11 @@ class UserRoute(Resource) :
         if not user :
             abort(404)
 
-        if args['email'] :
+        if args.get('email', None) :
             user.email = args['email']
 
-        if args['password'] :
-            user.pwhash = args['password'] # hashed automatically upon set
+        if args('password', None) :
+            user.password = args['password'] # hashed automatically upon set
 
         db.session.add(user)
         db.session.commit()
@@ -117,14 +115,36 @@ class UsersRoute(Resource) :
 
     @marshal_with(user_fields, envelope='user')
     def post(self) :
+        subject = "Confirm Your Praxyk Account Email"
         args = self.reqparse.parse_args()
+        email=args.email
+        if User.query.filter_by(email=email).first() :
+            return jsonify({"code" : 400, "error" : "Email Already Exists"})
 
-        new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password)
+        new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password, active=False)
         role = user_datastore.find_role(Role.ROLE_USER)
         user_datastore.add_role_to_user(new_user, role)
-
         db.session.commit()
+
+        token = self.generate_confirmation_token(email)
+        confirm_url = confirm_url=url_for(CONFIRM_ENDPOINT, id=token, _external=True)
+        template = render_template('confirm_email.html', confirm_url=confirm_url)
+        self.send_email(email, subject, template)
+
         return new_user
+
+    def generate_confirmation_token(self, email):
+        serializer = URLSafeTimedSerializer(PRAXYK_API_APP.config['SECRET_KEY'])
+        return serializer.dumps(email, salt=PRAXYK_API_APP.config['SECURITY_PASSWORD_SALT'])
+	
+    def send_email(self, to, subject, template):
+        msg = Message(
+            subject,
+            recipients=[to],
+            html=template,
+            sender=PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER']
+        )
+        mail.send(msg)
     
 
 

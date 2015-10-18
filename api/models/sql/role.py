@@ -46,9 +46,9 @@ class Role(db.Model, RoleMixin):
     ROLE_ADMIN = "admin"
     ROLE_USER = "user"
 
-    names = [ROLE_ROOT, ROLE_TEST, ROLE_ADMIN, ROLE_USER]
+    rolenames = [ROLE_ROOT, ROLE_TEST, ROLE_ADMIN, ROLE_USER]
     def __init__(self, name="user", description=None) :
-        if name not in name :
+        if name not in self.rolenames :
             self.name = "user"
         else :
             self.name = name

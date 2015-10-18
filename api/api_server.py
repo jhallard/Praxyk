@@ -27,6 +27,7 @@ from libs.users_route import UserRoute, UsersRoute
 from libs.transactions_route import TransactionRoute, TransactionsRoute
 from libs.results_route import ResultsRoute
 from libs.auth_route import AuthRoute
+from libs.confirm_route import ConfirmRoute
 
 from models import *
 
@@ -74,19 +75,19 @@ api.add_resource(TransactionRoute, '/transactions/<int:id>', endpoint=TRANSACTIO
 
 api.add_resource(ResultsRoute, '/results/<int:id>', endpoint=RESULTS_ENDPOINT)
 
+api.add_resource(ConfirmRoute, '/confirm/<string:id>', endpoint=CONFIRM_ENDPOINT)
+
 def create_initial_users() :
     with PRAXYK_API_APP.app_context():
-	db.session.add(Role(name=Role.ROLE_ROOT))
-	db.session.add(Role(name=Role.ROLE_ADMIN))
-	db.session.add(Role(name=Role.ROLE_USER))
-	db.session.add(Role(name=Role.ROLE_TEST))
-	db.session.commit()
+        for name in Role.rolenames :
+            db.session.add(Role(name=name))
+        db.session.commit()
 
         for user in INITIAL_USERS:
-            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'])
+            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], active=True)
             user_datastore.activate_user(new_user)
-	    role = user_datastore.find_role(user['role'])
-	    user_datastore.add_role_to_user(new_user, role)
+            role = user_datastore.find_role(user['role'])
+            user_datastore.add_role_to_user(new_user, role)
             # user_datastore.add_role_to_user(new_user, Role(name=user['role']))
             db.session.commit()
 
