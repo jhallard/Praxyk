@@ -36,6 +36,7 @@ user_fields = {
     'email' : fields.String,
     'user_id' : fields.String(attribute="id"),
     'uri' : fields.Url(USER_ENDPOINT, absolute=True),
+    'active' : fields.Boolean,
     'transactions_url' : fields.String
 }
 
@@ -81,9 +82,12 @@ class UserRoute(Resource) :
             if not user :
                 abort(404)
 
-            if args.get('email', None) :
-                user.email = args['email']
+            # if the caller sent a new email, change the user's email.
+            # @TODO - remove this, can't change email.
+            # if args.get('email', None) :
+                # user.email = args['email']
 
+            # if the caller sent a new password, change the user's password.
             if args('password', None) :
                 user.password = args['password'] # hashed automatically upon set
 
@@ -119,7 +123,7 @@ class UsersRoute(Resource) :
         self.reqparse.add_argument('password', type=str, required=True, location='json')
         super(UsersRoute, self).__init__()
 
-    @marshal_with(user_fields, envelope='user')
+    # @marshal_with(user_fields, envelope='user')
     def post(self) :
         try : 
             subject = "Confirm Your Praxyk Machine-Learning Services Account"
@@ -142,7 +146,8 @@ class UsersRoute(Resource) :
                 db.session.delete(new_user)
                 abort(404)
 
-            return new_user
+            # return new_user
+            return jsonify( {"code" : 200, "user" : marshal(new_user, user_fields)} )
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)

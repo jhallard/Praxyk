@@ -38,8 +38,10 @@ transaction_fields = {
     'results_url' : fields.String,
     'user_url' : fields.String,
     'status' : fields.String,
-    'num_items' : fields.Integer,
-    'size_total_MB' : fields.Integer,
+    'uploads_total' : fields.Integer,
+    'uploads_success' : fields.Integer,
+    'uploads_failed' : fields.Integer,
+    'size_total_KB' : fields.Float,
     'created_at' : fields.DateTime(dt_format='iso8601'), #'rfc822'),
     'finished_at' : fields.DateTime(dt_format='iso8601'), #'rfc822'),
     'uri' : fields.Url(TRANSACTION_ENDPOINT, absolute=True)

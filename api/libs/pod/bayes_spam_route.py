@@ -5,11 +5,7 @@
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
 
-## @info - This file defines all of the /users/ route for the Praxyk API.
-##         This involved creating a class with the PUT, GET, POST, and 
-##         DELETE methods defined. Once defined, the main API handler 
-##         (../api_server.py) can simply import this class and use it to 
-##         handle any user-related requests.
+## @info - This file defines all of the /pod/bayes_spam/ route for the Praxyk API.
 
 import sys, os
 import argparse

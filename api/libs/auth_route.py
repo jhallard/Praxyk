@@ -54,7 +54,7 @@ def requires_auth(f):
 # @info - called to make sure that the owner of a resource is the one trying to access
 #         it, also allows root and admin users to access resource.
 def validate_owner(caller, owner_id) :
-    if caller.id == owner_id :
+    if caller and caller.id == owner_id :
         return True
     roles = caller.roles
     if not roles :
@@ -76,22 +76,29 @@ class AuthRoute(Resource) :
         super(AuthRoute, self).__init__()
 
     def post(self) :
-        args = self.reqparse.parse_args()
-        user = User.authenticate(args['email'], args['password'])
+        try : 
+            args = self.reqparse.parse_args()
+            user = User.authenticate(args['email'], args['password'])
 
-        if not user :
-            abort(404)
+            if not user :
+                abort(404)
 
-        new_token = Token(user_id=user.id)
+            tokens = Token.query.filter((Token.user_id==user.id and Token.valid)).all()
 
-        if not new_token :
-            abort(403)
+            if tokens :
+                return jsonify({"code" : 200, "user" : {"userid" : user.id, "email" : user.email}, "token" : tokens[0].value})
+                
+            new_token = Token(user_id=user.id)
+            if not new_token :
+                abort(403)
+            user.tokens.append(new_token)
 
-        user.tokens.append(new_token)
-
-        db.session.add(user)
-        db.session.commit()
-        return jsonify({"code" : 200, "user" : {"userid" : user.id, "email" : user.email}, "token" : new_token.value})
+            db.session.add(user)
+            db.session.commit()
+            return jsonify({"code" : 200, "user" : {"userid" : user.id, "email" : user.email}, "token" : new_token.value})
+        except Exception, e :
+            print str(e)
+            return abort(403)
 
     @requires_auth
     def delete(self, id) :

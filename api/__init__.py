@@ -61,7 +61,15 @@ CONFIRM_ENDPOINT      = 'confirm'
 POD_ENDPOINT            = "pod"
 POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
 POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
- 
+
+
+# transaction defines
+TRANSACTION_NEW = "new"
+TRANSACTION_ACTIVE = "active"
+TRANSACTION_CANCELED = "canceled" 
+TRANSACTION_FINISHED = "finished"
+TRANSACTION_FAILED = "failed"
+
 # mail settings
 PRAXYK_API_APP.config['MAIL_SERVER']   = 'smtp.googlemail.com'
 PRAXYK_API_APP.config['MAIL_PORT']     = 587
