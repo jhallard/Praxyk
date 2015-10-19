@@ -1,8 +1,8 @@
 //Praxyk JS Binding
 
 //api urls
-// var base_api_url= "http://api.praxyk.com:5000/";
-var base_api_url= "http://127.0.0.1:5000/";
+var base_api_url= "http://api.praxyk.com:5000/";
+// var base_api_url= "http://127.0.0.1:5000/";
 var pod_api_url = base_api_url + "pod/";
 var tlp_api_url = base_api_url + "tlp/";
 var token_api_url = base_api_url + "tokens/";
