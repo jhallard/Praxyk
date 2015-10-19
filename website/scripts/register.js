@@ -77,10 +77,6 @@ function validate(){
 	}
 	
 	//make sure that the fields match
-	if(email != email_comp){
-		error_message += "<h4>E-Mail</h4><p>Make sure that the <strong>E-Mails</strong> match!</p>";
-		error = true;
-	}
 	var reg = /[a-z0-9!#$%&'*+=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 	if(!reg.test(email)){
 		error_message += "<h4>E-Mail</h4><p>Make sure that the <strong>E-Mail</strong> is valid!</p>";

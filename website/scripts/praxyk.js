@@ -40,7 +40,7 @@ function get_api_token(username,password){
 	var result = api_call(token_api_url,"POST",json_data,"application/json");
 
 	var login_json = $.parseJSON(result);
-	if(json.code == 200) return json.token;
+	if(login_json.code == 200) return json.token;
 	else return null;
 }
 
