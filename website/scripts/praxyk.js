@@ -64,7 +64,6 @@ function register_user(first,last,email,password){
 }
 
 function api_call(url,method,payload,content_type){
-	alert(payload);
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function (){
 		if(xhr.readyState==4 &&xhr.status==200){
