@@ -22,7 +22,7 @@ footer = '<div class="divPanel">\
 <i class="general foundicon-phone icon"></i>\
 <span class="field">Phone:</span>\
 <br />\
-(123) 456 7890 / 456 7891  \
+(123) 456 7890\
 </li>\
 <li>\
 <i class="general foundicon-mail icon"></i>\
@@ -36,7 +36,6 @@ footer = '<div class="divPanel">\
 <br />\
 1156 High Street<br />\
 Santa Cruz, Califoria 95064<br />\
-USA\
 </li>\
 </ul>\
 </div>\
