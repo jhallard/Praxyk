@@ -15,6 +15,9 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
 from flask import Flask, jsonify, request, Response, g, url_for
 
+from api import db, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
+from auth_route import *
+
 DEFAULT_NUM_PAGES = 1
 DEFAULT_PAGE_SIZE = 100
 DEFAULT_START_PAGE=0
@@ -22,7 +25,6 @@ DEFAULT_PAGE=0
 
 
 class ResultsRoute(Resource):
-    # decorators = [auth.login_required]
 
     def __init__(self):
         self.transaction_id = None

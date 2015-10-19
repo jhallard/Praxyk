@@ -13,10 +13,12 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, roles_required
 from flask_mail import Mail
 
+import redis
+
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 
 import config
-from config import apiconf
+from config import apiconf, REDIS_CONF
 
 
 PRAXYK_API_APP = Flask(__name__) # our main flask app object
@@ -40,6 +42,10 @@ USERS_ROUTE = "/users/"
 RESULTS_ROUTE = "/results/"
 CONFIRM_ROUTE = "/confirm/"
 
+POD_ROUTE = "/pod/"
+POD_OCR_ROUTE = POD_ROUTE + "ocr/"
+POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
+
 TRANSACTIONS_ENDPOINT = 'transactions'
 TRANSACTION_ENDPOINT = 'transaction'
 USER_ENDPOINT = 'user'
@@ -49,6 +55,10 @@ TOKEN_ENDPOINT = 'tokens'
 AUTH_ENDPOINT = 'auth'
 LOGIN_ENDPOINT = 'login'
 CONFIRM_ENDPOINT = 'confirm'
+
+POD_ENDPOINT = "pod"
+POD_OCR_ENDPOINT = POD_ENDPOINT + "_ocr"
+POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
  
 # mail settings
 PRAXYK_API_APP.config['MAIL_SERVER'] = 'smtp.googlemail.com'
@@ -73,3 +83,12 @@ from models.sql.user import User, Role, Transaction, Token
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(PRAXYK_API_APP, user_datastore)
 # PRAXYK_API_APP.config['SECURITY_CONFIRMABLE']
+
+# Redis config for the queueing system
+redis_host = REDIS_CONF['dbip']
+redis_port = REDIS_CONF['port']
+redis_pw = REDIS_CONF['dbpasswd']
+redis = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
+
+
+

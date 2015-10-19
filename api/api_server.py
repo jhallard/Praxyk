@@ -29,6 +29,11 @@ from libs.results_route import ResultsRoute
 from libs.auth_route import AuthRoute
 from libs.confirm_route import ConfirmRoute
 
+from libs.pod.pod_route import POD_Route
+from libs.pod.ocr_route import POD_OCR_Route
+from libs.pod.bayes_spam_route import POD_Bayes_Spam_Route
+
+
 from models import *
 
 from flask import Flask, jsonify, request, Response, g
@@ -77,6 +82,11 @@ api.add_resource(ResultsRoute, '/results/<int:id>', endpoint=RESULTS_ENDPOINT)
 
 api.add_resource(ConfirmRoute, '/confirm/<string:id>', endpoint=CONFIRM_ENDPOINT)
 
+api.add_resource(POD_Route, POD_ROUTE, endpoint=POD_ENDPOINT)
+api.add_resource(POD_OCR_Route, POD_OCR_ROUTE, endpoint=POD_OCR_ENDPOINT)
+api.add_resource(POD_Bayes_Spam_Route, POD_BAYES_SPAM_ROUTE, endpoint=POD_BAYES_SPAM_ENDPOINT)
+
+
 def create_initial_users() :
     with PRAXYK_API_APP.app_context():
         for name in Role.rolenames :
@@ -88,7 +98,6 @@ def create_initial_users() :
             user_datastore.activate_user(new_user)
             role = user_datastore.find_role(user['role'])
             user_datastore.add_role_to_user(new_user, role)
-            # user_datastore.add_role_to_user(new_user, Role(name=user['role']))
             db.session.commit()
 
 # @info - Main function, parse the inputs to see if the database needs to be either build or created
@@ -104,7 +113,6 @@ if __name__ == '__main__':
             db.drop_all()
             db.create_all()
             create_initial_users()
-            # sys.exit(0)
 
     # will run on localhost:5000 if --local flag is given
     if args.local :

@@ -60,7 +60,7 @@ def validate_owner(caller, owner_id) :
     if not roles :
         return False
     for role in roles :
-        if role == Role.ROLE_ROOT or role == ROLE_ADMIN :
+        if role == Role.ROLE_ROOT or role == Role.ROLE_ADMIN :
             return True
     return False
 
@@ -93,8 +93,7 @@ class AuthRoute(Resource) :
         db.session.commit()
         return jsonify({"code" : 200, "user" : {"userid" : user.id, "email" : user.email}, "token" : new_token.value})
 
-    @auth_token_required
-    @roles_required('root')
+    @requires_auth
     def delete(self, id) :
         pass
     

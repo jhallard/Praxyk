@@ -15,10 +15,12 @@
 import __init__
 
 from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
-from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT
+from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
 
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
 from flask import url_for
+
+import datetime
 
 
 class Transaction(db.Model) :
@@ -26,19 +28,33 @@ class Transaction(db.Model) :
 
     id = db.Column(db.Integer, primary_key = True)
     created_at = db.Column(db.DateTime)
+    finished_at = db.Column(db.DateTime)
     user_id = db.Column(db.Integer, db.ForeignKey('Users.id'))
     command_url = db.Column(db.String(500))
-    data_url = db.Column(db.String(500)) # url to access the input data associated with transaction
     status = db.Column(db.String(100)) # something like 'new', 'active', 'orphaned', etc.
+    num_items = db.Column(db.Integer)
+    size_total_MB = db.Column(db.Integer) # the total size of uploaded data in MB
 
     @hybrid_property
     def results_url(self) :
        return url_for(RESULTS_ENDPOINT, id=self.id, _external=True) 
 
-    def __init__(self, user_id, status="new") :
+    @hybrid_property
+    def data_url(self) :
+        return "N/A"
+        # return url_for(RESULTS_ENDPOINT, id=self.id, _external=True) 
+
+    @hybrid_property
+    def user_url(self) :
+       return url_for(USER_ENDPOINT, id=self.user_id, _external=True) 
+
+    def __init__(self, user_id, command_url, status="new", size_total_MB = 0, num_items=0) :
         self.created_at = datetime.datetime.now()
         self.user_id = user_id
         self.status = status
+        self.command_url = command_url
+        self.size_total_MB =size_total_MB
+        self.num_items = num_items
 
  
     def __repr__(self):

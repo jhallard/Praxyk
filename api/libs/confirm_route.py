@@ -22,21 +22,10 @@ from api import User, Role, user_datastore
 
 from auth_route import *
 
-# this map defines how a user db object get's transformed into a user api return object.
-user_fields = {
-    'name' : fields.String,
-    'email' : fields.String,
-    'user_id' : fields.String(attribute="id"),
-    'uri' : fields.Url(USER_ENDPOINT, absolute=True),
-    'transactions_url' : fields.String
-}
-
-
-
 
 # @info - class that users can post/get from , in order to active their account that they previously registered.
 #         The specific id they post to (api.praxyk.com/confirm/{ID}) contains hashed inside of it the user's
-#         email address that we sent the confirm code to. We use that email to register the user under.
+#         email address that we sent the confirm code to. We use that email tore gister the user under.
 class ConfirmRoute(Resource) :
 
     def __init__(self) :
@@ -56,7 +45,6 @@ class ConfirmRoute(Resource) :
         db.session.commit()
         return redirect("http://www.praxyk.com/login.html", code=302)
 
-    # @marshal_with(user_fields, envelope='user')
     def get(self, id) :
         return self.post(id)
     

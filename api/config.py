@@ -29,6 +29,7 @@ dbuser = dbconf['dbuser']
 dbip = dbconf['dbip']
 dbpasswd = dbconf['dbpw']
 dbname = dbconf['dbname']
+REDIS_CONF = dbconf['redisdb']
 
 SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s/%s' % (dbuser, dbpasswd, dbip, dbname)
 SQLALCHEMY_ECHO = True

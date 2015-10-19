@@ -118,6 +118,8 @@ class UsersRoute(Resource) :
         subject = "Confirm Your Praxyk Machine-Learning Services Account"
         args = self.reqparse.parse_args()
         email=args.email
+
+        # if user exists already return error
         if User.query.filter_by(email=email).first() :
             abort(400)
 

@@ -19,9 +19,11 @@ from flask.ext.httpauth import HTTPBasicAuth
 
 from functools import wraps
 
-from api import db, USER_ENDPOINT, USERS_ENDPOINT
+from api import db, USER_ENDPOINT, USERS_ENDPOINT, TRANSACTION_ENDPOINT
 from api import Transaction
 # from models.sql.transaction import Transaction
+
+from auth_route import *
 
 DEFAULT_NUM_PAGES = 1
 DEFAULT_PAGE_SIZE = 100
@@ -35,9 +37,13 @@ transaction_fields = {
     'command_url' : fields.String,
     'data_url' : fields.String,
     'results_url' : fields.String,
+    'user_url' : fields.String,
     'status' : fields.String,
-    'created_at' : fields.DateTime(dt_format='rfc822'),
-    'uri' : fields.Url(USER_ENDPOINT, absolute=True)
+    'num_items' : fields.Integer,
+    'size_total_MB' : fields.Integer,
+    'created_at' : fields.DateTime(dt_format='iso8601'), #'rfc822'),
+    'finished_at' : fields.DateTime(dt_format='iso8601'), #'rfc822'),
+    'uri' : fields.Url(TRANSACTION_ENDPOINT, absolute=True)
 }
 
 transactions_fields = {
@@ -50,32 +56,22 @@ transactions_fields = {
 class TransactionRoute(Resource) :
 
     def __init__(self) :
-        self.transaction_id = None
+        self.reqparse = reqparse.RequestParser()
         super(TransactionRoute, self).__init__()
 
-    @marshal_with(transaction_fields, envelope='user')
+    @marshal_with(transaction_fields, envelope='transaction')
+    @requires_auth
     def get(self, id) :
-        trans =  Transaction.query.get(id)
+
+        trans = Transaction.query.get(id)
         if not trans :
             abort(404)
-        return trans
 
-    @marshal_with(transaction_fields, envelope='user')
-    def put(self, id) :
-        args = self.reqparse.parse_args()
-        user = User.query.get(id)
-
-        if not user :
+        caller = g._caller
+        if not caller or not validate_owner(caller, trans.user_id) :
             abort(404)
 
-        if args['email'] :
-            user.email = args['email']
-        if args['password'] :
-            user.pwhash = user.hashpw(args['password'])
-
-        db.session.add(user)
-        db.session.commit()
-        return user
+        return trans
 
     def delete(id) :
         pass
@@ -87,8 +83,8 @@ class TransactionRoute(Resource) :
 class TransactionsRoute(Resource) :
 
     def __init__(self) :
-        self.transaction_id = None
-        self.reqparse.add_argument('user_id', type=int, required=True, location='json')
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('user_id', type=int, required=False, default=None, location='json')
         self.reqparse.add_argument('pagination', type=bool, default=True, location='json')
         self.reqparse.add_argument('start_page', type=int, default=DEFAULT_START_PAGE, location='json')
         self.reqparse.add_argument('page', type=int, default=DEFAULT_PAGE, location='json')
@@ -96,16 +92,26 @@ class TransactionsRoute(Resource) :
         self.reqparse.add_argument('page_size', type=int, default=DEFAULT_PAGE_SIZE, location='json')
         super(TransactionsRoute, self).__init__()
 
-    @marshal_with(transaction_fields, envelope='user')
-    def post(self) :
+    # @marshal_with(transactions_fields, envelope='transactions')
+    @requires_auth
+    def get(self) :
         args = self.reqparse.parse_args()
-        new_trans = Transaction
-        if not new_trans :
-            abort(403)
+        user_id = args.get('user_id', -1)
+        caller = g._caller
+        if not caller or not validate_owner(caller, user_id) :
+            abort(404)
 
-        db.session.add(new_user)
-        db.session.commit()
-        return new_user
+        user_name = User.query.get(user_id) if user_id else "All"
+
+        if user_id > 0 :
+            transactions  =  Transaction.query.filter_by(user_id=user_id)
+        else :
+            transactions  =  Transaction.query.order_by(Transaction.created_at)
+            
+        if not transactions :
+            abort(404)
+        transactions = [marshal(trans, transaction_fields) for trans in transactions]
+        return jsonify({'user_name' : user_name, 'transactions' : transactions})
     
 
 

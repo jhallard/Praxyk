@@ -71,9 +71,12 @@ class User(db.Model, UserMixin):
 
     @staticmethod
     def authenticate(email, plaintext) :
-        user = User.query.filter_by(email=email).first()
-        if not user.active :
-            return None
-        if user and user.verifypw(plaintext) :
-            return user
+        try :
+            user = User.query.filter_by(email=email).first()
+            if not user.active :
+                return None
+            if user and user.verifypw(plaintext) :
+                return user
+        except : 
+            pass
         return None
