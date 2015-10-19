@@ -1,7 +1,8 @@
 //Praxyk JS Binding
 
 //api urls
-var base_api_url= "http://api.praxyk.com:5000/";
+// var base_api_url= "http://api.praxyk.com:5000/";
+var base_api_url= "http://127.0.0.1:5000/";
 var pod_api_url = base_api_url + "pod/";
 var tlp_api_url = base_api_url + "tlp/";
 var token_api_url = base_api_url + "tokens/";
@@ -19,15 +20,16 @@ function get_text_from_image(token,input,output){
 	ocr_data.append("image",files[0]);
 	
 	//call api
-	var result = api_call(pod_api_url+"ocr/","POST",ocr_data,"multipart/form-data");
-	alert(result);
+	var result = api_call(pod_api_url+"ocr/","POST",ocr_data,"multipart/form-data", function(result) {
+        alert(result);
+    });
 	
 	
    }
    
 }
 
-function get_api_token(username,password){
+function get_api_token(username,password, callback){
    
    //get data ready
 	var login_data = new Object();
@@ -35,16 +37,24 @@ function get_api_token(username,password){
 	login_data.password = password;
 	
 	var json_data = JSON.stringify(login_data);
+    console.error(json_data);
 
 	//api call
-	var result = api_call(token_api_url,"POST",json_data,"application/json");
-
-	var login_json = $.parseJSON(result);
-	if(login_json.code == 200) return json.token;
-	else return null;
+	return api_call(token_api_url,"POST",json_data,"application/json", function(result) { 
+        console.error(result);
+        var login_json = $.parseJSON(result);
+        console.error(login_json.code);
+        if(login_json.code == 200) { 
+            var result = login_json.token;
+            return callback(result);
+        }
+        else {
+            return callback(null);
+        }
+    });
 }
 
-function register_user(first,last,email,password){
+function register_user(first,last,email,password, callback){
    
    //get data ready
    var register_data = new Object();
@@ -53,21 +63,23 @@ function register_user(first,last,email,password){
    register_data.name = first + " " +last;
    
    var json_data = JSON.stringify(register_data);
+
    
    //api call
-   var result = api_call(user_api_url,"POST",json_data,"application/json");
-   
-   var json = $.parseJSON(result);
-   
-   if(json.code == 200) return true;
-   else return false;
+   return api_call(user_api_url,"POST",json_data,"application/json", function(result) {
+       var json = $.parseJSON(result);
+       
+       if(json.code == 200) { return callback(true) }
+       else { return callback(false) };
+   });
+
 }
 
-function api_call(url,method,payload,content_type){
+function api_call(url,method,payload,content_type, callback){
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function (){
 		if(xhr.readyState==4 &&xhr.status==200){
-			return xhr.responseText;
+            callback(xhr.responseText);
 		} 
 	}
 	xhr.open(method,url,true);

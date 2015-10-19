@@ -6,27 +6,32 @@
 	var password_comp;
 	var terms;
 
-function register(){
-	$("#form_error").html("");
-	$("#form_error").removeClass("alert alert-error");
-	$("#form_error").removeClass("alert alert-success");
-   
-   first = $("#first_name").val();
-	last = $("#last_name").val();
-	email = $("#email").val();
-	password = $("#password").val();
-	password_comp = $("#confirm_password").val();
-	terms = $("#agree").prop("checked");
-	
-	if(validate()){
-      if(register_user(first,last,email,password)){
+function register_result(result) {
+      if(result) {
          $("#form_error").html("Registration Successful");
          $("#form_error").addClass("alert alert-success");
       }else{
          $("#form_error").html("Registration Not Successful");
          $("#form_error").addClass("alert alert-error");
       }
+}
+
+function register(){
+	$("#form_error").html("");
+	$("#form_error").removeClass("alert alert-error");
+	$("#form_error").removeClass("alert alert-success");
+   
+    first = $("#first_name").val();
+	last = $("#last_name").val();
+	email = $("#email").val();
+	password = $("#password").val();
+	password_comp = $("#confirm_password").val();
+	terms = $("#agree").prop("checked");
+	
+	if(!validate()){
+        return False
 	}
+    return register_user(first, last, email, password, register_result)
 }
 
 function validate(){
