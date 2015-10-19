@@ -10,9 +10,11 @@ function register_result(result) {
       if(result) {
          $("#form_error").html("Registration Successful");
          $("#form_error").addClass("alert alert-success");
+         return true
       }else{
          $("#form_error").html("Registration Not Successful");
          $("#form_error").addClass("alert alert-error");
+         return false
       }
 }
 

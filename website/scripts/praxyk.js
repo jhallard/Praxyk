@@ -37,13 +37,10 @@ function get_api_token(username,password, callback){
 	login_data.password = password;
 	
 	var json_data = JSON.stringify(login_data);
-    console.error(json_data);
 
 	//api call
 	return api_call(token_api_url,"POST",json_data,"application/json", function(result) { 
-        console.error(result);
         var login_json = $.parseJSON(result);
-        console.error(login_json.code);
         if(login_json.code == 200) { 
             var result = login_json.token;
             return callback(result);

@@ -5,7 +5,6 @@ function login(){
 	var email = $("#email").val();
 	var pass = $("#password").val();
     var token = get_api_token(email,pass, function(token) {
-        console.error(JSON.stringify(token))
         if((token != null && token != undefined)){
             sessionStorage.setItem("login",true);
             sessionStorage.setItem("token",token);
