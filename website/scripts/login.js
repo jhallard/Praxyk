@@ -5,12 +5,10 @@ function login(){
 	var email = $("#email").val();
 	var pass = $("#password").val();
    var token = get_api_token(email,pass);
-	if((token != null && token != undefined) || true){
+	if((token != null && token != undefined)){
 		sessionStorage.setItem("login",true);
-		sessionStorage.setItem("email",email);
-		sessionStorage.setItem("password",pass);
-      sessionStorage.setItem("token",token);
-      window.location = "dashboard.html"
+        sessionStorage.setItem("token",token);
+        window.location = "dashboard.html"
 	}else{
       $("#login_error").html("User Not Found!");
       $("#login_error").addClass("alert alert-error");

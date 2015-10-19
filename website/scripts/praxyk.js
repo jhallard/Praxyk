@@ -1,88 +1,78 @@
-//Praxyk JS Bindings
-var api_output;
-var base_api_url= "http://api.praxyk.com/";
+//Praxyk JS Binding
+
+//api urls
+var base_api_url= "http://api.praxyk.com:5000/";
 var pod_api_url = base_api_url + "pod/";
 var tlp_api_url = base_api_url + "tlp/";
 var token_api_url = base_api_url + "tokens/";
 var user_api_url = base_api_url + "users/";
 
 function get_text_from_image(token,input,output){
+	
    var files = input.files;
-   var ocr_data = new FormData();
-   api_output = output;
    
    for(var i=0;i<files.length;++i){
-      ocr_data.append(files[i].name,files[i]);
+	 
+	//get the data ready
+	var ocr_data = new Object();
+	ocr_data.append("token",token);
+	ocr_data.append("image",files[0]);
+	
+	//call api
+	var result = api_call(pod_api_url+"ocr/","POST",ocr_data,"multipart/form-data");
+	alert(result);
+	
+	
    }
-   
-   ocr_data.append("token",token);
-   
-   $.ajax({
-      url: pod_api_url+"ocr/",
-      type: "POST",
-      data: images,
-      processData: false,
-      contentType: false,
-      success: api_result(data,textStatus,jqXHR),
-      error: api_result(data,textStatus,jqXHR)
-   });
    
 }
 
 function get_api_token(username,password){
-   var token;
    
-   var login_data = new FormData();
-   login_data.append("username",username);
-   login_data.append("password",password);
-   
-   $.ajax({
-      url: token_api_url,
-      type: "POST",
-      data: login_data,
-      processData: false,
-      contentType: false,
-      success: function(data,textStatus,jqXHR){
-         var json = $.parseJSON(data);
-         if(json.code == 200) token = json.token;
-         else token = null;
-      },
-      error:function(data,textStatus,jqXHR){
-         token = null;
-      }
-   });
-   
-   return token;
+   //get data ready
+	var login_data = new Object();
+	login_data.email = username;
+	login_data.password = password;
+	
+	var json_data = JSON.stringify(login_data);
+
+	//api call
+	var result = api_call(token_api_url,"POST",json_data,"application/json");
+
+	var login_json = $.parseJSON(result);
+	if(json.code == 200) return json.token;
+	else return null;
 }
 
 function register_user(first,last,email,password){
-   var register_status;
    
-   var register_data = new FormData();
-   register_data.append("email",email);
-   register_data.append("password",password);
-   register_data.append("first_name",first);
-   register_data.append("last_name",last);
+   //get data ready
+   var register_data = new Object();
+   register_data.email = email;
+   register_data.password = password;
+   register_data.name = first + " " +last;
    
-   $.ajax({
-      url: user_api_url,
-      type: "POST",
-      data: register_data,
-      processData: false,
-      contentType: false,
-      success: function(data,textStatus,jqXHR){
-         var json = $.parseJSON(data);
-         if(json.code == 200) register_status = true;
-         else register_status = false;
-      },
-      error:function(data,textStatus,jqXHR){
-         register_status = false;
-      }
-   });
+   var json_data = JSON.stringify(register_data);
    
-   return register_status;
+   //api call
+   var result = api_call(user_api_url,"POST",json_data,"application/json");
+   
+   var json = $.parseJSON(result);
+   
+   if(json.code == 200) return true;
+   else return false;
 }
 
-function api_result(data,textStatus,jqXHR){
-   output.html(data);
+function api_call(url,method,payload,content_type){
+	alert(payload);
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function (){
+		if(xhr.readyState==4 &&xhr.status==200){
+			return xhr.responseText;
+		} 
+	}
+	xhr.open(method,url,true);
+	xhr.setRequestHeader('Content-Type',content_type);
+	xhr.send(payload);
 }
+

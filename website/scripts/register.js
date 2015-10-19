@@ -2,7 +2,6 @@
 	var first;
 	var last;
 	var email;
-	var email_comp;
 	var password;
 	var password_comp;
 	var terms;
@@ -10,12 +9,11 @@
 function register(){
 	$("#form_error").html("");
 	$("#form_error").removeClass("alert alert-error");
-   $("#form_error").removeClass("alert alert-success");
+	$("#form_error").removeClass("alert alert-success");
    
    first = $("#first_name").val();
 	last = $("#last_name").val();
 	email = $("#email").val();
-	email_comp = $("#confirm_email").val();
 	password = $("#password").val();
 	password_comp = $("#confirm_password").val();
 	terms = $("#agree").prop("checked");
@@ -28,7 +26,6 @@ function register(){
          $("#form_error").html("Registration Not Successful");
          $("#form_error").addClass("alert alert-error");
       }
-      
 	}
 }
 
@@ -50,12 +47,6 @@ function validate(){
 	
 	if(email == null ||  email == ""){
 		error_message += "<h4>E-Mail</h4><p>Make sure that the <strong>E-Mail</strong> field is filled</p>";
-		if(email_comp == null || email_comp == "") error_message += "<p>Make sure that the <strong>Confirm E-Mail</strong> field is filled</p>";
-		error = true;
-	}
-	
-	if(email_comp == null || email_comp == "" && !(email == null ||  email == "")){
-		error_message += "<h4>E-Mail</h4><p>Make sure that the <strong>Confirm E-Mail</strong> field is filled</p>";
 		error = true;
 	}
 	
@@ -92,7 +83,7 @@ function validate(){
 	}
 	var reg = /[a-z0-9!#$%&'*+=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 	if(!reg.test(email)){
-		error_message += "<h4>E-Mail</h4><p>Make sure that the <strong>E-Mails</strong> are valid!</p>";
+		error_message += "<h4>E-Mail</h4><p>Make sure that the <strong>E-Mail</strong> is valid!</p>";
 		error = true;
 	}
 	

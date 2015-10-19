@@ -69,8 +69,437 @@
             <!--Edit Main Content Area here-->
                 <div class="span12" id="divMain">
 
-                    <h1 id="page_title">Documentation</h1>
+                    <h1 id="page_title">Praxyk API Documentation</h1>
                   <hr>
+                  <div id="markdown">
+<h4>Overview</h4>
+
+<p>The API is our contract with all users of Praxyk services that defines exactly how to get data in and results out of our servers. Even the <a href="http://www.praxyk.com">main website</a> is just a fancy wrapper around this API. At a high level, the API needs to allow users to do a few things.
+ <br />* Manage their user account. This includes registering an account, updating their information, and being able to query for information on their account. It also involved authenticating requests and managing transaction history.
+ <br />* Interact with our internal models. This mostly involved giving the users an interface to upload information to our servers to be analyzed.
+ <br />* Receive the results of their prediction requests. </p>
+
+<h4>Note About Pagination</h4>
+
+<p>Many routes that can return large batches of information to the user are paginated by default. This means that querying these routes will return a limited amount of data, along with a link to the next block of data. For example, calling a paginated-route with no page-related arguments will cause us to return page 0 with a default size of 100 values.</p>
+
+<p><code>sh
+GET api.praxyk.com/results/12345/
+</code> </p>
+
+<p>returns</p>
+
+<p><code>python
+{
+ "code" : 200,
+ "items" : ["$item1", "...", "$item100"],
+ "next" : "api.praxyk.com/results/12345/?page=1"
+}
+</code></p>
+
+<p>Every paginated route can take any of the following optional arguments 
+<br />* <code>pagination</code> - Boolean, if false we dump all resources to the user in a list. Defaults to true.
+<br />* <code>page_size</code> - Page-size tells us how many items to put on each page. The default is 100.
+<br />* <code>page=X</code> - This tells us to return a single page, given by X, of size <code>page_size</code>.
+<br />* <code>pages=X</code> - This tells us to return X pages, starting from 0.
+<br />* <code>start_page=X&amp;pages=Y</code> - This tells us a starting page, and how many pages you want to grab from that start.</p>
+
+<p>If conflicting arguments are given (example <code>pages=5&amp;start_page=1&amp;pages=8</code>) we will default to the last valid setting (so <code>start_page=1&amp;pages=8</code> in this case). The exception to this is if the <code>pagination=false</code> flag is given, in which case all resources will be given to the user.</p>
+
+<h4>API Routes</h4>
+
+<p><strong>API Base</strong> - <code>api.praxyk.com</code></p>
+
+<ul>
+<li><code>/users/</code>
+<ul>
+<li><code>GET /users/{user_id}</code></li>
+<li><code>POST /users/</code></li>
+<li><code>PUT /users/{user_id}</code></li>
+<li><code>DELETE /users/{user_id}</code></li>
+</ul></li>
+<li><code>/tokens/</code>
+<ul>
+<li><code>POST /tokens/</code></li>
+</ul></li>
+<li><code>/pod/</code>
+<ul>
+<li><code>GET /pod/</code></li>
+<li><code>/pod/ocr/</code>
+<ul>
+<li><code>GET /pod/ocr/</code></li>
+<li><code>POST /pod/ocr/</code></li>
+</ul></li>
+<li><code>/pod/bayes_spam/</code>
+<ul>
+<li><code>GET /pod/bayes_spam/</code></li>
+<li><code>POST /pod/bayes_spam/</code></li>
+</ul></li>
+</ul></li>
+<li><code>/tlp/</code></li>
+<li><code>/transactions/</code>
+<ul>
+<li><code>GET /transactions/</code></li>
+<li><code>GET /transactions/{transaction_id}</code></li>
+<li><code>DELETE /transactions/{transaction_id}</code></li>
+</ul></li>
+<li><code>/results/</code>
+<ul>
+<li><code>GET /results/{transaction_id}</code> </li>
+</ul></li>
+</ul>
+
+<hr />
+
+<hr />
+
+<h3>Users Route</h3>
+
+<p>The users route (<code>/users/</code>) is used for all things related to individual users. This includes creating a user (POST), partially/fully updating a user (PUT), and getting limited info about a user (GET).</p>
+
+<hr />
+
+<h4>Add a New User</h4>
+
+<p>Add a new user to the system. Only users with root priviledges can add users to the system.</p>
+
+<p><code>POST /users/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                         | Optional
+----------- | ---------- | ----------------------------------- | ------------------
+   email    | <em>string</em>   | The email associated with the user  | No
+   password | <em>string</em>   | Password for the new user           | No</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "user" : {
+    "email": "$new_email",
+    "userid" : "$user_id",
+    "created_at" : "$creation_time"
+  } 
+}
+</code></p>
+
+<hr />
+
+<h4>Update an Existing User</h4>
+
+<p>To update an existing user, perform the action below. This action must be authenticated by a token from the user being updated.</p>
+
+<p><code>PUT /users/{userid}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                         | Optional
+----------- | ---------- | ----------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.       | No
+   email    | <em>string</em>   | The email associated with the user  | Yes
+   password | <em>string</em>   | Updated password for the user       | Yes</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+ "code" : 200,
+  "user" : {
+    "username" : "$new_username",
+    "userid" : "$user_id",
+    "email": "$new_email"
+  } 
+ }
+</code></p>
+
+<hr />
+
+<h4>Get a User's Info</h4>
+
+<p>This returns information on a user, their transactions, and results. Note that the transactions are returned as a URL through which the caller can get paginated transaction information.</p>
+
+<p><code>GET /users/{userid}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                      | Optional
+----------- | ---------- | -------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.    | No</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "user" : {
+     "username" : "$username",
+     "email": "$user_email",
+     "created_at" : "$creation_time",
+     "userid" : "$user_id",
+     "transactions" : "api.praxyk.com/transactions/"
+   }
+ }
+</code></p>
+
+<hr />
+
+<h4>Delete A User</h4>
+
+<p>This call will remove the given user's account from our system, including all stored result-data. Transaction history will be kept until last bill is paid.</p>
+
+<p><code>DELETE /users/{userid}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                         | Optional
+----------- | ---------- | ----------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.       | No</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "user" : {
+    "username" : "$new_username",
+    "email": "$new_email",
+    "userid" : "$user_id",
+    "created_at" : "$creation_time"
+  } 
+}
+</code></p>
+
+<hr />
+
+<hr />
+
+<h3>Tokens</h3>
+
+<p>Tokens are used to perform requests, but they are temporary and thus the user must be revalidated every once in a while.</p>
+
+<hr />
+
+<h4>Validate a User, get an Access Token</h4>
+
+<p>This is used to get a temp access token that authorizes and validates the given user.</p>
+
+<p><code>POST /tokens/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                              | Optional
+----------- | ---------- | ---------------------------------------- | ------------------
+ email      | <em>string</em>   | the email of the user being validated.   | No
+ password   | <em>string</em>   | The user's password.                     | No</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "user" : {
+    "email" : "$user_email",
+    "userid" : "$user_id",
+  },  
+  "token" : "$token_str",
+ }
+</code></p>
+
+<hr />
+
+<hr />
+
+<h3>Transactions</h3>
+
+<p><code>api.praxyk.com/transactions/</code> is the portal for all specific transaction information. Transactions are records that are generated for every service request that a user makes through our API. For instance, a user making a request to <code>api.praxyk.com/pod/bayes_spam/</code> with 100 email-bodies as data, a single transaction record is generated. The user is given the ID of this transaction as a return to making the call to the <code>/pod/</code> service, and they can use this ID to obtain information on the status of their request.</p>
+
+<hr />
+
+<h4>Get All User Transactions</h4>
+
+<p>This route can be used to access a user's entire history of transactions. Users must be authorized with an auth token to perform this request, and they can only access their own transaction history.</p>
+
+<p><code>GET /transactions/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                                   | Optional
+----------- | ---------- | --------------------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.                 | No
+ pagination | <em>bool</em>     | If false, all results are dumped to the user. | Yes (defaults to false)
+   page     | <em>int</em>      | The 'page' of transactions you want returned. | Yes (defaults to 0)
+   pages    | <em>int</em>      | The number of pages to be returned (from <code>start_page</code> if provided or 0 if not) | Yes (defaults to 0)
+page<em>size   | _int</em>      | The number of results on each page returned.  | Yes (defaults to 100)
+start<em>page  | _int</em>      | Only valid when used with <code>pages</code>, tells us the start page to return.  | Yes (defaults to 100)</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "userid" : "$user_id",
+  "transactions" : [
+    {
+      "trans_id" : "$trans_id1",
+      "command_url" : "$command_url1",
+      "data_url" : "$data_url1",
+      "results_url" : "api.praxyk.com/results/$trans_id1",
+      "status"   : "$status1",
+      "created_at" : "$created_at1"
+    },
+    {"..." : "..."},
+    {"..." : "..."}
+  ] 
+}
+</code></p>
+
+<hr />
+
+<h4>Get a Single Transaction</h4>
+
+<p>After making a request to a Praxyk service, the user is returned a transaction ID. They can use that ID to call a route under this category, which will return the specifics of that instance.</p>
+
+<p><code>GET /transactions/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                                   | Optional
+----------- | ---------- | --------------------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.                 | No</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "username" : "$username",
+  "transaction" :
+    {
+      "trans_id" : "$trans_id",
+      "command_url" : "$command_url",
+      "data_url" : "$data_url",
+      "results_url" : "api.praxyk.com/results/$trans_id",
+      "status"   : "$status",
+      "created_at" : "$created_at"
+    }
+}
+</code></p>
+
+<hr />
+
+<h4>Update a Transaction</h4>
+
+<p>There are times when a user might want to change an active transaction, to cancel one in progress for instance. To do such they can use the route described below.</p>
+
+<p><code>PUT /transactions/{trans_id}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                                   | Optional
+----------- | ---------- | --------------------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.                 | No
+   cancel   | <em>bool</em>     | Flag, if true any in-progress processing will stop.   | Yes</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "username" : "$username",
+  "transaction" :
+    {
+      "trans_id" : "$trans_id",
+      "command_url" : "$command_url",
+      "data_url" : "$data_url",
+      "results_url" : "api.praxyk.com/results/$trans_id",
+      "status"   : "canceled",
+      "created_at" : "$created_at"
+    }
+}
+</code></p>
+
+<hr />
+
+<hr />
+
+<h3>POD</h3>
+
+<p><code>api.praxyk.com/pod/</code> is the high-level route for all Prediction on Demand services. This route is used to pass data that needs analysis to specific POD models, the actual predictions made on the data that is passed in available through the <code>/results/{transaction_id}</code> route, where <code>transaction_id</code> is an ID that uniquely identifies your request through the Praxyk API. </p>
+
+<p>As of right now, no actual requests are made through <code>/pod/</code>, only through it's sub-routes which are shown below.</p>
+
+<hr />
+
+<hr />
+
+<h3>POD-OCR</h3>
+
+<p>Optical character recognition (OCR) is one of the first services to be offered through the Praxyk API, and it allows user's to extract strings of text present in a given image file. </p>
+
+<hr />
+
+<h4>Make a New POD-OCR Request</h4>
+
+<p>This route is used to instantiate a new request to the POD Ocular Character Recognition service. It takes an authorization token from the user and a list of image-files. The images can be any one of png, tif/tiff, jpg, bmp. You will receive in return a list of items describing the transaction, including a transaction ID that you can use to track the progress of and access the results of your request.
+The names of the files you upload are important, they will be used to index the results that are returned to you.</p>
+
+<p><code>POST /pod/ocr/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<p>Name       | Type       | Description                                   | Optional
+----------- | ---------- | --------------------------------------------- | ------------------
+   token    | <em>string</em>   | Users temporary access token.                 | No
+   files    | <em>list</em>     | List of valid image file to perform recognition on. | No</p>
+
+<p><strong>RESPONSE</strong>
+<code>json
+{
+  "code" : 200,
+  "username" : "$username",
+  "transaction" :
+    {
+      "trans_id" : "$trans_id",
+      "command_url" : "$command_url",
+      "data_url" : "$data_url",
+      "results_url" : "api.praxyk.com/results/$trans_id",
+      "status"   : "canceled",
+      "created_at" : "$created_at"
+    }
+}
+</code></p>
+
+<hr />
+
+<h5>Query Results</h5>
+
+<p><code>api.praxyk.com/results/</code></p>
+
+<p>Users with a valid auth token can make <code>GET</code> requests to the results page, where a list of jobs will be displayed with the request and result (if the job is finished). If the user has enabled push notifications, in-progress jobs will be updated by the server. Otherwise, the user will need to refresh the page to refresh the data.</p>
+
+<p>A <code>GET</code> request to <code>/results/</code> will receive the response:</p>
+
+<p><code>
+{
+  "code" : 200,
+  "transaction_ids" : ["$transaction_id1", "$transaction_id2", ...],
+}
+</code></p>
+
+<h5>Example Usage</h5>
+
+<p>Through the website:
+Users can log in and use the UI to upload images or send text to be processed with all of the details handled for them.</p>
+
+<p>In order to make a direct API call outside of the web UI, a valid auth token will need to be present in the <code>POST</code> body and the image/text data will need to be present in the HTTP request header. Any request without a valid auth token will be thrown out. Registered users can retrieve their auth token by making a <code>GET</code> call to api.praxyk.com/users/{username}</p>
+
+<p>A successful API request will receive the response:
+<code>
+{
+  "code" : 200,
+  "transaction_id" : "$transaction_id",
+}
+</code></p>
+
+<p>Following this, the server will redirect to <code>/results/</code></p>
+
+<p>When the requested job is finished the server will push a notification to the user who made the request if the user has allowed notifications through their browser or in the <code>POST</code> request.</p>
+
+                  </div>
                 </div>
             <!--End Main Content Area-->
             </div>

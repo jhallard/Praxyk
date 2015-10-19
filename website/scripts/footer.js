@@ -28,7 +28,7 @@ footer = '<div class="divPanel">\
 <i class="general foundicon-mail icon"></i>\
 <span class="field">Email:</span>\
 <br />\
-<a href="mailto:support@praxyk.com" title="Email">support@praxyk.com</a>\
+<a href="mailto:praxykservices@gmail.com" title="Email">support@praxyk.com</a>\
 </li>\
 <li>\
 <i class="general foundicon-home icon" style="margin-bottom:50px"></i>\
