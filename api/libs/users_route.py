@@ -53,40 +53,46 @@ class UserRoute(Resource) :
     @marshal_with(user_fields, envelope='user')
     @requires_auth
     def get(self, id) :
-        caller = g._caller
-        if not caller or not validate_owner(caller, id) :
+        try :
+            caller = g._caller
+            if not caller or not validate_owner(caller, id) :
+                abort(404)
+            user =  User.query.get(id)
+            if not user :
+                abort(404)
+            return user
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
             abort(404)
 
-        user =  User.query.get(id)
 
-        if not user :
-            abort(404)
-
-        return user
 
     @marshal_with(user_fields, envelope='user')
     @requires_auth
     def put(self, id) :
+        try :
+            caller = g._caller
+            if not caller or not validate_owner(caller, id) :
+                abort(404)
 
-        caller = g._caller
-        if not caller or not validate_owner(caller, id) :
+            args = self.reqparse.parse_args()
+            user = User.query.get(id)
+
+            if not user :
+                abort(404)
+
+            if args.get('email', None) :
+                user.email = args['email']
+
+            if args('password', None) :
+                user.password = args['password'] # hashed automatically upon set
+
+            db.session.add(user)
+            db.session.commit()
+            return user
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
             abort(404)
-
-        args = self.reqparse.parse_args()
-        user = User.query.get(id)
-
-        if not user :
-            abort(404)
-
-        if args.get('email', None) :
-            user.email = args['email']
-
-        if args('password', None) :
-            user.password = args['password'] # hashed automatically upon set
-
-        db.session.add(user)
-        db.session.commit()
-        return user
 
     @marshal_with(user_fields, envelope='user')
     @requires_auth
@@ -115,38 +121,49 @@ class UsersRoute(Resource) :
 
     @marshal_with(user_fields, envelope='user')
     def post(self) :
-        subject = "Confirm Your Praxyk Machine-Learning Services Account"
-        args = self.reqparse.parse_args()
-        email=args.email
+        try : 
+            subject = "Confirm Your Praxyk Machine-Learning Services Account"
+            args = self.reqparse.parse_args()
+            email=args.email
 
-        # if user exists already return error
-        if User.query.filter_by(email=email).first() :
-            abort(400)
+            # if user exists already return error
+            if User.query.filter_by(email=email).first() :
+                abort(400)
 
-        new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password, active=False)
-        role = user_datastore.find_role(Role.ROLE_USER)
-        user_datastore.add_role_to_user(new_user, role)
-        db.session.commit()
+            new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password, active=False)
+            role = user_datastore.find_role(Role.ROLE_USER)
+            user_datastore.add_role_to_user(new_user, role)
+            db.session.commit()
 
-        token = self.generate_confirmation_token(email)
-        confirm_url = confirm_url=url_for(CONFIRM_ENDPOINT, id=token, _external=True)
-        template = render_template('confirm_email.html', confirm_url=confirm_url, user_name=args.name)
-        self.send_email(email, subject, template)
+            token = self.generate_confirmation_token(email)
+            confirm_url = confirm_url=url_for(CONFIRM_ENDPOINT, id=token, _external=True)
+            template = render_template('confirm_email.html', confirm_url=confirm_url, user_name=args.name)
+            if not self.send_email(email, subject, template) :
+                db.session.delete(new_user)
+                abort(404)
 
-        return new_user
+            return new_user
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            abort(404)
 
     def generate_confirmation_token(self, email):
         serializer = URLSafeTimedSerializer(PRAXYK_API_APP.config['SECRET_KEY'])
         return serializer.dumps(email, salt=PRAXYK_API_APP.config['SECURITY_PASSWORD_SALT'])
 	
     def send_email(self, to, subject, template):
-        msg = Message(
-            subject,
-            recipients=[to],
-            html=template,
-            sender=PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER']
-        )
-        mail.send(msg)
+        try :
+            msg = Message(
+                subject,
+                recipients=[to],
+                html=template,
+                sender=PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER']
+            )
+            mail.send(msg)
+            return True
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            return False
     
 
 

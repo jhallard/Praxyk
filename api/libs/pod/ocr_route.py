@@ -36,18 +36,18 @@ class POD_OCR_Route(Resource) :
     @marshal_with(transaction_fields, envelope='transaction')
     @requires_auth
     def post(self) :
-        caller = g._caller
-        if not caller :
+        try :
+            caller = g._caller
+            if not caller :
+                abort(404)
+
+            command_url = url_for(POD_OCR_ENDPOINT)
+            new_trans = Transaction(user_id=caller.id, command_url=command_url)
+            caller.transactions.append(new_trans)
+            db.session.commit()
+
+            return new_trans
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
             abort(404)
-
-        command_url = url_for(POD_OCR_ENDPOINT)
-        new_trans = Transaction(user_id=caller.id, command_url=command_url)
-        caller.transactions.append(new_trans)
-        db.session.commit()
-
-        return new_trans
-
-        
-
-        # grab_files_enqueue
 

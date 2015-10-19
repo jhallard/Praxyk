@@ -21,7 +21,6 @@ from functools import wraps
 
 from api import db, USER_ENDPOINT, USERS_ENDPOINT, TRANSACTION_ENDPOINT
 from api import Transaction
-# from models.sql.transaction import Transaction
 
 from auth_route import *
 
@@ -62,19 +61,25 @@ class TransactionRoute(Resource) :
     @marshal_with(transaction_fields, envelope='transaction')
     @requires_auth
     def get(self, id) :
-
-        trans = Transaction.query.get(id)
-        if not trans :
+        try :
+            trans = Transaction.query.get(id)
+            if not trans :
+                abort(404)
+            caller = g._caller
+            if not caller or not validate_owner(caller, trans.user_id) :
+                abort(404)
+            return trans
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
             abort(404)
-
-        caller = g._caller
-        if not caller or not validate_owner(caller, trans.user_id) :
-            abort(404)
-
-        return trans
 
     def delete(id) :
-        pass
+        try : 
+            # @TODO - Stop Transaction From Happening if it's active still
+            pass
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            abort(404)
 
 
 
@@ -95,23 +100,27 @@ class TransactionsRoute(Resource) :
     # @marshal_with(transactions_fields, envelope='transactions')
     @requires_auth
     def get(self) :
-        args = self.reqparse.parse_args()
-        user_id = args.get('user_id', -1)
-        caller = g._caller
-        if not caller or not validate_owner(caller, user_id) :
-            abort(404)
+        try :
+            args = self.reqparse.parse_args()
+            user_id = args.get('user_id', -1)
+            caller = g._caller
+            if not caller or not validate_owner(caller, user_id) :
+                abort(404)
 
-        user_name = User.query.get(user_id) if user_id else "All"
+            user_name = User.query.get(user_id) if user_id else "All"
 
-        if user_id > 0 :
-            transactions  =  Transaction.query.filter_by(user_id=user_id)
-        else :
-            transactions  =  Transaction.query.order_by(Transaction.created_at)
-            
-        if not transactions :
+            if user_id > 0 :
+                transactions  =  Transaction.query.filter_by(user_id=user_id)
+            else :
+                transactions  =  Transaction.query.order_by(Transaction.created_at)
+                
+            if not transactions :
+                abort(404)
+            transactions = [marshal(trans, transaction_fields) for trans in transactions]
+            return jsonify({'user_name' : user_name, 'transactions' : transactions})
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
             abort(404)
-        transactions = [marshal(trans, transaction_fields) for trans in transactions]
-        return jsonify({'user_name' : user_name, 'transactions' : transactions})
     
 
 

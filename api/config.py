@@ -20,19 +20,19 @@ def load_json_file(fn) :
     return None
 
 
-DB_CONF_FILE = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
+DB_CONF_FILE  = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
 API_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
-dbconf = load_json_file(DB_CONF_FILE)
-apiconf = load_json_file(API_CONF_FILE)
+dbconf        = load_json_file(DB_CONF_FILE)
+apiconf       = load_json_file(API_CONF_FILE)
 
-dbuser = dbconf['dbuser']
-dbip = dbconf['dbip']
-dbpasswd = dbconf['dbpw']
-dbname = dbconf['dbname']
+dbuser     = dbconf['dbuser']
+dbip       = dbconf['dbip']
+dbpasswd   = dbconf['dbpw']
+dbname     = dbconf['dbname']
 REDIS_CONF = dbconf['redisdb']
 
 SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s/%s' % (dbuser, dbpasswd, dbip, dbname)
-SQLALCHEMY_ECHO = True
+SQLALCHEMY_ECHO         = True
 
 SECRET_KEY = os.urandom(24)
 

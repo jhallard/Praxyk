@@ -42,6 +42,7 @@ class Transaction(db.Model) :
     @hybrid_property
     def data_url(self) :
         return "N/A"
+        # @TODO - When we implement a seperate data-handling server put the url here for this transactions data
         # return url_for(RESULTS_ENDPOINT, id=self.id, _external=True) 
 
     @hybrid_property
@@ -58,4 +59,5 @@ class Transaction(db.Model) :
 
  
     def __repr__(self):
-        return '<Transaction %r>' % (self.id)
+        rep = '<TransactionID %r, UserID %s, CommandURL %s, Status %s, NumItems %r, CreatedAt %s>'
+        return rep % (self.id, self.user_id, self.command_url, self.status, self.num_items, str(self.created_at) )

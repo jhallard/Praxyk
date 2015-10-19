@@ -10,6 +10,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask import Flask, jsonify, request, Response, g, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.bcrypt import Bcrypt
+from flask.ext.cors import CORS
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, roles_required
 from flask_mail import Mail
 
@@ -35,36 +36,37 @@ INITIAL_USERS = apiconf['users'] # list of initial users (root, admins, etc) to 
 api = Api(PRAXYK_API_APP) # our flask.restful api object that we use for routing
 db = SQLAlchemy(PRAXYK_API_APP) # this is our handle to the database
 bcrypt = Bcrypt(PRAXYK_API_APP)  # used for password hashing
+CORS(PRAXYK_API_APP)
 
-BASE_URL = "api.praxyk.com"
-TRANSACTIONS_ROUTE= "/transactions/"
-USERS_ROUTE = "/users/"
-RESULTS_ROUTE = "/results/"
-CONFIRM_ROUTE = "/confirm/"
+BASE_URL           = "api.praxyk.com"
+TRANSACTIONS_ROUTE = "/transactions/"
+USERS_ROUTE        = "/users/"
+RESULTS_ROUTE      = "/results/"
+CONFIRM_ROUTE      = "/confirm/"
 
-POD_ROUTE = "/pod/"
-POD_OCR_ROUTE = POD_ROUTE + "ocr/"
+POD_ROUTE            = "/pod/"
+POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
 
 TRANSACTIONS_ENDPOINT = 'transactions'
-TRANSACTION_ENDPOINT = 'transaction'
-USER_ENDPOINT = 'user'
-USERS_ENDPOINT = 'users'
-RESULTS_ENDPOINT = 'results'
-TOKEN_ENDPOINT = 'tokens'
-AUTH_ENDPOINT = 'auth'
-LOGIN_ENDPOINT = 'login'
-CONFIRM_ENDPOINT = 'confirm'
+TRANSACTION_ENDPOINT  = 'transaction'
+USER_ENDPOINT         = 'user'
+USERS_ENDPOINT        = 'users'
+RESULTS_ENDPOINT      = 'results'
+TOKEN_ENDPOINT        = 'tokens'
+AUTH_ENDPOINT         = 'auth'
+LOGIN_ENDPOINT        = 'login'
+CONFIRM_ENDPOINT      = 'confirm'
 
-POD_ENDPOINT = "pod"
-POD_OCR_ENDPOINT = POD_ENDPOINT + "_ocr"
+POD_ENDPOINT            = "pod"
+POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
 POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
  
 # mail settings
-PRAXYK_API_APP.config['MAIL_SERVER'] = 'smtp.googlemail.com'
-PRAXYK_API_APP.config['MAIL_PORT'] = 587
-PRAXYK_API_APP.config['MAIL_USE_TLS'] = True
-PRAXYK_API_APP.config['MAIL_USE_SSL'] = False
+PRAXYK_API_APP.config['MAIL_SERVER']   = 'smtp.googlemail.com'
+PRAXYK_API_APP.config['MAIL_PORT']     = 587
+PRAXYK_API_APP.config['MAIL_USE_TLS']  = True
+PRAXYK_API_APP.config['MAIL_USE_SSL']  = False
 # gmail authentication
 PRAXYK_API_APP.config['MAIL_USERNAME'] = apiconf['email']
 PRAXYK_API_APP.config['MAIL_PASSWORD'] = apiconf['emailpassword']
@@ -87,8 +89,8 @@ security = Security(PRAXYK_API_APP, user_datastore)
 # Redis config for the queueing system
 redis_host = REDIS_CONF['dbip']
 redis_port = REDIS_CONF['port']
-redis_pw = REDIS_CONF['dbpasswd']
-redis = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
+redis_pw   = REDIS_CONF['dbpasswd']
+redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
 
 
 

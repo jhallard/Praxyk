@@ -34,27 +34,35 @@ class ConfirmRoute(Resource) :
         super(ConfirmRoute, self).__init__()
 
     def post(self, id) :
-        args = self.reqparse.parse_args()
-        email = self.confirm_token(id)
-        if not email :
-            return abort(404)	
-        
-        user = User.query.filter_by(email=email).first()
-        user.active=True
+        try :
+            args = self.reqparse.parse_args()
+            email = self.confirm_token(id)
+            if not email :
+                return abort(404)	
+            
+            user = User.query.filter_by(email=email).first()
+            user.active=True
 
-        db.session.commit()
-        return redirect("http://www.praxyk.com/login.html", code=302)
+            db.session.commit()
+            return redirect("http://www.praxyk.com/login.html", code=302)
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            abort(404)
 
     def get(self, id) :
         return self.post(id)
     
     def confirm_token(self, token, expiration=3600):
-        serializer = URLSafeTimedSerializer(PRAXYK_API_APP.config['SECRET_KEY'])
-        try:
-            email = serializer.loads(token, salt=PRAXYK_API_APP.config['SECURITY_PASSWORD_SALT'], max_age=expiration)
-        except:
-            return False
-        return email
+        try :
+            serializer = URLSafeTimedSerializer(PRAXYK_API_APP.config['SECRET_KEY'])
+            try:
+                email = serializer.loads(token, salt=PRAXYK_API_APP.config['SECURITY_PASSWORD_SALT'], max_age=expiration)
+            except:
+                return False
+            return email
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            return None
 
 
 
