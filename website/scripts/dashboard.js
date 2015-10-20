@@ -14,8 +14,9 @@ function evaluate_service(){
 	}else{
 		switch(service){
 			case "ocr":
-				alert("OCR was called!");
-            get_text_from_image(token,$("#pod_input"),error_message);
+				get_text_from_image(token,$("#pod_input"),error_message,function(result){
+					alert(JSON.stringify(result));
+				});
 				break;
 		}
 	}
@@ -24,4 +25,14 @@ function evaluate_service(){
 function print_error(message){
 	error_message.addClass("alert alert-error");
 	error_message.html(message);
+}
+
+function dashboard_init(){
+	var user_info = get_user_info(sessionStorage.getItem("token"),sessionStorage.getItem("uid"),function(data){
+		if(data != null && data.code == 200){
+			$("#name").text(data.user.name);
+			alert(data.user.name);
+		}
+	});
+	
 }

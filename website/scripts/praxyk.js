@@ -8,7 +8,7 @@ var tlp_api_url = base_api_url + "tlp/";
 var token_api_url = base_api_url + "tokens/";
 var user_api_url = base_api_url + "users/";
 
-function get_text_from_image(token,input,output){
+function get_text_from_image(token,input,output,callback){
 	
    var files = input.files;
    
@@ -21,7 +21,7 @@ function get_text_from_image(token,input,output){
 	
 	//call api
 	var result = api_call(pod_api_url+"ocr/","POST",ocr_data,"multipart/form-data", function(result) {
-        alert(result);
+		callback(result)
     });
 	
 	
@@ -42,8 +42,7 @@ function get_api_token(username,password, callback){
 	return api_call(token_api_url,"POST",json_data,"application/json", function(result) { 
         var login_json = $.parseJSON(result);
         if(login_json.code == 200) { 
-            var result = login_json.token;
-            return callback(result);
+            return callback(login_json);
         }
         else {
             return callback(null);
@@ -72,15 +71,31 @@ function register_user(first,last,email,password, callback){
 
 }
 
+function get_user_info(token,userid,callback){	
+	//api call
+	var url = user_api_url+userid.toString()+"?token="+token;
+	alert(url);
+	return api_call(url,"GET",null,null, function(result) {
+       var json = $.parseJSON(result);
+       
+       if(json.code == 200) { return callback(json) }
+       else { return callback(null) };
+   });
+}
+
 function api_call(url,method,payload,content_type, callback){
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function (){
-		if(xhr.readyState==4 &&xhr.status==200){
+		if(xhr.readyState==4 && xhr.status==200){
             callback(xhr.responseText);
 		} 
 	}
 	xhr.open(method,url,true);
 	xhr.setRequestHeader('Content-Type',content_type);
-	xhr.send(payload);
+	if(content_type!=null){
+		xhr.send(payload);
+	}else{
+		xhr.send();
+	}
 }
 

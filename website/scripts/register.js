@@ -30,10 +30,9 @@ function register(){
 	password_comp = $("#confirm_password").val();
 	terms = $("#agree").prop("checked");
 	
-	if(!validate()){
-        return False
+	if(validate()){
+        register_user(first, last, email, password, register_result);
 	}
-    return register_user(first, last, email, password, register_result)
 }
 
 function validate(){
