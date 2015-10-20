@@ -39,7 +39,6 @@ class POD_OCR_Route(Resource) :
 
     ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'pdf', 'png', 'jpg', 'jpeg'])
 
-    @marshal_with(transaction_fields, envelope='transaction')
     @requires_auth
     def post(self) :
         try :
@@ -68,7 +67,7 @@ class POD_OCR_Route(Resource) :
             caller.transactions.append(new_trans)
             db.session.commit()
 
-            return new_trans
+            return jsonify({"code" : 200, "transaction" : marshal(new_trans, transaction_fields)})
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)

@@ -31,25 +31,25 @@ DEFAULT_PAGE=0
 
 
 transaction_fields = {
-    'trans_id' : fields.String(attribute="id"),
-    'user_id' : fields.Integer,
-    'command_url' : fields.String,
-    'data_url' : fields.String,
-    'results_url' : fields.String,
-    'user_url' : fields.String,
-    'status' : fields.String,
-    'uploads_total' : fields.Integer,
+    'trans_id'        : fields.String(attribute="id"),
+    'user_id'         : fields.Integer,
+    'command_url'     : fields.String,
+    'data_url'        : fields.String,
+    'results_url'     : fields.String,
+    'user_url'        : fields.String,
+    'status'          : fields.String,
+    'uploads_total'   : fields.Integer,
     'uploads_success' : fields.Integer,
-    'uploads_failed' : fields.Integer,
-    'size_total_KB' : fields.Float,
-    'created_at' : fields.DateTime(dt_format='iso8601'), #'rfc822'),
-    'finished_at' : fields.DateTime(dt_format='iso8601'), #'rfc822'),
-    'uri' : fields.Url(TRANSACTION_ENDPOINT, absolute=True)
+    'uploads_failed'  : fields.Integer,
+    'size_total_KB'   : fields.Float,
+    'created_at'      : fields.DateTime(dt_format='iso8601'), #'rfc822'),
+    'finished_at'     : fields.DateTime(dt_format='iso8601'), #'rfc822'),
+    'uri'             : fields.Url(TRANSACTION_ENDPOINT, absolute=True)
 }
 
 transactions_fields = {
     'transactions' : fields.Nested(transaction_fields),
-    'user_id' : fields.Integer
+    'user_id'      : fields.Integer
 }
 
 # @info - class with routes that contain a transaction id 
@@ -60,7 +60,6 @@ class TransactionRoute(Resource) :
         self.reqparse = reqparse.RequestParser()
         super(TransactionRoute, self).__init__()
 
-    @marshal_with(transaction_fields, envelope='transaction')
     @requires_auth
     def get(self, id) :
         try :
@@ -70,11 +69,13 @@ class TransactionRoute(Resource) :
             caller = g._caller
             if not caller or not validate_owner(caller, trans.user_id) :
                 abort(404)
-            return trans
+            return jsonify( {"code" : 200, "transaction" : marshal(trans, transaction_fields)} )
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)
 
+
+    @requires_auth
     def delete(id) :
         try : 
             # @TODO - Stop Transaction From Happening if it's active still
@@ -85,27 +86,27 @@ class TransactionRoute(Resource) :
 
 
 
-# @info - class with routes that don't contain a user id 
-# ie `POST api.praxyk.com/users/`
+# @info - Route class for /transactions/, only has `GET` defined. Users can get all of their transaction history
+#	  here with the ?user_id=$USER_ID parameter or api-admins can get any transactions from any user. 
 class TransactionsRoute(Resource) :
 
     def __init__(self) :
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('user_id', type=int, required=False, default=None, location='json')
-        self.reqparse.add_argument('pagination', type=bool, default=True, location='json')
-        self.reqparse.add_argument('start_page', type=int, default=DEFAULT_START_PAGE, location='json')
-        self.reqparse.add_argument('page', type=int, default=DEFAULT_PAGE, location='json')
-        self.reqparse.add_argument('pages', type=int, default=DEFAULT_NUM_PAGES, location='json')
-        self.reqparse.add_argument('page_size', type=int, default=DEFAULT_PAGE_SIZE, location='json')
+        self.reqparse.add_argument('user_id',    type=int,  default=None, required=False, location='json')
+        self.reqparse.add_argument('pagination', type=bool, default=True,                 location='json')
+        self.reqparse.add_argument('start_page', type=int,  default=DEFAULT_START_PAGE,   location='json')
+        self.reqparse.add_argument('page',       type=int,  default=DEFAULT_PAGE,         location='json')
+        self.reqparse.add_argument('pages',      type=int,  default=DEFAULT_NUM_PAGES,    location='json')
+        self.reqparse.add_argument('page_size',  type=int,  default=DEFAULT_PAGE_SIZE,    location='json')
         super(TransactionsRoute, self).__init__()
 
-    # @marshal_with(transactions_fields, envelope='transactions')
     @requires_auth
     def get(self) :
         try :
             args = self.reqparse.parse_args()
             user_id = args.get('user_id', -1)
             caller = g._caller
+
             if not caller or not validate_owner(caller, user_id) :
                 abort(404)
 
@@ -115,11 +116,10 @@ class TransactionsRoute(Resource) :
                 transactions  =  Transaction.query.filter_by(user_id=user_id)
             else :
                 transactions  =  Transaction.query.order_by(Transaction.created_at)
-                
             if not transactions :
                 abort(404)
             transactions = [marshal(trans, transaction_fields) for trans in transactions]
-            return jsonify({'user_name' : user_name, 'transactions' : transactions})
+            return jsonify({"code" : 200, 'user_name' : user_name, 'transactions' : transactions})
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)

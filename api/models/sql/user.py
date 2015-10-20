@@ -78,5 +78,5 @@ class User(db.Model, UserMixin):
             if user and user.verifypw(plaintext) :
                 return user
         except : 
-            pass
+            return None
         return None
