@@ -13,6 +13,7 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.cors import CORS
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, roles_required
 from flask_mail import Mail
+from flask.ext.rq import RQ
 
 import redis
 
@@ -20,6 +21,8 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 
 import config
 from config import apiconf, REDIS_CONF
+
+# __all__ = ['libs', 'models', 'queue']
 
 
 PRAXYK_API_APP = Flask(__name__) # our main flask app object
@@ -33,10 +36,11 @@ PRAXYK_API_APP.config['WTF_CSRF_ENABLED'] = False
 
 INITIAL_USERS = apiconf['users'] # list of initial users (root, admins, etc) to add to database upon creation
 
-api = Api(PRAXYK_API_APP) # our flask.restful api object that we use for routing
-db = SQLAlchemy(PRAXYK_API_APP) # this is our handle to the database
+api = Api(PRAXYK_API_APP)        # our flask.restful api object that we use for routing
+db = SQLAlchemy(PRAXYK_API_APP)  # this is our handle to the database
 bcrypt = Bcrypt(PRAXYK_API_APP)  # used for password hashing
-CORS(PRAXYK_API_APP)
+CORS(PRAXYK_API_APP)             # cross-site scripting
+RQ(PRAXYK_API_APP)               # redis queue
 
 BASE_URL           = "api.praxyk.com"
 TRANSACTIONS_ROUTE = "/transactions/"
@@ -98,7 +102,8 @@ security = Security(PRAXYK_API_APP, user_datastore)
 redis_host = REDIS_CONF['dbip']
 redis_port = REDIS_CONF['port']
 redis_pw   = REDIS_CONF['dbpasswd']
-redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
+# redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
+redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw)
 
 
 

@@ -31,6 +31,11 @@ dbpasswd   = dbconf['dbpw']
 dbname     = dbconf['dbname']
 REDIS_CONF = dbconf['redisdb']
 
+RQ_DEFAULT_HOST = REDIS_CONF['dbip']
+RQ_DEFAULT_PORT = REDIS_CONF['port']
+RQ_DEFAULT_PASSWORD = REDIS_CONF['dbpasswd']
+# RQ_DEFAULT_DB = 1
+
 SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s/%s' % (dbuser, dbpasswd, dbip, dbname)
 SQLALCHEMY_ECHO         = True
 

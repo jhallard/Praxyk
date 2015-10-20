@@ -21,11 +21,12 @@ from flask import Flask, jsonify, request, Response, g, abort, make_response, re
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 
 from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT, POD_ENDPOINT, POD_OCR_ENDPOINT, RESULTS_ENDPOINT
-from api import User, Role, user_datastore, mail, redis
+from api import User, Role, user_datastore, mail, redis_pool#, redis
 from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_FAILED, TRANSACTION_ACTIVE
 
 from libs.auth_route import *
 from libs.transactions_route import *
+from queue import *
 
 from werkzeug import secure_filename
 
@@ -67,7 +68,24 @@ class POD_OCR_Route(Resource) :
             caller.transactions.append(new_trans)
             db.session.commit()
 
+            queue = task_lib.TaskQueue(redis_pool)
+            jobs = []
+            
+            # enqueue the transaction
+            for file_struct in files_success :
+                trans = {
+                         "trans_id"    : new_trans.id,
+                         "created_at"  : new_trans.created_at,
+                         "finished_at" : new_trans.finished_at,
+                         "status"      : new_trans.status,
+                         "user_id"     : new_trans.user_id
+                }
+                # jobs.append(task_lib.process_pod_transaction.delay(trans, file_struct))
+                jobs.append(queue.enqueue_pod(trans, file_struct))
+                print "\n\n Jobs " + str(jobs) + "\n\n"
+
             return jsonify({"code" : 200, "transaction" : marshal(new_trans, transaction_fields)})
+
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)
@@ -85,7 +103,6 @@ class POD_OCR_Route(Resource) :
         files_failed  = []
 
         for ufile in files:
-            print ufile.filename + "\n\n"
             if ufile and self.allowed_file(ufile.filename):
                 data = ufile.read()
                 ufile.seek(0, os.SEEK_END)
