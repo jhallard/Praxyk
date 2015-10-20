@@ -29,9 +29,8 @@ function print_error(message){
 
 function dashboard_init(){
 	var user_info = get_user_info(sessionStorage.getItem("token"),sessionStorage.getItem("uid"),function(data){
-		if(data != null && data.code == 200){
+		if(data != null){
 			$("#name").text(data.user.name);
-			alert(data.user.name);
 		}
 	});
 	

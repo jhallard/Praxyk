@@ -74,12 +74,9 @@ function register_user(first,last,email,password, callback){
 function get_user_info(token,userid,callback){	
 	//api call
 	var url = user_api_url+userid.toString()+"?token="+token;
-	alert(url);
 	return api_call(url,"GET",null,null, function(result) {
-       var json = $.parseJSON(result);
-       
-       if(json.code == 200) { return callback(json) }
-       else { return callback(null) };
+		var json = $.parseJSON(result);
+       return callback(json);
    });
 }
 
