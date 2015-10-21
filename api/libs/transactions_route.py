@@ -87,12 +87,12 @@ class TransactionRoute(Resource) :
 
 
 # @info - Route class for /transactions/, only has `GET` defined. Users can get all of their transaction history
-#	  here with the ?user_id=$USER_ID parameter or api-admins can get any transactions from any user. 
+#      here with the ?user_id=$USER_ID parameter or api-admins can get any transactions from any user. 
 class TransactionsRoute(Resource) :
 
     def __init__(self) :
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('user_id',    type=int,  default=None, required=False, location='json')
+        self.reqparse.add_argument('user_id',    type=int,  default=None, required=False, location=['json', 'values'])
         self.reqparse.add_argument('pagination', type=bool, default=True,                 location='json')
         self.reqparse.add_argument('start_page', type=int,  default=DEFAULT_START_PAGE,   location='json')
         self.reqparse.add_argument('page',       type=int,  default=DEFAULT_PAGE,         location='json')
@@ -110,7 +110,7 @@ class TransactionsRoute(Resource) :
             if not caller or not validate_owner(caller, user_id) :
                 abort(404)
 
-            user_name = User.query.get(user_id) if user_id else "All"
+            user_name = User.query.get(user_id).name if user_id else "All"
 
             if user_id > 0 :
                 transactions  =  Transaction.query.filter_by(user_id=user_id)
