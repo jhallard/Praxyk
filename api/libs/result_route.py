@@ -24,12 +24,11 @@ DEFAULT_START_PAGE=0
 DEFAULT_PAGE=0
 
 
-class ResultsRoute(Resource):
+class ResultRoute(Resource):
 
     def __init__(self):
         self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('user_id', type=int, default=-1, location=['json', 'values'])
         self.reqparse.add_argument('pagination', type=bool, default=True, location='json')
         self.reqparse.add_argument('start_page', type=int, default=DEFAULT_START_PAGE, location='json')
         self.reqparse.add_argument('page', type=int, default=DEFAULT_PAGE, location='json')
@@ -37,7 +36,8 @@ class ResultsRoute(Resource):
         self.reqparse.add_argument('page_size', type=int, default=DEFAULT_PAGE_SIZE, location='json')
         super(ResultsRoute, self).__init__()
 
-    def get(self):
+    def get(self, trans_id):
+        self.transaction_id = trans_id
         self.args = self.reqparse.parse_args()
         for value in self.args.values():
             if (value < 0):

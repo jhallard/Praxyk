@@ -52,8 +52,9 @@ AUTH_ROUTE         = VERSION + "/auth/"
 TRANSACTIONS_ROUTE = VERSION + "/transactions/"
 USERS_ROUTE        = VERSION + "/users/"
 RESULTS_ROUTE      = VERSION + "/results/"
-CONFIRM_ROUTE      = VERSION + "/confirm/<int:id>"
+CONFIRM_ROUTE      = VERSION + "/confirm/<string:id>"
 POD_ROUTE          = VERSION + "/pod/"
+RESULTS_ROUTE      = VERSION + '/results/'
 RESULT_ROUTE       = RESULTS_ROUTE + '<int:id>'
 TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
 USER_ROUTE         = USERS_ROUTE + '<int:id>'
@@ -112,8 +113,9 @@ security = Security(PRAXYK_API_APP, user_datastore)
 redis_host = REDIS_CONF['dbip']
 redis_port = REDIS_CONF['port']
 redis_pw   = REDIS_CONF['dbpasswd']
+redis_num  = REDIS_CONF['dbnum']
 # redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
-redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw)
+redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw, db=redis_num)
 
 
 

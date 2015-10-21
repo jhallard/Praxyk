@@ -26,6 +26,7 @@ import json
 from libs.users_route import UserRoute, UsersRoute
 from libs.transactions_route import TransactionRoute, TransactionsRoute
 from libs.results_route import ResultsRoute
+from libs.result_route import ResultRoute
 from libs.auth_route import AuthRoute
 from libs.confirm_route import ConfirmRoute
 
@@ -38,6 +39,7 @@ from queue.start_worker import *
 
 
 from models import *
+from models.sql.pod import *
 
 from flask import Flask, jsonify, request, Response, g
 from flask import Flask, jsonify, abort, make_response
@@ -81,13 +83,17 @@ api.add_resource(TransactionsRoute, TRANSACTIONS_ROUTE, endpoint=TRANSACTIONS_EN
 api.add_resource(TransactionRoute, TRANSACTION_ROUTE, endpoint=TRANSACTION_ENDPOINT)
 
 api.add_resource(ResultsRoute, RESULTS_ROUTE, endpoint=RESULTS_ENDPOINT)
-api.add_resource(ResultsRoute, RESULT_ROUTE, endpoint=RESULT_ENDPOINT)
+api.add_resource(ResultRoute, RESULT_ROUTE, endpoint=RESULT_ENDPOINT)
 
 api.add_resource(ConfirmRoute, CONFIRM_ROUTE, endpoint=CONFIRM_ENDPOINT)
 
 api.add_resource(POD_Route, POD_ROUTE, endpoint=POD_ENDPOINT)
 api.add_resource(POD_OCR_Route, POD_OCR_ROUTE, endpoint=POD_OCR_ENDPOINT)
 api.add_resource(POD_Bayes_Spam_Route, POD_BAYES_SPAM_ROUTE, endpoint=POD_BAYES_SPAM_ENDPOINT)
+
+@PRAXYK_API_APP.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
 
 
 def create_initial_users() :

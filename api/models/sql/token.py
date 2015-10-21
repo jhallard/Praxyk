@@ -26,9 +26,9 @@ import base64, M2Crypto
 
 class Token(db.Model):
     __tablename__ = 'Tokens'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('Users.id'))
-    value =  db.Column(db.String(255), index=True, unique=True)
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer(), db.ForeignKey('Users.id'))
+    value      = db.Column(db.String(255), index=True, unique=True)
     created_at = db.Column(db.DateTime)
     expires_at = db.Column(db.DateTime)
 

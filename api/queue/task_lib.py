@@ -13,6 +13,7 @@ from rq import Queue, Connection
 from flask import jsonify
 import sqlalchemy
 
+from models.nosql.pod.result_pod_ocr import *
 import datetime
 
 
@@ -43,7 +44,8 @@ def get_redis_conn() :
     redis_host = REDIS_CONF['dbip']
     redis_port = REDIS_CONF['port']
     redis_pw   = REDIS_CONF['dbpasswd']
-    redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw)
+    redis_num  = REDIS_CONF['dbnum']
+    redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw, db=redis_num)
     return redis_pool
 
 
@@ -61,39 +63,36 @@ def convert_timestr(dt) :
 
 
 def process_pod_ocr(transaction, fileh) :
-    results_key = "results:%s" %str(transaction['trans_id'])
-    results_user_id = results_key+":user_id"
-    results_items_list = results_key+":items"
-    results_count = results_key+":count"
-    results_finished = results_key+":finished"
-
     print "POD-OCR Worker Starting"
-    print "result id     : " + results_key+":item:%s"%str(transaction['file_num'])
+    print "result id     : " + str(transaction['file_num'])
     print "file name     : " + fileh['name']
     print "file size     : " + str(fileh['size'])
 
     
-    result_item_args = {
-                         "item_id" : transaction['file_num'],
-                         "return_string" : "I did not read this with OCR technology",
-                         "finished_at"   : convert_timestr(datetime.datetime.now())
-                        }
-
-    result_item_json = json.dumps(result_item_args)
+    results = Results.query.filter(transaction_id=transaction['trans_id']).execute()
+    # print str(vars(results))
     
-    rdb_pool = get_redis_conn()
-    rdb = redis.Redis(connection_pool=rdb_pool)
-    rdb.lpush(results_items_list, result_item_json)
-    rdb.incr(results_count)
+    if not results :
+        print "POD_OCR Worker Error, Can't Find Results"
+        return False
+
+    this_result = Result_POD_OCR.query.filter(transaction_id=results[0].transaction_id).filter(item_number=transaction['file_num']).execute()
+    # this_result = this_result.query.filter(item_number=transaction['file_num']).execute()
+    print str(this_result)
+
+    if not this_result :
+        print "POD_OCR Worker Error, Can't Find This Result"
+        return False
+
+    print str(this_result)
+    this_result[0].finished_at = datetime.datetime.now()
+    this_result[0].status = Result_POD_OCR.RESULT_FINISHED
+
+    this_result[0].save()
 
     print "POD_OCR Worker Finished"
 
-    if int(rdb.get(results_count)) == int(transaction['files_total']) :
-        rdb.set(results_finished, 1)
-
-    # rdb_pool.release(rdb.connection())
-
-    return result_item_json
+    return this_result[0]
 
 
 def process_pod_bayes_spam(transaction, fileh) :

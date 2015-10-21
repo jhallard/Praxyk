@@ -33,15 +33,16 @@ from role import *
 class User(db.Model, UserMixin):
     __tablename__ = 'Users'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), index=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    _password = db.Column(db.String(255))
-    active = db.Column(db.Boolean())
-    created_at = db.Column(db.DateTime)
+    id           = db.Column(db.Integer, primary_key=True)
+    name         = db.Column(db.String(120), index=True)
+    email        = db.Column(db.String(120), index=True, unique=True)
+    _password    = db.Column(db.String(255))
+    active       = db.Column(db.Boolean())
+    created_at   = db.Column(db.DateTime)
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
-    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
-    tokens = db.relationship('Token', backref='user', lazy='dynamic')
+    roles        = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
+    tokens       = db.relationship('Token', backref='user', lazy='dynamic')
+    # results      = db.relationship('Results', backref='user', lazy='dynamic')
 
     @hybrid_property
     def password(self) :

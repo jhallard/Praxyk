@@ -26,6 +26,9 @@ from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_FAILED, TRANS
 
 from libs.auth_route import *
 from libs.transactions_route import *
+from models.nosql.result_base import *
+from models.nosql.pod.result_pod_ocr import *
+
 from queue import *
 
 from werkzeug import secure_filename
@@ -35,6 +38,10 @@ from werkzeug import secure_filename
 #         an OCR algorithm and return a string of whatever text we think is in the image
 #         back to the user.
 class POD_OCR_Route(Resource) :
+
+    # convert datetime object to string formatted time
+    def convert_timestr(self, dt) :                                                                                                                        
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
 
     def __init__(self) :
         self.reqparse = reqparse.RequestParser()
@@ -58,21 +65,13 @@ class POD_OCR_Route(Resource) :
             caller.transactions.append(new_trans)
             db.session.commit()
 
-            rdb = redis.Redis(connection_pool=redis_pool)
+            results = Results(transaction_id=new_trans.id, user_id=new_trans.user_id, size_total_KB=new_trans.size_total_KB)
+            results.save()
 
-            results_key = "results:%s" %str(new_trans.id)
-            results_user_id = results_key+":user_id"
-            results_count = results_key+":count"
-            results_finished = results_key+":finished"
-            
-            rdb.set(results_user_id, str(new_trans.user_id))
-            rdb.set(results_count, 0)
-            rdb.set(results_finished, 0) # 0 for false in redis 
+            print str(results.results)
 
             queue = task_lib.TaskQueue(redis_pool)
-            jobs = self.enqueue_transaction(queue, new_trans, files_success)
-
-            print "\n results:%s:user_id = "%str(new_trans.id) +  str(rdb.get(results_user_id)) +  "\n"
+            jobs = self.enqueue_transaction(queue, new_trans, files_success, results)
 
             return jsonify({"code" : 200, "transaction" : marshal(new_trans, transaction_fields)})
 
@@ -82,7 +81,7 @@ class POD_OCR_Route(Resource) :
 
     # @info - take a newly made transaction db object and the list of files that that transaction
     #         deals with and enqueue them in the praxyk RQ task-queue to be processed.
-    def enqueue_transaction(self, queue, new_trans, files_success) :
+    def enqueue_transaction(self, queue, new_trans, files_success, results) :
         file_count = 1
         jobs = []
         
@@ -97,9 +96,20 @@ class POD_OCR_Route(Resource) :
                      "status"      : new_trans.status,
                      "user_id"     : new_trans.user_id
                 }
+                result = Result_POD_OCR(created_at = datetime.datetime.now(),
+                                        transaction_id = new_trans.id,
+                                        item_number = file_count,
+                                        item_name = file_struct['name'],
+                                        status = ResultBase.RESULT_ACTIVE,
+                                        size_KB = file_struct['size'])
+                result.save()
+                # results.results.append(result)
                 jobs.append(queue.enqueue_pod(trans, file_struct))
                 file_count += 1
-            
+            res = Result_POD_OCR.query.filter(transaction_id=results.transaction_id).execute()
+            for r in res :
+                print str(vars(r))
+            results.save()
             return jobs
         except Exception, e:
             sys.stderr.write("\nException (POD_OCR_route:enqueue_trans) : " + str(e))

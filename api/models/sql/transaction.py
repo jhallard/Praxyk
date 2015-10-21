@@ -37,6 +37,7 @@ class Transaction(db.Model) :
     uploads_success = db.Column(db.Integer) # number of uploads that worked
     uploads_failed  = db.Column(db.Integer) # number that failed (total - success)
     size_total_KB   = db.Column(db.Float)   # the total size of uploaded data in KB
+    # results         = db.relationship('POD_OCR_Results', backref='transaction', lazy='dynamic')
 
     @hybrid_property
     def results_url(self) :
