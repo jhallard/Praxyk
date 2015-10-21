@@ -83,13 +83,16 @@
                     <h2 id="name"></h2>
                     <h3>POD</h3>
                     <div id="error_message"></div>
-                    <input type="file" id="pod_input" />
+                    <input type="file" id="pod_input" multiple/>
                     <select id="pod_service">
                     	<option value="false">SELECT A POD SERVICE</option>
                         <option value="false">--------------------</option>
                     	<option value="ocr">OCR</option>
                     </select>
                     <button class="btn" onClick="evaluate_service()">Evaluate</button>
+                    <h3>Transactions</h3>
+                    <h4>Most Recent</h4>
+                    <div id="transactions"></div>
                 </div>
             <!--End Main Content Area-->
             </div>

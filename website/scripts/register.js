@@ -8,12 +8,19 @@
 
 function register_result(result) {
       if(result) {
-         $("#form_error").html("Registration Successful");
-         $("#form_error").addClass("alert alert-success");
+        $("#form_error").html("Registration Successful! Check your email to confirm your account!");
+        $("#form_error").addClass("alert alert-success");
+        $("#first_name").val("");
+		$("#last_name").val("");
+		$("#email").val("");
+		$("#password").val("");
+		$("#confirm_password").val("");
+		$("#agree").prop("checked") = false;
          return true
       }else{
-         $("#form_error").html("Registration Not Successful");
+         $("#form_error").html("Registration Not Successful! Please try again!");
          $("#form_error").addClass("alert alert-error");
+         $("#agree").prop("checked") = false;
          return false
       }
 }

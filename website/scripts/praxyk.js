@@ -2,31 +2,29 @@
 
 //api urls
 var base_api_url= "http://api.praxyk.com:5000/";
-// var base_api_url= "http://127.0.0.1:5000/";
 var pod_api_url = base_api_url + "pod/";
 var tlp_api_url = base_api_url + "tlp/";
 var token_api_url = base_api_url + "tokens/";
 var user_api_url = base_api_url + "users/";
+var transaction_api_url = base_api_url + "transactions/";
+var results_api_url = base_api_url + "results/";
 
-function get_text_from_image(token,input,output,callback){
-	
-   var files = input.files;
-   
-   for(var i=0;i<files.length;++i){
+function get_text_from_image(token,input,callback){
 	 
 	//get the data ready
-	var ocr_data = new Object();
-	ocr_data.append("token",token);
-	ocr_data.append("image",files[0]);
+	var ocr_data = new FormData();
+	for(var i=0;i<input.length;++i){
+		var file = input[i];
+		ocr_data.append("files",file,file.name);
+	}
+	
 	
 	//call api
-	var result = api_call(pod_api_url+"ocr/","POST",ocr_data,"multipart/form-data", function(result) {
+	var result = api_call(pod_api_url+"ocr/?token="+token,"POST",ocr_data,null, function(result) {
 		callback(result)
     });
 	
 	
-   }
-   
 }
 
 function get_api_token(username,password, callback){
@@ -80,6 +78,17 @@ function get_user_info(token,userid,callback){
    });
 }
 
+function get_recent_transactions(token,userid,callback){
+	var url = transaction_api_url + "?user_id=" + userid.toString() + "&token=" + token;
+	return api_call(url, "GET",null,null,function(result) {
+		var json = $.parseJSON(result);
+		return callback(json);
+	});
+}
+
+function get_transaction_result(token,trans_id,user_id,callback){
+}
+
 function api_call(url,method,payload,content_type, callback){
 	var xhr = new XMLHttpRequest();
 	xhr.onreadystatechange = function (){
@@ -88,8 +97,8 @@ function api_call(url,method,payload,content_type, callback){
 		} 
 	}
 	xhr.open(method,url,true);
-	xhr.setRequestHeader('Content-Type',content_type);
-	if(content_type!=null){
+	if(payload!=null){
+		if(content_type!=null) xhr.setRequestHeader('Content-Type',content_type);
 		xhr.send(payload);
 	}else{
 		xhr.send();
