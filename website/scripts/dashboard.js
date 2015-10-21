@@ -13,7 +13,7 @@ function evaluate_service(){
 			case "ocr":
 				var files = $("#pod_input").prop("files");
 				get_text_from_image(token,files,function(result){
-					alert(JSON.stringify(result));
+					//alert(JSON.stringify(result));
 					get_trans();
 				});
 				break;
@@ -31,7 +31,7 @@ function get_results(id){
 
 function get_trans(){
 		var user_transactions = get_recent_transactions(sessionStorage.getItem("token"),sessionStorage.getItem("uid"),function(data){
-			alert(JSON.stringify(data));
+			//alert(JSON.stringify(data));
 		var table = "<table><tr><th>ID</th><th>Status</th><th>Created At</th><th>Upload Success</th><th>Upload Fail</th><th>Upload Total</th><th>Size (KB)</th><th>View Results</th></tr>";//"</table>";
 		var trans = data.transactions;
 		for(var i=0;i<trans.length;++i){
