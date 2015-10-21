@@ -1,0 +1,5 @@
+./regression.py --schemaf ~/.praxykdevops/schemas/test_devops.schema ~/.praxykdevops/config/praxyk_devops_test_auth_info.json devopstest
+ ./regression.py --schemaf ~/.praxykdevops/schemas/test_devops.schema ~/.praxykdevops/config/praxyk_devops_test_auth_info.json authtest 
+./regression.py ~/.praxykdevops/config/praxyk_devops_auth_info.json vmtest
+./regression.py --schemaf ~/.praxykdevops/schemas/test_db.schema ~/.praxykdevops/config/praxyk_devops_test_auth_info.json dbtest
+./regression.py -h 
