@@ -1,0 +1,108 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Praxyk | Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="scripts/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="scripts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Icons -->
+    <link href="scripts/icons/general/stylesheets/general_foundicons.css" media="screen" rel="stylesheet" type="text/css" />  
+    <link href="scripts/icons/social/stylesheets/social_foundicons.css" media="screen" rel="stylesheet" type="text/css" />
+    <!--[if lt IE 8]>
+        <link href="scripts/icons/general/stylesheets/general_foundicons_ie7.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="scripts/icons/social/stylesheets/social_foundicons_ie7.css" media="screen" rel="stylesheet" type="text/css" />
+    <![endif]-->
+    <link rel="stylesheet" href="scripts/fontawesome/css/font-awesome.min.css">
+    <!--[if IE 7]>
+        <link rel="stylesheet" href="scripts/fontawesome/css/font-awesome-ie7.min.css">
+    <![endif]-->
+
+    <link href="http://fonts.googleapis.com/css?family=Syncopate" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Abel" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Pontano+Sans" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Oxygen" rel="stylesheet" type="text/css">
+
+    <link href="styles/custom.css" rel="stylesheet" type="text/css" />
+    
+    <script src="scripts/menu.js" type="text/javascript"></script>
+    <script src="scripts/footer.js" type="text/javascript"></script>
+    <script src="scripts/init.js" type="text/javascript"></script>
+    <script src="scripts/register.js" type="text/javascript"></script>
+    <script src="scripts/praxyk.js" type="text/javascript"></script>
+</head>
+<body id="pageBody">
+
+<div id="divBoxed" class="container">
+
+<div class="transparent-bg" style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;z-index: -1;zoom: 1;"></div>
+
+    <div class="divPanel notop nobottom">
+            <div class="row-fluid">
+                <div class="span12">
+
+                    <div id="divLogo" class="pull-left">
+                        <a href="index.html" id="divSiteTitle">Praxyk</a><br />
+                        <a href="index.html" id="divTagLine">Accessable Machine Learning</a>
+                    </div>
+
+                    <div id="divMenuRight" class="pull-right"></div>
+
+            <div class="row-fluid">
+                <div class="span12">
+                    <div id="contentInnerSeparator"></div>
+                </div>
+            </div>
+    </div>
+
+    <div class="contentArea">
+
+        <div class="divPanel notop page-content">
+
+            <div class="row-fluid">
+            <!--Edit Main Content Area here-->
+                <div class="span12" id="divMain">
+
+                    <h1 id="page_title">Register</h1><hr>
+                    <div id="form_error"></div>
+                  	<label for="first_name">First Name:</label><input type="text" id="first_name" /><br />
+                  	<label for="last_name">Last Name:</label><input type="text" id="last_name" /><br />
+                  	<label for="email">E-Mail:</label><input type="text" id="email" /><br />
+                  	<label for="password">Password:</label><input type="password" id="password" /><br />
+                  	<label for="confirm_password">Confirm Password:</label><input type="password" id="confirm_password" /><br />
+                     <input type="checkbox" class="checkbox" id="agree"> I agree to the <a href="terms_of_service.html">Terms of Service</a><br />
+                  	<button class="btn" onclick="register()">Register</button>
+                  </div>
+            <!--End Main Content Area-->
+            </div>
+
+            <div id="footerInnerSeparator"></div>
+        </div>
+    </div>
+
+    <div id="footerOuterSeparator"></div>
+
+    <div id="divFooter" class="footerArea">
+    </div>
+</div>
+<br /><br /><br />
+
+<script src="scripts/jquery.min.js" type="text/javascript"></script> 
+<script src="scripts/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="scripts/default.js" type="text/javascript"></script>
+
+
+
+
+
+</body>
+</html>
