@@ -13,7 +13,7 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.cors import CORS
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, roles_required
 from flask_mail import Mail
-from flask.ext.rq import RQ
+# from flask.ext.rq import RQ
 
 import redis
 
@@ -40,7 +40,7 @@ api = Api(PRAXYK_API_APP)        # our flask.restful api object that we use for 
 db = SQLAlchemy(PRAXYK_API_APP)  # this is our handle to the database
 bcrypt = Bcrypt(PRAXYK_API_APP)  # used for password hashing
 CORS(PRAXYK_API_APP)             # cross-site scripting
-RQ(PRAXYK_API_APP)               # redis queue
+# RQ(PRAXYK_API_APP)               # redis queue
 
 BASE_URL           = "api.praxyk.com"
 TRANSACTIONS_ROUTE = "/transactions/"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Preload libraries
-import __init__
+# import __init__
 import task_lib
 
 import sys, json, os, redis
@@ -26,7 +26,7 @@ if __name__ == '__main__' :
         redis_port = REDIS_CONF['port']
         redis_pw   = REDIS_CONF['dbpasswd']
 	print REDIS_CONF
-	my_redis = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
+	my_redis = redis.Redis(host=redis_host, port=redis_port, password=redis_pw, db=1)
         q = Queue(connection=my_redis)
 
         w = Worker(q)

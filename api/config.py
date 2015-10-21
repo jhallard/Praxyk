@@ -41,4 +41,4 @@ SQLALCHEMY_ECHO         = True
 
 SECRET_KEY = os.urandom(24)
 
-DEBUG = False       
+DEBUG = True

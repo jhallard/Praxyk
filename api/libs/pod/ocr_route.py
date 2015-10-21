@@ -21,7 +21,7 @@ from flask import Flask, jsonify, request, Response, g, abort, make_response, re
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 
 from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT, POD_ENDPOINT, POD_OCR_ENDPOINT, RESULTS_ENDPOINT
-from api import User, Role, user_datastore, mail, redis_pool#, redis
+from api import User, Role, user_datastore, mail, redis_pool, redis
 from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_FAILED, TRANSACTION_ACTIVE
 
 from libs.auth_route import *
@@ -30,8 +30,10 @@ from queue import *
 
 from werkzeug import secure_filename
 
-# @info - class with routes that contain a user id 
-# ie `GET api.praxyk.com/users/12345`
+# @info - route that allows user to enact request for the POD-OCR service.
+#         users can post images to this route, we will process those images using
+#         an OCR algorithm and return a string of whatever text we think is in the image
+#         back to the user.
 class POD_OCR_Route(Resource) :
 
     def __init__(self) :
@@ -40,6 +42,10 @@ class POD_OCR_Route(Resource) :
 
     ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'pdf', 'png', 'jpg', 'jpeg'])
 
+    # @info - post route for pod-ocr service. Users must include their auth token and list of image files
+    #         of the types shown above under the names 'files'. Files will all be grouped under a single 
+    #         transaction with a single transaction ID. This ID can be used to get the results from the 
+    #         /results/{trans_id} route
     @requires_auth
     def post(self) :
         try :
@@ -47,6 +53,63 @@ class POD_OCR_Route(Resource) :
             if not caller :
                 abort(404)
 
+            (new_trans, files_success) = self.setup_transaction(request, caller)
+
+            caller.transactions.append(new_trans)
+            db.session.commit()
+
+            rdb = redis.Redis(connection_pool=redis_pool)
+
+            results_key = "results:%s" %str(new_trans.id)
+            results_user_id = results_key+":user_id"
+            results_count = results_key+":count"
+            results_finished = results_key+":finished"
+            
+            rdb.set(results_user_id, str(new_trans.user_id))
+            rdb.set(results_count, 0)
+            rdb.set(results_finished, 0) # 0 for false in redis 
+
+            queue = task_lib.TaskQueue(redis_pool)
+            jobs = self.enqueue_transaction(queue, new_trans, files_success)
+
+            print "\n results:%s:user_id = "%str(new_trans.id) +  str(rdb.get(results_user_id)) +  "\n"
+
+            return jsonify({"code" : 200, "transaction" : marshal(new_trans, transaction_fields)})
+
+        except Exception, e:
+            sys.stderr.write("\nException (POD_OCR_Route:POST) : " + str(e))
+            abort(404)
+
+    # @info - take a newly made transaction db object and the list of files that that transaction
+    #         deals with and enqueue them in the praxyk RQ task-queue to be processed.
+    def enqueue_transaction(self, queue, new_trans, files_success) :
+        file_count = 1
+        jobs = []
+        
+        try :
+            for file_struct in files_success :
+                trans = {
+                     "trans_id"    : new_trans.id,
+                     "file_num"    : file_count,
+                     "files_total" : new_trans.uploads_total,
+                     "created_at"  : new_trans.created_at,
+                     "finished_at" : new_trans.finished_at,
+                     "status"      : new_trans.status,
+                     "user_id"     : new_trans.user_id
+                }
+                jobs.append(queue.enqueue_pod(trans, file_struct))
+                file_count += 1
+            
+            return jobs
+        except Exception, e:
+            sys.stderr.write("\nException (POD_OCR_route:enqueue_trans) : " + str(e))
+            return []
+    
+    # @info - takes the raw request from the user (containing the images to be processed) and the
+    #         id of the caller, turns these items into a transaction object that can be stored in 
+    #         the SQL db. See /models/sql/transaction.py for more info on the transaction model.
+    def setup_transaction(self, request, caller) :
+        try :
             (files_success, files_failed) = self.get_files_from_request(request)
 
             command_url = url_for(POD_OCR_ENDPOINT)
@@ -65,58 +128,45 @@ class POD_OCR_Route(Resource) :
             if not new_trans.uploads_success or new_trans.uploads_success == 0 :
                 new_trans.status = TRANSACTION_FAILED
 
-            caller.transactions.append(new_trans)
-            db.session.commit()
-
-            queue = task_lib.TaskQueue(redis_pool)
-            jobs = []
-            
-            # enqueue the transaction
-            for file_struct in files_success :
-                trans = {
-                         "trans_id"    : new_trans.id,
-                         "created_at"  : new_trans.created_at,
-                         "finished_at" : new_trans.finished_at,
-                         "status"      : new_trans.status,
-                         "user_id"     : new_trans.user_id
-                }
-                # jobs.append(task_lib.process_pod_transaction.delay(trans, file_struct))
-                jobs.append(queue.enqueue_pod(trans, file_struct))
-                print "\n\n Jobs " + str(jobs) + "\n\n"
-
-            return jsonify({"code" : 200, "transaction" : marshal(new_trans, transaction_fields)})
-
+            return (new_trans, files_success)
         except Exception, e:
-            sys.stderr.write("Exception : " + str(e))
-            abort(404)
+            sys.stderr.write("\nException (POD_OCR_route:setup_trans) : " + str(e))
+            return ([], []) 
 
+
+    # @info - takes the raw request dict and gathers the files from it, parses them into success/failure
+    #         based on if the images were able to upload correctly and/or are the correct file type, and 
+    #         returns these to the caller.
     def get_files_from_request(self, request) :
-        files = []
-        if request.files :
-            files = request.files.getlist('files')
-        if not files :
-            files = request.values.get('files', [])
-        if not files :
-            return ([], [])
+        try :
+            files = []
+            if request.files :
+                files = request.files.getlist('files')
+            if not files :
+                files = request.values.get('files', [])
+            if not files :
+                return ([], [])
 
-        files_success = [] 
-        files_failed  = []
+            files_success = [] 
+            files_failed  = []
 
-        for ufile in files:
-            if ufile and self.allowed_file(ufile.filename):
-                data = ufile.read()
-                ufile.seek(0, os.SEEK_END)
-                file_length_bytes = ufile.tell()
-                file_length = file_length_bytes/1000.0
-                filename = secure_filename(ufile.filename)
-                files_success.append({"name" : filename, "data" : data, "size" : file_length})
-            elif ufile : # if it's not an allowed file mark it so we can tell the user such
-                files_failed.append(ufile.filename)
-            else : # else just put an anon failure in the list so we still know a file upload failed
-                files_failed.append("N/A")
+            for ufile in files:
+                if ufile and self.allowed_file(ufile.filename):
+                    data = ufile.read()
+                    ufile.seek(0, os.SEEK_END)
+                    file_length_bytes = ufile.tell()
+                    file_length = file_length_bytes/1000.0
+                    filename = secure_filename(ufile.filename)
+                    files_success.append({"name" : filename, "data" : data, "size" : file_length})
+                elif ufile : # if it's not an allowed file mark it so we can tell the user such
+                    files_failed.append(ufile.filename)
+                else : # else just put an anon failure in the list so we still know a file upload failed
+                    files_failed.append("N/A")
 
-        return (files_success, files_failed)
-
+            return (files_success, files_failed)
+        except Exception, e:
+            sys.stderr.write("\nException (POD_OCR_route:get_files_from_req) : " + str(e))
+            return ([], []) 
 
 
     # For a given file, return whether it's an allowed type or not
