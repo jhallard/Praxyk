@@ -61,8 +61,6 @@ DESCRIPTION = """
 #         right now we only take a config file as an argument
 def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('--metaconfig', help="Full path to the json file containing info " + \
-                                             "about the meta-database for storing log files.")
     parser.add_argument('--builddb', action='store_true', help="This will cause all of the tables to be dropped and remade.")
     parser.add_argument('--local', action='store_true', help="Use this flag to run the server on " + \
                                                             "localhost:5000 instead of as a live server.")
@@ -71,19 +69,21 @@ def parse_args(argv) :
 
 # @info - start adding the API endpoints. Each endpoint gets its own class. 
 #         The classes are in /praxyk/api/libs/*_route.py
-api.add_resource(AuthRoute, '/tokens/', endpoint=TOKEN_ENDPOINT)
-api.add_resource(AuthRoute, '/auth/', endpoint=AUTH_ENDPOINT)
-api.add_resource(AuthRoute, '/login/', endpoint=LOGIN_ENDPOINT)
+#	  All of the constants are defined in /api/__init__.py
+api.add_resource(AuthRoute, TOKENS_ROUTE, endpoint=TOKEN_ENDPOINT)
+api.add_resource(AuthRoute, AUTH_ROUTE, endpoint=AUTH_ENDPOINT)
+api.add_resource(AuthRoute, LOGIN_ROUTE, endpoint=LOGIN_ENDPOINT)
 
-api.add_resource(UserRoute, '/users/<int:id>', endpoint=USER_ENDPOINT)
-api.add_resource(UsersRoute, '/users/', endpoint=USERS_ENDPOINT)
+api.add_resource(UserRoute, USER_ROUTE, endpoint=USER_ENDPOINT)
+api.add_resource(UsersRoute, USERS_ROUTE, endpoint=USERS_ENDPOINT)
 
-api.add_resource(TransactionsRoute, '/transactions/', endpoint=TRANSACTIONS_ENDPOINT)
-api.add_resource(TransactionRoute, '/transactions/<int:id>', endpoint=TRANSACTION_ENDPOINT)
+api.add_resource(TransactionsRoute, TRANSACTIONS_ROUTE, endpoint=TRANSACTIONS_ENDPOINT)
+api.add_resource(TransactionRoute, TRANSACTION_ROUTE, endpoint=TRANSACTION_ENDPOINT)
 
-api.add_resource(ResultsRoute, '/results/<int:id>', endpoint=RESULTS_ENDPOINT)
+api.add_resource(ResultsRoute, RESULTS_ROUTE, endpoint=RESULTS_ENDPOINT)
+api.add_resource(ResultsRoute, RESULT_ROUTE, endpoint=RESULT_ENDPOINT)
 
-api.add_resource(ConfirmRoute, '/confirm/<string:id>', endpoint=CONFIRM_ENDPOINT)
+api.add_resource(ConfirmRoute, CONFIRM_ROUTE, endpoint=CONFIRM_ENDPOINT)
 
 api.add_resource(POD_Route, POD_ROUTE, endpoint=POD_ENDPOINT)
 api.add_resource(POD_OCR_Route, POD_OCR_ROUTE, endpoint=POD_OCR_ENDPOINT)

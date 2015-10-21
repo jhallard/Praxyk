@@ -10,7 +10,7 @@ The API is our contract with all users of Praxyk services that defines exactly h
 Many routes that can return large batches of information to the user are paginated by default. This means that querying these routes will return a limited amount of data, along with a link to the next block of data. For example, calling a paginated-route with no page-related arguments will cause us to return page 0 with a default size of 100 values.
 
 ```sh
-GET api.praxyk.com/results/12345/
+GET api.praxyk.com/v1/results/12345/
 ``` 
 
 returns
@@ -19,7 +19,7 @@ returns
 {
  "code" : 200,
  "items" : ["$item1", "...", "$item100"],
- "next" : "api.praxyk.com/results/12345/?page=1"
+ "next" : "api.praxyk.com/v1/results/12345/?page=1"
 }
 ```
 
@@ -35,7 +35,12 @@ If conflicting arguments are given (example `pages=5&start_page=1&pages=8`) we w
 
 #### API Routes
 
-**API Base** - `api.praxyk.com`
+**Version 1** - The Praxyk API is currently in beta-stage leading up to the full version 1 release. Right now services can be accessed via `api.praxyk.com/v1/` but the API defined here is liable to change up until the official version 1 freeze date (unknown now, but soon).
+
+More versions will be available in the future as the API is improved, but we will keep backwards compatibility for at least one generation (i.e. when version 2 comes out, version 1 will be kept alive on a server somewhere).
+
+
+**API Base** - `api.praxyk.com/v1/vX/`
 
  * `/users/`
    * `GET /users/{user_id}`
@@ -90,8 +95,8 @@ Add a new user to the system. Only users with root priviledges can add users to 
     "email": "$new_email",
     "userid" : "$user_id",
     "name" : "$user_name",
-    "uri" : "api.praxyk.com/users/$user_id",
-    "transactions_url" : "api.praxyk.com/transactions/?user_id=$user_id",
+    "uri" : "api.praxyk.com/v1/users/$user_id",
+    "transactions_url" : "api.praxyk.com/v1/transactions/?user_id=$user_id",
     "created_at" : "$creation_time"
   } 
 }
@@ -118,8 +123,8 @@ To update an existing user, perform the action below. This action must be authen
     "email": "$new_email",
     "userid" : "$user_id",
     "name" : "$user_name",
-    "uri" : "api.praxyk.com/users/$user_id",
-    "transactions_url" : "api.praxyk.com/transactions/?user_id=$user_id",
+    "uri" : "api.praxyk.com/v1/users/$user_id",
+    "transactions_url" : "api.praxyk.com/v1/transactions/?user_id=$user_id",
     "created_at" : "$creation_time"
   } 
  }
@@ -145,8 +150,8 @@ This returns information on a user, their transactions, and results. Note that t
     "email": "$new_email",
     "userid" : "$user_id",
     "name" : "$user_name",
-    "uri" : "api.praxyk.com/users/$user_id",
-    "transactions_url" : "api.praxyk.com/transactions/?user_id=$user_id",
+    "uri" : "api.praxyk.com/v1/users/$user_id",
+    "transactions_url" : "api.praxyk.com/v1/transactions/?user_id=$user_id",
     "created_at" : "$creation_time"
   } 
  }
@@ -173,8 +178,8 @@ This call will remove the given user's account from our system, including all st
     "email": "$new_email",
     "userid" : "$user_id",
     "name" : "$user_name",
-    "uri" : "api.praxyk.com/users/$user_id",
-    "transactions_url" : "api.praxyk.com/transactions/?user_id=$user_id",
+    "uri" : "api.praxyk.com/v1/users/$user_id",
+    "transactions_url" : "api.praxyk.com/v1/transactions/?user_id=$user_id",
     "created_at" : "$creation_time"
   }  
 }
@@ -217,7 +222,7 @@ ___
 ___
 
 ### Transactions
-`api.praxyk.com/transactions/` is the portal for all specific transaction information. Transactions are records that are generated for every service request that a user makes through our API. For instance, if a user makes a request to `api.praxyk.com/pod/bayes_spam/` with 100 email-bodies as data, a single transaction record is generated to group together those 100 inputs and their corresponding outputs.
+`api.praxyk.com/v1/transactions/` is the portal for all specific transaction information. Transactions are records that are generated for every service request that a user makes through our API. For instance, if a user makes a request to `api.praxyk.com/v1/pod/bayes_spam/` with 100 email-bodies as data, a single transaction record is generated to group together those 100 inputs and their corresponding outputs.
 The user is given the ID of this transaction as a return to making the call to the `/pod/` service, and they can use this ID to obtain information on the status of their request by using the routes described in this section.
 
 
@@ -253,7 +258,7 @@ start_page  | _int_      | Only valid when used with `pages`, tells us the start
       "user_id" : "$user_id1",
       "command_url" : "$command_url1",
       "data_url" : "$data_url1",
-      "results_url" : "api.praxyk.com/results/$trans_id1",
+      "results_url" : "api.praxyk.com/v1/results/$trans_id1",
       "status"   : "$status1",
       "created_at" : "$created_at1",
       "uploads_total" : "$num_files_uploaded1",
@@ -292,7 +297,7 @@ After making a request to a Praxyk service, the user is returned a transaction I
       "user_id" : "$user_id",
       "command_url" : "$command_url",
       "data_url" : "$data_url",
-      "results_url" : "api.praxyk.com/results/$trans_id",
+      "results_url" : "api.praxyk.com/v1/results/$trans_id",
       "status"   : "$status",
       "created_at" : "$created_at",
       "uploads_total" : "$num_files_uploaded",
@@ -328,7 +333,7 @@ There are times when a user might want to change an active transaction, to cance
       "trans_id" : "$trans_id",
       "command_url" : "$command_url",
       "data_url" : "$data_url",
-      "results_url" : "api.praxyk.com/results/$trans_id",
+      "results_url" : "api.praxyk.com/v1/results/$trans_id",
       "status"   : "$status",
       "created_at" : "$created_at",
       "uploads_total" : "$num_files_uploaded",
@@ -344,7 +349,7 @@ ___
 ___
 
 ### POD
-`api.praxyk.com/pod/` is the high-level route for all Prediction on Demand services. This route is used to pass data that needs analysis to specific POD models, the actual predictions made on the data that is passed in available through the `/results/{transaction_id}` route, where `transaction_id` is an ID that uniquely identifies your request through the Praxyk API. 
+`api.praxyk.com/v1/pod/` is the high-level route for all Prediction on Demand services. This route is used to pass data that needs analysis to specific POD models, the actual predictions made on the data that is passed in available through the `/results/{transaction_id}` route, where `transaction_id` is an ID that uniquely identifies your request through the Praxyk API. 
 
 As of right now, no actual requests are made through `/pod/`, only through it's sub-routes which are shown below.
 
@@ -383,7 +388,7 @@ The names of the files you upload are important, they will be used to index the 
       "trans_id" : "$trans_id",
       "command_url" : "$command_url",
       "data_url" : "$data_url",
-      "results_url" : "api.praxyk.com/results/$trans_id",
+      "results_url" : "api.praxyk.com/v1/results/$trans_id",
       "status"   : "$status",
       "created_at" : "$created_at",
       "uploads_total" : "$num_files_uploaded",
@@ -396,7 +401,7 @@ The names of the files you upload are important, they will be used to index the 
 
 ___
 ##### Query Results
-`api.praxyk.com/results/`
+`api.praxyk.com/v1/results/`
 
 Users with a valid auth token can make `GET` requests to the results page, where a list of jobs will be displayed with the request and result (if the job is finished). If the user has enabled push notifications, in-progress jobs will be updated by the server. Otherwise, the user will need to refresh the page to refresh the data.
 
@@ -413,7 +418,7 @@ A `GET` request to `/results/` will receive the response:
 Through the website:
 Users can log in and use the UI to upload images or send text to be processed with all of the details handled for them.
 
-In order to make a direct API call outside of the web UI, a valid auth token will need to be present in the `POST` body and the image/text data will need to be present in the HTTP request header. Any request without a valid auth token will be thrown out. Registered users can retrieve their auth token by making a `GET` call to api.praxyk.com/users/{username}
+In order to make a direct API call outside of the web UI, a valid auth token will need to be present in the `POST` body and the image/text data will need to be present in the HTTP request header. Any request without a valid auth token will be thrown out. Registered users can retrieve their auth token by making a `GET` call to api.praxyk.com/v1/users/{username}
 
 A successful API request will receive the response:
 ```

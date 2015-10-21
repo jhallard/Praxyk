@@ -43,20 +43,30 @@ CORS(PRAXYK_API_APP)             # cross-site scripting
 # RQ(PRAXYK_API_APP)               # redis queue
 
 BASE_URL           = "api.praxyk.com"
-TRANSACTIONS_ROUTE = "/transactions/"
-USERS_ROUTE        = "/users/"
-RESULTS_ROUTE      = "/results/"
-CONFIRM_ROUTE      = "/confirm/"
+VERSION            = "/v1"
 
-POD_ROUTE            = "/pod/"
+# routes
+LOGIN_ROUTE        = VERSION + "/login/"
+TOKENS_ROUTE       = VERSION + "/tokens/"
+AUTH_ROUTE         = VERSION + "/auth/"
+TRANSACTIONS_ROUTE = VERSION + "/transactions/"
+USERS_ROUTE        = VERSION + "/users/"
+RESULTS_ROUTE      = VERSION + "/results/"
+CONFIRM_ROUTE      = VERSION + "/confirm/"
+POD_ROUTE          = VERSION + "/pod/"
+RESULT_ROUTE       = RESULTS_ROUTE + '<int:id>'
+TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
+USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
 
+# endpoints
 TRANSACTIONS_ENDPOINT = 'transactions'
 TRANSACTION_ENDPOINT  = 'transaction'
 USER_ENDPOINT         = 'user'
 USERS_ENDPOINT        = 'users'
 RESULTS_ENDPOINT      = 'results'
+RESULT_ENDPOINT      = 'result'
 TOKEN_ENDPOINT        = 'tokens'
 AUTH_ENDPOINT         = 'auth'
 LOGIN_ENDPOINT        = 'login'
