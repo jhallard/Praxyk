@@ -1,5 +1,11 @@
+CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/paths.cpp.in
+    ${CMAKE_CURRENT_BINARY_DIR}/paths.cpp
+@ONLY)
+
 SET(praxyk_sources
     ocr.cpp
+    ${CMAKE_CURRENT_BINARY_DIR}/paths.cpp
     spam.cpp
 )
 

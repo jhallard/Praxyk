@@ -1,5 +1,6 @@
 %{
     #include <praxyk/ocr.hpp>
+    #include <praxyk/paths.hpp>
     #include <praxyk/spam.hpp>
 
     #include <stdexcept>
@@ -26,5 +27,6 @@
 %include <praxyk_docstrings.i>
 %include <praxyk/config.hpp>
 %include <praxyk/ocr.hpp>
+%include <praxyk/paths.hpp>
 %include <praxyk/spam.hpp>
 

@@ -1,5 +1,6 @@
 SET(praxyk_headers
     config.hpp
+    paths.hpp
     ocr.hpp
     spam.hpp
 )
