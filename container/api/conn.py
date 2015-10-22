@@ -62,12 +62,11 @@ def get_data_other(user, user_token, data_path):
     data = DataPack(user, user_token, data_to_obj)
     return data
 
-def run_img_rec(img_path):
+def run_img_rec(data):
     '''
-    Runs OCR.  Takes in a local path to an image file, and returns an image
+    Runs OCR.  Takes in an ImgPack, and returns an image
     descriptor object with the text object filled out.
     '''
-    data = ImgPack(img_path, 'foo', 'bar')
     print('Transferring image data to %s...' % (STORE_BASENAME + data.img_name))
     img_out = open(STORE_BASENAME + data.img_name, 'w+')
     img_out.write(data.data)
