@@ -81,6 +81,10 @@ class POD_OCR_Route(Resource) :
     def enqueue_transaction(self, queue, new_trans, files_success, results) :
         file_count = 1
         jobs = []
+
+        if not files_success or len(files_success) == 0 :
+            new_trans.status = Transaction.TRANSACTION_FAILED
+            return []
         
         try :
             new_trans.status = Transaction.TRANSACTION_ACTIVE
@@ -102,10 +106,8 @@ class POD_OCR_Route(Resource) :
                                         status = ResultBase.RESULT_ACTIVE,
                                         size_KB = file_struct['size'])
                 result.save()
-                # results.results.append(result)
                 jobs.append(queue.enqueue_pod(trans, file_struct))
                 file_count += 1
-            res = Result_POD_OCR.query.filter(transaction_id=results.transaction_id).execute()
             results.save()
             return jobs
         except Exception, e:
