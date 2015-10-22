@@ -93,7 +93,7 @@ class POD_OCR_Route(Resource) :
                 trans = {
                      "trans_id"    : new_trans.id,
                      "file_num"    : file_count,
-                     "files_total" : new_trans.uploads_total,
+                     "files_total" : new_trans.uploads_success,
                      "created_at"  : new_trans.created_at,
                      "finished_at" : new_trans.finished_at,
                      "status"      : new_trans.status,

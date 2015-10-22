@@ -40,7 +40,7 @@ def marshal_result(res) :
              "size_KB"       : res.size_KB,
              "finished_at"   : convert_timestr(res.finished_at),
              "created_at"    : convert_timestr(res.created_at),
-             "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number),
+             "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number, _external=True),
              "result_string" : res.result_string }
 
 
@@ -75,6 +75,7 @@ class ResultRoute(Resource):
         caller = g._caller
         trans = Transaction.query.get(id)
         if not trans or not caller or not validate_owner(caller, trans.user_id) :
+            print "HERE 111!!\n\n"
             abort(404)
 
         (service, model) = self.get_service(trans)
@@ -92,13 +93,10 @@ class ResultRoute(Resource):
 
     def get_results_pod_ocr(self, caller, trans) :
         args = self.reqparse.parse_args()
-        print str(args)
 
-        result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).execute()
+        result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
         if not result_list and len(result_list) != trans.uploads_total :
             print "\n\n Not All Result Recovered from Redis DB" + str(result_list) + "\n\n"
-
-        print str(result_list)
 
         if not args.pagination :
             results_json = []
@@ -110,24 +108,38 @@ class ResultRoute(Resource):
         if not args.page and not args.pages and not args.start_page :
             args.page = 1
 
-        # if not args.page and not args.start_page :
-            # args
+        if not args.page and not args.start_page :
+            args.page = 1
+            args.start_page = 1
 
-        if args.page :
+        next_page_num = 0
+        pages = []
+        if args.page : # occurs if args.pages isn't defined, so they only want this one page
             (page_json, next_page_num) = self.get_page_from_results(result_list, args.page, args.page_size)
-            if not page_json :
-                abort(404)
-            next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT,
-                                                             id=trans.id,
-                                                             page_size=args.page_size,
-                                                             page=next_page_num)
-            return {"code"        : 200,
-                    "transaction" : marshal(trans, transaction_fields),
-                    "pages"       : {args.page : page_json},
-                    "next_page"   : next_page }
+            if page_json :
+                pages.append({args.page : page_json})
+
+        if args.pages : # if pages is also defined we grab the data for these pages, starting from start_page
+            pages = []
+            for page in range(args.start_page, args.start_page+args.pages) :
+                print page
+                print range(args.start_page, args.start_page+args.pages)
+                (page_json, next_page_num) = self.get_page_from_results(result_list, page, args.page_size)
+                print str(page_json)
+                if page_json :
+                    pages.append({page : page_json})
+
+        next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT,
+                                                         id=trans.id,
+                                                         page_size=args.page_size,
+                                                         page=next_page_num)
+        return {"code"        : 200,
+                "transaction" : marshal(trans, transaction_fields),
+                "pages"       : pages,
+                "next_page"   : next_page }
+                
+
             
-
-
     # takes a list of results, a page number, and a page_size to find the index bounds
     # on the page and returns the page as a list of results
     # returns (result_list, next_page_num) where next_page_num is None if result_list contains
@@ -136,17 +148,17 @@ class ResultRoute(Resource):
         startind = (page-1)*page_size
         endind = (page)*page_size
 
-        if startind < 0 or startind >= len(result_list) :
+        if startind < 0 or startind > len(result_list) :
+            return (None, None)
+        if endind < 0 :
+            print "HERE 444!\n\n"
             abort(400)
-        if not endind or endind < 0 :
-            abort(400)
-
-        if endind >= len(result_list) :
-            endind = -1
 
         results_json = []
-        for result in result_list[startind:endind] :
-            results_json.append(marshal_result(result))
+        results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
+        print str(results_subset) + "  " + str(result_list)
+        for result in results_subset :
+            results_json.append({result.item_number : marshal_result(result)})
 
         return (results_json, (None if endind == -1 else page+1))
 
