@@ -28,6 +28,8 @@ DEFAULT_START_PAGE=0
 # DEFAULT_PAGE=0
 
 def convert_timestr(dt) :
+    if not dt :
+        return '0-0-0 00:00:00'
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
 
