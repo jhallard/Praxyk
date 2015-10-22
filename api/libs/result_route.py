@@ -116,7 +116,7 @@ class ResultRoute(Resource):
             if not page_json :
                 abort(404)
             next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT,
-                                                             id=res.transaction_id,
+                                                             id=trans.id,
                                                              page_size=args.page_size,
                                                              page=next_page_num)
             return {"code"        : 200,
@@ -142,10 +142,9 @@ class ResultRoute(Resource):
         if endind >= len(result_list) :
             endind = -1
 
-        page = result_list[startind:endind]
         results_json = []
-        for res in page :
-            results_json.append(marshal_result(res))
+        for result in result_list[startind:endind] :
+            results_json.append(marshal_result(result))
 
         return (results_json, (None if endind == -1 else page+1))
 
