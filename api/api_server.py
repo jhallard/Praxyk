@@ -37,7 +37,6 @@ from libs.pod.bayes_spam_route import POD_Bayes_Spam_Route
 from queue.task_lib import *
 from queue.start_worker import *
 
-
 from models import *
 from models.sql.pod import *
 

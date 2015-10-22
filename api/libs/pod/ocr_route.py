@@ -22,7 +22,6 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_
 
 from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT, POD_ENDPOINT, POD_OCR_ENDPOINT, RESULTS_ENDPOINT
 from api import User, Role, user_datastore, mail, redis_pool, redis
-from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_FAILED, TRANSACTION_ACTIVE
 
 from libs.auth_route import *
 from libs.transactions_route import *
@@ -68,8 +67,6 @@ class POD_OCR_Route(Resource) :
             results = Results(transaction_id=new_trans.id, user_id=new_trans.user_id, size_total_KB=new_trans.size_total_KB)
             results.save()
 
-            print str(results.results)
-
             queue = task_lib.TaskQueue(redis_pool)
             jobs = self.enqueue_transaction(queue, new_trans, files_success, results)
 
@@ -86,6 +83,8 @@ class POD_OCR_Route(Resource) :
         jobs = []
         
         try :
+            new_trans.status = Transaction.TRANSACTION_ACTIVE
+            db.session.commit()
             for file_struct in files_success :
                 trans = {
                      "trans_id"    : new_trans.id,
@@ -107,8 +106,6 @@ class POD_OCR_Route(Resource) :
                 jobs.append(queue.enqueue_pod(trans, file_struct))
                 file_count += 1
             res = Result_POD_OCR.query.filter(transaction_id=results.transaction_id).execute()
-            for r in res :
-                print str(vars(r))
             results.save()
             return jobs
         except Exception, e:
@@ -124,7 +121,7 @@ class POD_OCR_Route(Resource) :
 
             command_url = url_for(POD_OCR_ENDPOINT)
 
-            new_trans = Transaction(user_id=caller.id, command_url=command_url, status=TRANSACTION_NEW)
+            new_trans = Transaction(user_id=caller.id, command_url=command_url, status=Transaction.TRANSACTION_NEW)
 
             new_trans.uploads_success =  0 if not files_success else len(files_success)
             new_trans.uploads_failed =   0 if not files_failed else len(files_failed)
@@ -136,7 +133,7 @@ class POD_OCR_Route(Resource) :
             new_trans.size_total_KB = size_total_KB
 
             if not new_trans.uploads_success or new_trans.uploads_success == 0 :
-                new_trans.status = TRANSACTION_FAILED
+                new_trans.status = Transaction.TRANSACTION_FAILED
 
             return (new_trans, files_success)
         except Exception, e:

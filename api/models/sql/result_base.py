@@ -13,18 +13,18 @@
 ## Note - This model definition is shared across multiple servers and code branches, DO NOT
 ##        change this file unless you have permission or know exactly what you're doing. 
 
-import __init__
-
-from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
-from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
-from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_ACTIVE
-
-from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask import url_for
-from sqlalchemy.ext.declarative import declared_attr
-
-import datetime
+# import __init__
+# 
+# from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
+# from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
+# from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_ACTIVE
+# 
+# from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
+# from flask.ext.sqlalchemy import SQLAlchemy
+# from flask import url_for
+# from sqlalchemy.ext.declarative import declared_attr
+# 
+# import datetime
 
 
 # class ResultBase(db.Model) :

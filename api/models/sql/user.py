@@ -42,7 +42,6 @@ class User(db.Model, UserMixin):
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
     roles        = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
     tokens       = db.relationship('Token', backref='user', lazy='dynamic')
-    # results      = db.relationship('Results', backref='user', lazy='dynamic')
 
     @hybrid_property
     def password(self) :

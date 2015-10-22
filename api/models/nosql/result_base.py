@@ -24,21 +24,21 @@ redis_num  = REDIS_CONF['dbnum']
 util.set_connection_settings(host=redis_host, password=redis_pw, port=redis_port,  db=redis_num)
 
 class Results(rom.Model) :
-    results = rom.OneToMany('ResultBase', column='transaction')
+    results        = rom.OneToMany('ResultBase', column='transaction')
     transaction_id = rom.Integer(required=True, unique=True, index=True)
-    user_id = rom.Integer(required=True, index=True)
-    size_total_KB = rom.Float(required=True)
+    user_id        = rom.Integer(required=True, index=True)
+    size_total_KB  = rom.Float(required=True)
 
 
 class ResultBase(rom.Model) :
-    created_at = rom.DateTime()
-    finished_at = rom.DateTime()
-    item_number = rom.Integer(required=True, index=True)
-    item_name = rom.String(index=True, required=True, keygen=rom.IDENTITY)
-    status= rom.String(index=True, required=True, keygen=rom.CASE_INSENSITIVE)
-    size_KB = rom.Float(required=True)
+    created_at     = rom.DateTime()
+    finished_at    = rom.DateTime()
+    item_number    = rom.Integer(required=True, index=True)
+    item_name      = rom.String(index=True, required=True, keygen=rom.IDENTITY)
+    status         = rom.String(index=True, required=True, keygen=rom.CASE_INSENSITIVE)
+    size_KB        = rom.Float(required=True)
     transaction_id = rom.Integer(required=True, index=True)
-    transaction = rom.ManyToOne('Results', on_delete='set null')
+    transaction    = rom.ManyToOne('Results', on_delete='set null')
 
     RESULT_ACTIVE   = "active"   # means the result is being computed
     RESULT_FINISHED = "finished" # means computation is finished

@@ -43,6 +43,9 @@ class ResultsRoute(Resource):
             if (value < 0):
                 # @TODO throw an error
                 abort(404)
+
+
+    def paginate(self, request) :
         # @TODO add some logic to determine the next page (if there is one), and how to properly query the database for the right set of data
         next_url = ""
         if args['page']:

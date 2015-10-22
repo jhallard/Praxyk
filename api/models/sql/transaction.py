@@ -15,8 +15,7 @@
 import __init__
 
 from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
-from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
-from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_ACTIVE
+from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT, RESULT_ENDPOINT
 
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
 from flask import url_for
@@ -37,11 +36,18 @@ class Transaction(db.Model) :
     uploads_success = db.Column(db.Integer) # number of uploads that worked
     uploads_failed  = db.Column(db.Integer) # number that failed (total - success)
     size_total_KB   = db.Column(db.Float)   # the total size of uploaded data in KB
-    # results         = db.relationship('POD_OCR_Results', backref='transaction', lazy='dynamic')
+
+    # transaction defines
+    TRANSACTION_NEW = "new"
+    TRANSACTION_ACTIVE = "active"
+    TRANSACTION_CANCELED = "canceled" 
+    TRANSACTION_FINISHED = "finished"
+    TRANSACTION_FAILED = "failed"
+
 
     @hybrid_property
     def results_url(self) :
-       return url_for(RESULTS_ENDPOINT, id=self.id, _external=True) 
+       return url_for(RESULT_ENDPOINT, id=self.id, _external=True) 
 
     @hybrid_property
     def data_url(self) :

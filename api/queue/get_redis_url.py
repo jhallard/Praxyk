@@ -21,11 +21,12 @@ def gen_redis_url() :
     dbip = dbconf['dbip']
     pw = redisdb['dbpasswd']
     port = redisdb['port']
-    return (pw, dbip, port)
+    dbnum = redisdb['dbnum']
+    return (pw, dbip, port, dbnum)
 
 if __name__ == '__main__' : 
     server = gen_redis_url()
-    server = "redis://:%s@%s:%s" % (server[0], server[1], server[2])
+    server = "redis://:%s@%s:%s/%s" % (server[0], server[1], server[2], server[3])
     print server
 
 

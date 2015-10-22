@@ -8,16 +8,16 @@
 ## Note - This model definition is shared across multiple servers and code branches, DO NOT
 ##        change this file unless you have permission or know exactly what you're doing. 
 
-import __init__
-
-from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
-from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
-from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_ACTIVE
-
-from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
-from flask import url_for
-
-import datetime
+# import __init__
+# 
+# from api import db, BASE_URL, TRANSACTIONS_ROUTE, USERS_ROUTE, RESULTS_ROUTE
+# from api import USERS_ENDPOINT, USER_ENDPOINT, TRANSACTIONS_ENDPOINT, RESULTS_ENDPOINT
+# from api import TRANSACTION_NEW, TRANSACTION_FINISHED, TRANSACTION_ACTIVE
+# 
+# from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property 
+# from flask import url_for
+# 
+# import datetime
 
 ## @info - this class defines the results-table for the POD-OCR service. It derives from the abstract
 ##         ResultBase base class and adds in only the columns needed to store the result data specific

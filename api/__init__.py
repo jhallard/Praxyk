@@ -72,18 +72,18 @@ TOKEN_ENDPOINT        = 'tokens'
 AUTH_ENDPOINT         = 'auth'
 LOGIN_ENDPOINT        = 'login'
 CONFIRM_ENDPOINT      = 'confirm'
-
 POD_ENDPOINT            = "pod"
 POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
 POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
 
+# services
+SERVICE_POD = "pod"
+SERVICE_TLP = "tlp"
 
-# transaction defines
-TRANSACTION_NEW = "new"
-TRANSACTION_ACTIVE = "active"
-TRANSACTION_CANCELED = "canceled" 
-TRANSACTION_FINISHED = "finished"
-TRANSACTION_FAILED = "failed"
+# models
+MODELS_POD_OCR = "ocr"
+MODELS_POD_BAYES_SPAM = "bayes_spam"
+
 
 # mail settings
 PRAXYK_API_APP.config['MAIL_SERVER']   = 'smtp.googlemail.com'
