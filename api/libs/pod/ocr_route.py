@@ -43,10 +43,10 @@ class POD_OCR_Route(Resource) :
         return dt.strftime('%Y-%m-%d %H:%M:%S')
 
     def __init__(self) :
+        self.ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'pdf', 'png', 'jpg', 'jpeg'])
         self.reqparse = reqparse.RequestParser()
         super(POD_OCR_Route, self).__init__()
 
-    ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'pdf', 'png', 'jpg', 'jpeg'])
 
     # @info - post route for pod-ocr service. Users must include their auth token and list of image files
     #         of the types shown above under the names 'files'. Files will all be grouped under a single 
@@ -178,5 +178,5 @@ class POD_OCR_Route(Resource) :
 
     # For a given file, return whether it's an allowed type or not
     def allowed_file(self, filename):
-        return True or '.' in filename and \
+        return '.' in filename and \
         filename.rsplit('.', 1)[1] in self.ALLOWED_EXTENSIONS
