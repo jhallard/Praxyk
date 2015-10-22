@@ -23,23 +23,26 @@ import argparse
 import datetime
 import json
 
+# routes includes
 from libs.users_route import UserRoute, UsersRoute
 from libs.transactions_route import TransactionRoute, TransactionsRoute
 from libs.results_route import ResultsRoute
 from libs.result_route import ResultRoute
 from libs.auth_route import AuthRoute
 from libs.confirm_route import ConfirmRoute
-
 from libs.pod.pod_route import POD_Route
 from libs.pod.ocr_route import POD_OCR_Route
 from libs.pod.bayes_spam_route import POD_Bayes_Spam_Route
 
+# queue includes
 from queue.task_lib import *
 from queue.start_worker import *
 
+# model includes
 from models import *
 from models.sql.pod import *
 
+#flask includes
 from flask import Flask, jsonify, request, Response, g
 from flask import Flask, jsonify, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
@@ -70,7 +73,7 @@ def parse_args(argv) :
 
 # @info - start adding the API endpoints. Each endpoint gets its own class. 
 #         The classes are in /praxyk/api/libs/*_route.py
-#	  All of the constants are defined in /api/__init__.py
+#	      All of the constants are defined in /api/__init__.py
 api.add_resource(AuthRoute, TOKENS_ROUTE, endpoint=TOKEN_ENDPOINT)
 api.add_resource(AuthRoute, AUTH_ROUTE, endpoint=AUTH_ENDPOINT)
 api.add_resource(AuthRoute, LOGIN_ROUTE, endpoint=LOGIN_ENDPOINT)
@@ -121,6 +124,7 @@ if __name__ == '__main__':
             db.drop_all()
             db.create_all()
             create_initial_users()
+            sys.exit(0)	
 
     # will run on localhost:5000 if --local flag is given
     if args.local :
