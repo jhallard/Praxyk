@@ -22,8 +22,6 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 import config
 from config import apiconf, REDIS_CONF
 
-# __all__ = ['libs', 'models', 'queue']
-
 
 PRAXYK_API_APP = Flask(__name__) # our main flask app object
 PRAXYK_API_APP.config.from_object('api.config') # our main flask app object configured from 'config.py'
@@ -85,21 +83,6 @@ SERVICES = [SERVICE_POD, SERVICE_TLP]
 MODELS_POD_OCR = "ocr"
 MODELS_POD_BAYES_SPAM = "bayes_spam"
 MODELS = [MODELS_POD_OCR, MODELS_POD_BAYES_SPAM]
-
-
-# mail settings
-PRAXYK_API_APP.config['MAIL_SERVER']   = 'smtp.googlemail.com'
-PRAXYK_API_APP.config['MAIL_PORT']     = 587
-PRAXYK_API_APP.config['MAIL_USE_TLS']  = True
-PRAXYK_API_APP.config['MAIL_USE_SSL']  = False
-# gmail authentication
-PRAXYK_API_APP.config['MAIL_USERNAME'] = apiconf['email']
-PRAXYK_API_APP.config['MAIL_PASSWORD'] = apiconf['emailpassword']
-
-mail = Mail(PRAXYK_API_APP)
-
-# mail accounts
-PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER'] = 'from@example.com'
 
 # default access token expiration time (24 hours)
 TOKEN_EXPIRATION = apiconf['token_expiration']
