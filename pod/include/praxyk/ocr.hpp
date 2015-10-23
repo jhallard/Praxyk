@@ -19,4 +19,4 @@ PRAXYK_API std::vector<std::string> get_strings_from_images(
 
 }
 
-/* INCLUDED_PRAXYK_OCR_HPP */
+#endif /* INCLUDED_PRAXYK_OCR_HPP */

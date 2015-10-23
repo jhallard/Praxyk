@@ -9,4 +9,4 @@ namespace praxyk {
     PRAXYK_API std::string get_pkg_data_dir();
 }
 
-/* INCLUDED_PRAXYK_PATHS_HPP */
+#endif /* INCLUDED_PRAXYK_PATHS_HPP */

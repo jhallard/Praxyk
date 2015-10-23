@@ -11,4 +11,4 @@ namespace praxyk {
     );
 }
 
-/* INCLUDED_PRAXYK_SPAM_HPP */
+#endif /* INCLUDED_PRAXYK_SPAM_HPP */
