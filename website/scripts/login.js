@@ -8,7 +8,7 @@ function login(){
         if((data != null && data != undefined)){
             sessionStorage.setItem("login",true);
             sessionStorage.setItem("token",data.token);
-            sessionStorage.setItem("uid",data.user.userid);
+            sessionStorage.setItem("uid",data.user.user_id);
             window.location = "dashboard.html"
         }else{
           $("#login_error").html("User Not Found!");
