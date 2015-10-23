@@ -18,6 +18,8 @@ from api import *
 
 import datetime
 
+import praxyk
+
 
 # @info - takes a given json file and loads it into an active dictionary for return
 def load_json_file(fn) :
@@ -63,6 +65,7 @@ def get_sql_conf() :
 def convert_timestr(dt) :
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
+STORE_BASENAME = os.path.dirname(os.path.realpath(__file__)) + "/images/"
 def process_pod_ocr(transaction, fileh) :
     print "POD-OCR Worker Starting"
     print "result id     : " + str(transaction['file_num'])
@@ -86,13 +89,6 @@ def process_pod_ocr(transaction, fileh) :
             this_result.result_string = ""
         return this_result
 
-    results = Results.query.filter(transaction_id=trans_id).first() # gets the redis transaction
-                                                                    # object that contains indiv.
-                                                                    # result information
-    if not results :
-        print "POD_OCR Worker Error, Can't Find Results"
-        return False
-
     # get the individual result struct from redis that this queue task is processing
     this_result = Result_POD_OCR.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
 
@@ -100,21 +96,54 @@ def process_pod_ocr(transaction, fileh) :
         print "POD_OCR Worker Error, Can't Find This Result"
         return False
 
+    imgs_dir = STORE_BASENAME + str(trans_id)
+    if not os.path.exists(imgs_dir):
+        os.makedirs(imgs_dir)
+
+    file_img = imgs_dir+fileh['name']+'_'+str(file_num)
+    print file_img
+    with open(file_img, 'wr+') as fh :
+        fh.write(fileh['data'])
+
     # update this result object in the redis db
     this_result.finished_at = datetime.datetime.now()
     this_result.status = Result_POD_OCR.RESULT_FINISHED
-    this_result.result_string = "This Was A Hand Generated String"
+    this_result.result_string = praxyk.get_string_from_image(file_img)
     this_result.save()
 
+    # clean up the image space used
+    os.remove(file_img)
+
+    results = Results.query.filter(transaction_id=trans_id).first() # gets the redis transaction
+                                                                    # object that contains indiv.
+                                                                    # result information
+    if not results :
+        print "POD_OCR Worker Error, Can't Find Results"
+        return False
+
+
     # update the transaction object (group of results) in the redis db
+    # super hacky way to avoid data races on items_finished
     results.items_finished += 1
+    update = False
     results.save()
+    # while update == False :
+        # try :
+            # # results.items_finished += 1
+            # results.items_finished.increment()
+            # results.save()
+            # update = True
+        # except Exception, e :
+            # results.save()
+            # update = False
+
 
     if results.items_finished  == results.items_total :
         trans.finished_at = datetime.datetime.now()
         trans.status = Transaction.TRANSACTION_FINISHED
         db.session.commit()
 
+    print "POD_OCR Result String : (%s) " % this_result.result_string
     print "POD_OCR Worker Finished"
 
     return this_result
