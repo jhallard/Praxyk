@@ -87,10 +87,9 @@ def process_pod_ocr(transaction, fileh) :
             this_result.finished_at = datetime.datetime.now()
             this_result.status = Result_POD_OCR.RESULT_CANCELED
             this_result.result_string = ""
+            this_result.save()
+            PRAXYK_API_APP.app_context().pop()
         return this_result
-
-    # get the individual result struct from redis that this queue task is processing
-    this_result = Result_POD_OCR.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
 
     if not this_result :
         print "POD_OCR Worker Error, Can't Find This Result"
@@ -104,6 +103,9 @@ def process_pod_ocr(transaction, fileh) :
     print file_img
     with open(file_img, 'wr+') as fh :
         fh.write(fileh['data'])
+
+    # get the individual result struct from redis that this queue task is processing
+    this_result = Result_POD_OCR.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
 
     # update this result object in the redis db
     this_result.finished_at = datetime.datetime.now()
@@ -120,7 +122,6 @@ def process_pod_ocr(transaction, fileh) :
     if not results :
         print "POD_OCR Worker Error, Can't Find Results"
         return False
-
 
     # update the transaction object (group of results) in the redis db
     # super hacky way to avoid data races on items_finished
@@ -139,12 +140,14 @@ def process_pod_ocr(transaction, fileh) :
 
 
     if results.items_finished  == results.items_total :
+        # @TODO - remove the directory for this set of results
         trans.finished_at = datetime.datetime.now()
         trans.status = Transaction.TRANSACTION_FINISHED
         db.session.commit()
 
     print "POD_OCR Result String : (%s) " % this_result.result_string
     print "POD_OCR Worker Finished"
+    PRAXYK_API_APP.app_context().pop()
 
     return this_result
 
