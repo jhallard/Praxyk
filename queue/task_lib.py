@@ -15,7 +15,6 @@ import sqlalchemy
 
 from models.nosql.pod.result_pod_ocr import *
 from api import *
-from api import db, PRAXYK_API_APP
 
 import datetime
 

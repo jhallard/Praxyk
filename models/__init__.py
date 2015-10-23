@@ -6,4 +6,4 @@ sys.path.append('../')
 
 import api
 
-__all__ = ["sql"]
+__all__ = ["sql", "nosql"]

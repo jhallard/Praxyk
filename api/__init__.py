@@ -4,6 +4,7 @@
 ## @date Oct 2015
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
+import sys
 
 from flask import Flask, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -13,20 +14,16 @@ from flask.ext.bcrypt import Bcrypt
 from flask.ext.cors import CORS
 from flask.ext.security import Security, SQLAlchemyUserDatastore, UserMixin, RoleMixin, login_required, roles_required
 from flask_mail import Mail
+from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 # from flask.ext.rq import RQ
 
 import redis
-
-from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
-
 from config import apiconf, REDIS_CONF
 
-import sys
 sys.path.append('../')
-# 
+
 from models import *
-# 
-# __all__ = ['libs', 'queue']
+from queue import *
 
 
 PRAXYK_API_APP = Flask(__name__) # our main flask app object
