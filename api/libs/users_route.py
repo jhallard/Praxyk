@@ -29,16 +29,7 @@ from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT
 from api import User, Role, user_datastore, mail
 
 from auth_route import *
-
-# this map defines how a user db object get's transformed into a user api return object.
-user_fields = {
-    'name' : fields.String,
-    'email' : fields.String,
-    'user_id' : fields.String(attribute="id"),
-    'uri' : fields.Url(USER_ENDPOINT, absolute=True),
-    'active' : fields.Boolean,
-    'transactions_url' : fields.String
-}
+from libs.route_fields import *
 
 # @info - class with routes that contain a user id 
 # ie `GET api.praxyk.com/users/12345`
@@ -51,7 +42,6 @@ class UserRoute(Resource) :
         self.reqparse.add_argument('name', type=str, required=False, location='json')
         super(UserRoute, self).__init__()
 
-    @marshal_with(user_fields, envelope='user')
     @requires_auth
     def get(self, id) :
         try :
@@ -61,7 +51,7 @@ class UserRoute(Resource) :
             user =  User.query.get(id)
             if not user :
                 abort(404)
-            return user
+            return jsonify({"code" : 200, "user" : marshal(user, user_fields)})
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)
@@ -118,17 +108,46 @@ class UsersRoute(Resource) :
     def __init__(self) :
         self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('email', type=str, required=True, location='json')
-        self.reqparse.add_argument('name', type=str, required=True, location='json')
-        self.reqparse.add_argument('password', type=str, required=True, location='json')
         super(UsersRoute, self).__init__()
 
-    # @marshal_with(user_fields, envelope='user')
+    # @info - special route for admins only, allows one to query the entire user-space for information. Results
+    #         are paginated, can be returned in sorted or reverse sorted ordder (based on creation time).
+    @requires_auth
+    def get(self) :
+        try :
+            self.reqparse.add_argument('user_id',     type=int, default=None, required=False, location=['json', 'values'])
+            self.reqparse.add_argument('pagination',  type=inputs.boolean,  default=True, location=['json', 'values', 'headers'])
+            self.reqparse.add_argument('page',        type=int, default=DEFAULT_PAGE, location=['json', 'values'])
+            self.reqparse.add_argument('page_size',   type=int, default=DEFAULT_PAGE_SIZE, location=['json', 'values'])
+            self.reqparse.add_argument('reverse_sort',type=inputs.boolean, default=True, location=['json', 'values'])
+
+            caller = g._caller
+            if not caller or not validate_owner(caller, -1) : # ensure they're root user
+                abort(404)
+            
+            if args.reverse_sort :
+                users =  User.query.order_by(User.created_at.desc()).all()
+            else :
+                users =  User.query.order_by(User.created_at).all()
+            
+            if not user :
+                abort(404)
+            return jsonify({"code" : 200, "users" : marshal(user, user_fields)})
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            abort(404)
+
+    # @info - this route allows users to register by posting their email, name, and password
+    #         to this route (`POST /users/`). Users have to confirm their email before they 
+    #         can login after registering.
     def post(self) :
         try : 
-            subject = "Confirm Your Praxyk Machine-Learning Services Account"
+            self.reqparse.add_argument('email', type=str, required=True, location='json')
+            self.reqparse.add_argument('name', type=str, required=True, location='json')
+            self.reqparse.add_argument('password', type=str, required=True, location='json')
             args = self.reqparse.parse_args()
             email=args.email
+            subject = "Confirm Your Praxyk Machine-Learning Services Account"
 
             # if user exists already return error
             if User.query.filter_by(email=email).first() :
@@ -146,7 +165,6 @@ class UsersRoute(Resource) :
                 db.session.delete(new_user)
                 abort(404)
 
-            # return new_user
             return jsonify( {"code" : 200, "user" : marshal(new_user, user_fields)} )
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))

@@ -24,7 +24,7 @@ import datetime
 import json
 
 # routes includes
-from libs.users_route import UserRoute, UsersRoute
+from libs.users_route import UserRoute, UsersRoute, user_fields
 from libs.transactions_route import TransactionRoute, TransactionsRoute
 from libs.results_route import ResultsRoute
 from libs.result_route import ResultRoute

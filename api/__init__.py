@@ -79,10 +79,12 @@ POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
 # services
 SERVICE_POD = "pod"
 SERVICE_TLP = "tlp"
+SERVICES = [SERVICE_POD, SERVICE_TLP]
 
 # models
 MODELS_POD_OCR = "ocr"
 MODELS_POD_BAYES_SPAM = "bayes_spam"
+MODELS = [MODELS_POD_OCR, MODELS_POD_BAYES_SPAM]
 
 
 # mail settings

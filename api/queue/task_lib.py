@@ -75,6 +75,17 @@ def process_pod_ocr(transaction, fileh) :
     files_total = transaction['files_total']
 
     PRAXYK_API_APP.app_context().push()
+    trans = Transaction.query.get(trans_id) # gets the sql transaction object from the db
+
+    # this if statement checks if the trans has been canceled, if so we mark this result as canceled
+    # and return right away, avoiding further computation
+    if trans.status == Transaction.TRANSACTION_CANCELED :
+        this_result = Result_POD_OCR.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
+        if this_result :
+            this_result.finished_at = datetime.datetime.now()
+            this_result.status = Result_POD_OCR.RESULT_CANCELED
+            this_result.result_string = ""
+        return this_result
 
     results = Results.query.filter(transaction_id=trans_id).first() # gets the redis transaction
                                                                     # object that contains indiv.
@@ -90,14 +101,17 @@ def process_pod_ocr(transaction, fileh) :
         print "POD_OCR Worker Error, Can't Find This Result"
         return False
 
+    # update this result object in the redis db
     this_result.finished_at = datetime.datetime.now()
     this_result.status = Result_POD_OCR.RESULT_FINISHED
     this_result.result_string = "This Was A Hand Generated String"
-
     this_result.save()
 
-    if file_num == files_total :
-        trans = Transaction.query.get(trans_id) # gets the sql transaction object from the db
+    # update the transaction object (group of results) in the redis db
+    results.items_finished += 1
+    results.save()
+
+    if results.items_finished  == results.items_total :
         trans.finished_at = datetime.datetime.now()
         trans.status = Transaction.TRANSACTION_FINISHED
         db.session.commit()

@@ -30,7 +30,10 @@ class Transaction(db.Model) :
     created_at      = db.Column(db.DateTime)
     finished_at     = db.Column(db.DateTime)
     user_id         = db.Column(db.Integer, db.ForeignKey('Users.id'))
-    command_url     = db.Column(db.String(500))
+    command_url     = db.Column(db.String(100), nullable=False)
+    service         = db.Column(db.String(50), nullable=False)
+    model           = db.Column(db.String(50), nullable=False)
+    version         = db.Column(db.String(50), nullable=False)
     status          = db.Column(db.String(100)) # something like 'new', 'active', 'orphaned', etc.
     uploads_total   = db.Column(db.Integer) # total num items they tried to upload for this trans
     uploads_success = db.Column(db.Integer) # number of uploads that worked
@@ -59,6 +62,7 @@ class Transaction(db.Model) :
     def user_url(self) :
        return url_for(USER_ENDPOINT, id=self.user_id, _external=True) 
 
+
     def __init__(self, user_id, command_url, status=TRANSACTION_NEW, size_total_KB = 0,
                  uploads_total=0, uploads_success=0, uploads_failed=0) :
         self.created_at      = datetime.datetime.now()
@@ -69,6 +73,9 @@ class Transaction(db.Model) :
         self.uploads_total   = uploads_total
         self.uploads_success = uploads_success
         self.uploads_failed  = uploads_failed
+        self.model           = self.command_url.split("/")[3]
+        self.service         = self.command_url.split("/")[2]
+        self.version         = self.command_url.split("/")[1]
 
  
     def __repr__(self):

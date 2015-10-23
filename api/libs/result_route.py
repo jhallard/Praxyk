@@ -9,7 +9,7 @@
 ##        change this file unless you have permission or know exactly what you're doing. 
 
 
-from flask.ext.restful import Api, Resource, reqparse, fields, marshal
+from flask.ext.restful import Api, Resource, reqparse, fields, marshal, inputs
 from flask.ext.httpauth import HTTPBasicAuth
 from flask import Flask, jsonify, request, Response, g, url_for
 
@@ -20,28 +20,11 @@ from auth_route import *
 from models.nosql.pod.result_pod_ocr import *
 from models.nosql.result_base import *
 
+from libs.route_fields import *
 from libs.transactions_route import transaction_fields
 
-DEFAULT_NUM_PAGES = 1
 DEFAULT_PAGE_SIZE = 100
-DEFAULT_START_PAGE=0
-# DEFAULT_PAGE=0
-
-def convert_timestr(dt) :
-    if not dt :
-        return '0-0-0 00:00:00'
-    return dt.strftime('%Y-%m-%d %H:%M:%S')
-
-
-def marshal_result(res) :
-    return { "item_number"   : res.item_number,
-             "item_name"     : res.item_name,
-             "status"        : res.status,
-             "size_KB"       : res.size_KB,
-             "finished_at"   : convert_timestr(res.finished_at),
-             "created_at"    : convert_timestr(res.created_at),
-             "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number, _external=True),
-             "result_string" : res.result_string }
+DEFAULT_PAGE=1
 
 
 # @info - this class defines the /results/<int:id> route, which allows user's to access all results for a
@@ -52,50 +35,49 @@ class ResultRoute(Resource):
     def __init__(self):
         self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('pagination', type=bool, default=True, location=['values', 'headers', 'json'])
-        self.reqparse.add_argument('start_page', type=int, default=None, location=['values', 'json'])
-        self.reqparse.add_argument('page', type=int, default=None, location=['values', 'json'])
-        self.reqparse.add_argument('pages', type=int, default=None, location=['values', 'json'])
+        self.reqparse.add_argument('pagination', type=inputs.boolean, default=True, location=['values', 'headers', 'json'])
+        self.reqparse.add_argument('page', type=int, default=DEFAULT_PAGE, location=['values', 'json'])
         self.reqparse.add_argument('page_size', type=int, default=DEFAULT_PAGE_SIZE, location=['values', 'json'])
         super(ResultRoute, self).__init__()
 
-    # @info - takes a command_url string (from a transaction db.Model object), that looks like /v1/pod/ocr/
-    #         and returns the tuple (pod, ocr) which represents the service being accessed (prediction on
-    #         demand) and the model being accessed from that service (ocular character recognition).
-    def get_service(self, transaction) :
-        if transaction and transaction.command_url and len(transaction.command_url.split("/")) >= 3 :
-            command_split =  transaction.command_url.split("/")
-            return (command_split[2], command_split[3]) # returns ({pod|tlp}, {ocr, bayes_spam})
 
     # @info - This handles all get requests for requests grouped under a specific transaction, aka this handles
     #         all requests of type `/results/:trans_id`. The results are paginated by default, this can be turned 
     #         of by giving ?pagination=False which will cause all results to be dumped in a single list.
     @requires_auth
     def get(self, id):
-        caller = g._caller
-        trans = Transaction.query.get(id)
-        if not trans or not caller or not validate_owner(caller, trans.user_id) :
-            print "HERE 111!!\n\n"
-            abort(404)
+        try :
+            caller = g._caller
+            trans = Transaction.query.get(id)
+            if not trans or not caller or not validate_owner(caller, trans.user_id) :
+                abort(404)
 
-        (service, model) = self.get_service(trans)
-        results = {}
-
-        if service == SERVICE_POD :
-            if model == MODELS_POD_OCR :
-                results = self.get_results_pod_ocr(caller, trans)
-            elif model == MODELS_POD_BAYES_SPAM :
-                results = {}
-        elif service == SERVICE_TLP : 
+            (service, model) = (trans.service, trans.model)
             results = {}
 
-        return jsonify(results)
+            if service == SERVICE_POD :
+                if model == MODELS_POD_OCR :
+                    results = self.get_results_pod_ocr(caller, trans)
+                elif model == MODELS_POD_BAYES_SPAM :
+                    results = {}
+            elif service == SERVICE_TLP : 
+                results = {}
 
+            return jsonify(results)
+        except Exception, e :
+            print "Exception GET /results/X (%s)" % str(e)
+            return abort(500)
+
+    # @info - this function takes a transaction db model and returns the results associated with that
+    #         request. This function makes use of the pagination scheme to return results, see the API
+    #         docs for more info on pagination.
     def get_results_pod_ocr(self, caller, trans) :
         args = self.reqparse.parse_args()
-
+        next_page_num = 0
+        page = {}
         result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
-        if not result_list and len(result_list) != trans.uploads_total :
+
+        if not result_list or len(result_list) != trans.uploads_success :
             print "\n\n Not All Result Recovered from Redis DB" + str(result_list) + "\n\n"
 
         if not args.pagination :
@@ -104,38 +86,15 @@ class ResultRoute(Resource):
                 results_json.append(marshal_result(res))
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
-        # if they give nothing return page 1
-        if not args.page and not args.pages and not args.start_page :
-            args.page = 1
+        (page_json, next_page_num) = self.get_page_from_results(result_list, args.page, args.page_size)
+        if page_json :
+            page = {"page_number" : args.page, "results" : page_json}
 
-        if not args.page and not args.start_page :
-            args.page = 1
-            args.start_page = 1
-
-        next_page_num = 0
-        pages = []
-        if args.page : # occurs if args.pages isn't defined, so they only want this one page
-            (page_json, next_page_num) = self.get_page_from_results(result_list, args.page, args.page_size)
-            if page_json :
-                pages.append({args.page : page_json})
-
-        if args.pages : # if pages is also defined we grab the data for these pages, starting from start_page
-            pages = []
-            for page in range(args.start_page, args.start_page+args.pages) :
-                print page
-                print range(args.start_page, args.start_page+args.pages)
-                (page_json, next_page_num) = self.get_page_from_results(result_list, page, args.page_size)
-                print str(page_json)
-                if page_json :
-                    pages.append({page : page_json})
-
-        next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT,
-                                                         id=trans.id,
-                                                         page_size=args.page_size,
-                                                         page=next_page_num)
+        next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT, id=trans.id,
+                                                         page_size=args.page_size, page=next_page_num)
         return {"code"        : 200,
                 "transaction" : marshal(trans, transaction_fields),
-                "pages"       : pages,
+                "page"        : page,
                 "next_page"   : next_page }
                 
 
@@ -151,32 +110,14 @@ class ResultRoute(Resource):
         if startind < 0 or startind > len(result_list) :
             return (None, None)
         if endind < 0 :
-            print "HERE 444!\n\n"
-            abort(400)
+            return (None, None)
 
         results_json = []
         results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
-        print str(results_subset) + "  " + str(result_list)
+        # print str(results_subset) + "  " + str(result_list)
         for result in results_subset :
-            results_json.append({result.item_number : marshal_result(result)})
+            results_json.append(marshal_result(result))
 
-        return (results_json, (None if endind == -1 else page+1))
+        return (results_json,(None if endind >= len(result_list) else page+1))
 
 
-    def parginate(self, request) :
-        # @TODO add some logic to determine the next page (if there is one), and how to properly query the database for the right set of data
-        next_url = ""
-        if args['page']:
-            next_url += "?page=%d" % args['page'] + 1
-        if args['page_size']:
-            next_url += "?page_size=%d" % args['page_size']
-        if args['start_page']:
-            if args['pages'] and args['pages'] < args['start_page']:
-                # @TODO throw an error
-                abort(404)
-        # @TODO more logic to handle next_url redirection
-
-        # @TODO add a database call to fill in the item data using the arguments as parameters so the data is properly paginated.
-        res = {'code': 200, 'items' : [], 'next' : "api.praxyk.com/results/%d/%s" % (self.transaction_id, next_url)}
-
-        return jsonify(res)

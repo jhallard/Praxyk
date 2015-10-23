@@ -22,6 +22,8 @@ from api import User, Role, user_datastore
 
 from auth_route import *
 
+from libs.route_fields import *
+
 
 # @info - class that users can post/get from , in order to active their account that they previously registered.
 #         The specific id they post to (api.praxyk.com/confirm/{ID}) contains hashed inside of it the user's

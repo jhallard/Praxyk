@@ -25,12 +25,15 @@ from api import User, Role, user_datastore, mail, redis_pool, redis
 
 from libs.auth_route import *
 from libs.transactions_route import *
+from libs.route_fields import *
+
 from models.nosql.result_base import *
 from models.nosql.pod.result_pod_ocr import *
 
 from queue import *
 
 from werkzeug import secure_filename
+
 
 # @info - route that allows user to enact request for the POD-OCR service.
 #         users can post images to this route, we will process those images using
@@ -64,7 +67,11 @@ class POD_OCR_Route(Resource) :
             caller.transactions.append(new_trans)
             db.session.commit()
 
-            results = Results(transaction_id=new_trans.id, user_id=new_trans.user_id, size_total_KB=new_trans.size_total_KB)
+            results = Results(transaction_id=new_trans.id,            # transaction id
+                              user_id=new_trans.user_id,              # id of the transaction owner
+                              size_total_KB=new_trans.size_total_KB,  # total size of all valid inpuit
+                              items_total = new_trans.uploads_success,# number of inputs needed to be processed 
+                              items_finished = 0)                     # number it inputs processed so far
             results.save()
 
             queue = task_lib.TaskQueue(redis_pool)

@@ -24,10 +24,12 @@ redis_num  = REDIS_CONF['dbnum']
 util.set_connection_settings(host=redis_host, password=redis_pw, port=redis_port,  db=redis_num)
 
 class Results(rom.Model) :
-    results        = rom.OneToMany('ResultBase', column='transaction')
-    transaction_id = rom.Integer(required=True, unique=True, index=True)
-    user_id        = rom.Integer(required=True, index=True)
-    size_total_KB  = rom.Float(required=True)
+    results         = rom.OneToMany('ResultBase', column='transaction')
+    transaction_id  = rom.Integer(required=True, unique=True, index=True)
+    user_id         = rom.Integer(required=True, index=True)
+    size_total_KB   = rom.Float(required=True)
+    items_finished  = rom.Integer(required=True, default=0)
+    items_total     = rom.Integer(required=True, default=0)
 
 
 class ResultBase(rom.Model) :
@@ -43,4 +45,5 @@ class ResultBase(rom.Model) :
     RESULT_ACTIVE   = "active"   # means the result is being computed
     RESULT_FINISHED = "finished" # means computation is finished
     RESULT_FAILED   = "failed"   # means computation failed
+    RESULT_CANCELED = "canceled" # means the user canceled the transaction before this result was processed
 

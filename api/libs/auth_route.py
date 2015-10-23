@@ -25,7 +25,10 @@ from flask.ext.security import (Security, SQLAlchemyUserDatastore, login_require
 from functools import wraps
 
 from api import db, PRAXYK_API_APP
-from api import User, Token, Role
+from api import User, Token, Role 
+
+from libs.route_fields import user_fields
+
 
 
 # @info - decorator function, any function that this decorator is applied to will
@@ -54,15 +57,18 @@ def requires_auth(f):
 # @info - called to make sure that the owner of a resource is the one trying to access
 #         it, also allows root and admin users to access resource.
 def validate_owner(caller, owner_id) :
-    if caller and caller.id == owner_id :
-        return True
-    roles = caller.roles
-    if not roles :
-        return False
-    for role in roles :
-        if role == Role.ROLE_ROOT or role == Role.ROLE_ADMIN :
+    try :
+        if caller and caller.id == owner_id :
             return True
-    return False
+        roles = caller.roles
+        if not roles :
+            return False
+        for role in roles :
+            if role == Role.ROLE_ROOT or role == Role.ROLE_ADMIN :
+                return True
+        return False
+    except Exception, e :
+        return False
 
 
 # @info - this route can be used to post credentials and recieve a token in response.
@@ -83,10 +89,10 @@ class AuthRoute(Resource) :
             if not user :
                 abort(404)
 
-            tokens = Token.query.filter((Token.user_id==user.id and Token.valid)).all()
+            tokens = Token.query.filter((Token.user_id==user.id and Token.valid)).first()
 
             if tokens :
-                return jsonify({"code" : 200, "user" : {"userid" : user.id, "email" : user.email}, "token" : tokens[0].value})
+                return jsonify({"code" : 200, "user" : marshal(user, user_fields), "token" : tokens.value})
                 
             new_token = Token(user_id=user.id)
             if not new_token :
@@ -95,7 +101,7 @@ class AuthRoute(Resource) :
 
             db.session.add(user)
             db.session.commit()
-            return jsonify({"code" : 200, "user" : {"userid" : user.id, "email" : user.email}, "token" : new_token.value})
+            return jsonify({"code" : 200, "user" : marshal(user, user_fields), "token" : new_token.value})
         except Exception, e :
             print str(e)
             return abort(403)
