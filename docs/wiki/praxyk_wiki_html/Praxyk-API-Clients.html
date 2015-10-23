@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>Praxyk API Clients</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><h1 id="praxyk-api-clients"><a class="header-link" href="#praxyk-api-clients"></a>Praxyk API Clients</h1>
+<p>This directory contains all of the various client bindings for the Praxyk API. These bindings simplify the process of interacting with the API and give developers a means of building applications around our services without having to make raw GET and POST requests.</p>
+<p>The client bindings provided here include both a command-line utility and modules that can be imported into your existing code. Examples for both of these use cases are demonstrated in the examples section.</p>
+<h4 id="requirements"><a class="header-link" href="#requirements"></a>Requirements</h4>
+<p>The client scripts are free to download but in order to access the API you will need to provide a set of valid Praxyk account credentials, if you don&#39;t have a Praxyk account you can sign-up today at <a href="http://www.praxyk.com">our website</a> or even through the bindings themselves!</p>
+<ul class="list">
+<li><strong>Operating Systems</strong> - Linux, OSX</li>
+<li><strong>Python</strong> - Python 2.7</li>
+</ul>
+<h4 id="install"><a class="header-link" href="#install"></a>Install</h4>
+<p>To install, simply clone the API branch of the praxyk project and run the client setup process. This will put the client script on your path and make the necessary config directories. Feel free to remove the praxyk folder when you&#39;re done with the setup process.</p>
+<pre class="hljs"><code>git <span class="hljs-built_in">clone</span> -b api https://github.com/jhallard/praxyk
+<span class="hljs-built_in">cd</span> praxyk/client
+./setup.py</code></pre><p>This will walk your through the steps of installing the various command-line utilities and modules that you choose during the setup process.</p>
+<h4 id="client-bindings-status"><a class="header-link" href="#client-bindings-status"></a>Client Bindings Status</h4>
+<table>
+<thead>
+<tr>
+<th>Language</th>
+<th>Status</th>
+<th>Info      </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CL Utility</td>
+<td>In Progress</td>
+<td>This is an interactive program that can be used to access the entire range of Praxyk services from a terminal.</td>
+</tr>
+<tr>
+<td>Python</td>
+<td>In Progress</td>
+<td>Python is the first language we plan to make bindings for, v.1 should be done soon.</td>
+</tr>
+<tr>
+<td>C++</td>
+<td>Planned</td>
+<td>We would like to make some C++ bindings but it isn&#39;t very high on the priority list.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="commmand-line-utility"><a class="header-link" href="#commmand-line-utility"></a>Commmand-Line Utility</h3>
+<p>Included with this set of client bindings is an interactive command-line based script called <code>praxyk_client</code>. This script, written in Python, wraps around the requests library and provides a simple yet powerful way of programmatically interacting with the Praxyk API.</p>
+<h3 id="python-bindings"><a class="header-link" href="#python-bindings"></a>Python Bindings</h3>
+<p>Python is the first language we plan to create client library for, and it is the one we will put the most effort into maintaining.</p>
+    </article>
+  </body>
+</html>
