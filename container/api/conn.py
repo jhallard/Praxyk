@@ -3,7 +3,6 @@ import os
 import sys
 import json
 import binhex
-import praxyk
 # import Image
 
 STORE_BASENAME = "/drive1/img_store/"
@@ -67,16 +66,13 @@ def run_img_rec(data):
     Runs OCR.  Takes in an ImgPack, and returns an image
     descriptor object with the text object filled out.
     '''
+    import praxyk
     print('Transferring image data to %s...' % (STORE_BASENAME + data.img_name))
     img_out = open(STORE_BASENAME + data.img_name, 'w+')
     img_out.write(data.data)
     img_out.close()
     print('{Running OCR...}')
-    try:
-        data.img_text = praxyk.get_string_from_image(STORE_BASENAME + data.img_name)
-    except Exception as e:
-        print('Error running OCR: %s' % str(e))
-        return ''
+    data.img_text = praxyk.get_string_from_image(STORE_BASENAME + data.img_name)
     data.dump_data()
     print('This is where data can be returned to the user')
     return data.img_text
