@@ -34,7 +34,7 @@ This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 
  * John Allard
  * Nicholas Corgan
  * Nikita Sokolnikov
- * Graham Culver
+ * Ryan Coley
  * Nick Church
  * Michael Vincent
 

@@ -1,0 +1,787 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Praxyk | Documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="scripts/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="scripts/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Icons -->
+    <link href="scripts/icons/general/stylesheets/general_foundicons.css" media="screen" rel="stylesheet" type="text/css" />  
+    <link href="scripts/icons/social/stylesheets/social_foundicons.css" media="screen" rel="stylesheet" type="text/css" />
+    <!--[if lt IE 8]>
+        <link href="scripts/icons/general/stylesheets/general_foundicons_ie7.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="scripts/icons/social/stylesheets/social_foundicons_ie7.css" media="screen" rel="stylesheet" type="text/css" />
+    <![endif]-->
+    <link rel="stylesheet" href="scripts/fontawesome/css/font-awesome.min.css">
+    <!--[if IE 7]>
+        <link rel="stylesheet" href="scripts/fontawesome/css/font-awesome-ie7.min.css">
+    <![endif]-->
+
+    <link href="http://fonts.googleapis.com/css?family=Syncopate" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Abel" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Pontano+Sans" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Oxygen" rel="stylesheet" type="text/css">
+
+    <link href="styles/custom.css" rel="stylesheet" type="text/css" />
+    <link href="styles/markdown.css" rel="stylesheet" type="text/css" />
+    <script src="scripts/menu.js" type="text/javascript"></script>
+    <script src="scripts/footer.js" type="text/javascript"></script>
+    <script src="scripts/init.js" type="text/javascript"></script>
+</head>
+<body id="pageBody">
+
+<div id="divBoxed" class="container">
+
+<div class="transparent-bg" style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;z-index: -1;zoom: 1;"></div>
+
+    <div class="divPanel notop nobottom">
+            <div class="row-fluid">
+                <div class="span12">
+
+                    <div id="divLogo" class="pull-left">
+                        <a href="index.html" id="divSiteTitle">Praxyk</a><br />
+                        <a href="index.html" id="divTagLine">Accessable Machine Learning</a>
+                    </div>
+
+                    <div id="divMenuRight" class="pull-right"></div>
+
+            <div class="row-fluid">
+                <div class="span12">
+                    <div id="contentInnerSeparator"></div>
+                </div>
+            </div>
+    </div>
+
+    <div class="contentArea">
+
+        <div class="divPanel notop page-content">
+
+            <div class="row-fluid">
+            <!--Edit Main Content Area here-->
+                <div class="span12" id="divMain">
+
+                    <h1 id="page_title">Documentation</h1>
+                  <hr>
+                  <div class="markdown-body entry-content">
+                <h4>
+<a id="user-content-overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h4>
+
+<p>The API is our contract with all users of Praxyk services that defines exactly how to get data in and results out of our servers. Even the <a href="http://www.praxyk.com">main website</a> is just a fancy wrapper around this API. At a high level, the API needs to allow users to do a few things.</p>
+
+<ul>
+<li>Manage their user account. This includes registering an account, updating their information, and being able to query for information on their account. It also involved authenticating requests and managing transaction history.</li>
+<li>Interact with our internal models. This mostly involved giving the users an interface to upload information to our servers to be analyzed.</li>
+<li>Receive the results of their prediction requests. </li>
+</ul>
+
+<h4>
+<a id="user-content-note-about-pagination" class="anchor" href="#note-about-pagination" aria-hidden="true"><span class="octicon octicon-link"></span></a>Note About Pagination</h4>
+
+<p>Many routes that can return large batches of information to the user are paginated by default. This means that querying these routes will return a limited amount of data, along with a link to the next block of data. For example, calling a paginated-route with no page-related arguments will cause us to return page 0 with a default size of 100 values.</p>
+
+<div class="highlight highlight-source-shell"><pre>GET api.praxyk.com/results/12345/</pre></div>
+
+<p>returns</p>
+
+<div class="highlight highlight-source-python"><pre>{
+ <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+ <span class="pl-s"><span class="pl-pds">"</span>items<span class="pl-pds">"</span></span> : [<span class="pl-s"><span class="pl-pds">"</span>$item1<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>$item100<span class="pl-pds">"</span></span>],
+ <span class="pl-s"><span class="pl-pds">"</span>next<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/results/12345/?page=1<span class="pl-pds">"</span></span>
+}</pre></div>
+
+<p>Every paginated route can take any of the following optional arguments </p>
+
+<ul>
+<li>
+<code>pagination</code> - Boolean, if false we dump all resources to the user in a list. Defaults to true.</li>
+<li>
+<code>page_size</code> - Page-size tells us how many items to put on each page. The default is 100.</li>
+<li>
+<code>page=X</code> - This tells us to return a single page, given by X, of size <code>page_size</code>.</li>
+<li>
+<code>pages=X</code> - This tells us to return X pages, starting from 0.</li>
+<li>
+<code>start_page=X&amp;pages=Y</code> - This tells us a starting page, and how many pages you want to grab from that start.</li>
+</ul>
+
+<p>If conflicting arguments are given (example <code>pages=5&amp;start_page=1&amp;pages=8</code>) we will default to the last valid setting (so <code>start_page=1&amp;pages=8</code> in this case). The exception to this is if the <code>pagination=false</code> flag is given, in which case all resources will be given to the user.</p>
+
+<h4>
+<a id="user-content-api-routes" class="anchor" href="#api-routes" aria-hidden="true"><span class="octicon octicon-link"></span></a>API Routes</h4>
+
+<p><strong>API Base</strong> - <code>api.praxyk.com</code></p>
+
+<ul>
+<li>
+<code>/users/</code>
+
+<ul>
+<li><code>GET /users/{user_id}</code></li>
+<li><code>POST /users/</code></li>
+<li><code>PUT /users/{user_id}</code></li>
+<li><code>DELETE /users/{user_id}</code></li>
+</ul>
+</li>
+<li>
+<code>/tokens/</code>
+
+<ul>
+<li><code>POST /tokens/</code></li>
+</ul>
+</li>
+<li>
+<code>/pod/</code>
+
+<ul>
+<li><code>GET /pod/</code></li>
+<li>
+<code>/pod/ocr/</code>
+
+<ul>
+<li><code>GET /pod/ocr/</code></li>
+<li><code>POST /pod/ocr/</code></li>
+</ul>
+</li>
+<li>
+<code>/pod/bayes_spam/</code>
+
+<ul>
+<li><code>GET /pod/bayes_spam/</code></li>
+<li><code>POST /pod/bayes_spam/</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>/tlp/</code></li>
+<li>
+<code>/transactions/</code>
+
+<ul>
+<li><code>GET /transactions/</code></li>
+<li><code>GET /transactions/{transaction_id}</code></li>
+<li><code>DELETE /transactions/{transaction_id}</code></li>
+</ul>
+</li>
+<li>
+<code>/results/</code>
+
+<ul>
+<li>
+<code>GET /results/{transaction_id}</code> </li>
+</ul>
+</li>
+</ul>
+
+<hr>
+
+<hr>
+
+<h3>
+<a id="user-content-users-route" class="anchor" href="#users-route" aria-hidden="true"><span class="octicon octicon-link"></span></a>Users Route</h3>
+
+<p>The users route (<code>/users/</code>) is used for all things related to individual users. This includes creating a user (POST), partially/fully updating a user (PUT), and getting limited info about a user (GET).</p>
+
+<hr>
+
+<h4>
+<a id="user-content-add-a-new-user" class="anchor" href="#add-a-new-user" aria-hidden="true"><span class="octicon octicon-link"></span></a>Add a New User</h4>
+
+<p>Add a new user to the system. Only users with root priviledges can add users to the system.</p>
+
+<p><code>POST /users/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email</td>
+<td><em>string</em></td>
+<td>The email associated with the user</td>
+<td>No</td>
+</tr>
+<tr>
+<td>name</td>
+<td><em>string</em></td>
+<td>The full name of the user (one string).</td>
+<td>No</td>
+</tr>
+<tr>
+<td>password</td>
+<td><em>string</em></td>
+<td>Password for the new user</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span> : {
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>$new_email<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>userid<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_name<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>uri<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/users/$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>transactions_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/transactions/?user_id=$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$creation_time<span class="pl-pds">"</span></span>
+  } 
+}</pre></div>
+
+<hr>
+
+<h4>
+<a id="user-content-update-an-existing-user" class="anchor" href="#update-an-existing-user" aria-hidden="true"><span class="octicon octicon-link"></span></a>Update an Existing User</h4>
+
+<p>To update an existing user, perform the action below. This action must be authenticated by a token from the user being updated.</p>
+
+<p><code>PUT /users/{userid}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>email</td>
+<td><em>string</em></td>
+<td>The email associated with the user</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>password</td>
+<td><em>string</em></td>
+<td>Updated password for the user</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span> : {
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>$new_email<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>userid<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_name<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>uri<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/users/$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>transactions_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/transactions/?user_id=$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$creation_time<span class="pl-pds">"</span></span>
+  } 
+ }</pre></div>
+
+<hr>
+
+<h4>
+<a id="user-content-get-a-users-info" class="anchor" href="#get-a-users-info" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get a User's Info</h4>
+
+<p>This returns information on a user, their transactions, and results. Note that the transactions are returned as a URL through which the caller can get paginated transaction information.</p>
+
+<p><code>GET /users/{userid}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span> : {
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>$new_email<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>userid<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_name<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>uri<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/users/$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>transactions_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/transactions/?user_id=$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$creation_time<span class="pl-pds">"</span></span>
+  } 
+ }</pre></div>
+
+<hr>
+
+<h4>
+<a id="user-content-delete-a-user" class="anchor" href="#delete-a-user" aria-hidden="true"><span class="octicon octicon-link"></span></a>Delete A User</h4>
+
+<p>This call will remove the given user's account from our system, including all stored result-data. Transaction history will be kept until last bill is paid.</p>
+
+<p><code>DELETE /users/{userid}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span> : {
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span>: <span class="pl-s"><span class="pl-pds">"</span>$new_email<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>userid<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_name<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>uri<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/users/$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>transactions_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/transactions/?user_id=$user_id<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$creation_time<span class="pl-pds">"</span></span>
+  }  
+}</pre></div>
+
+<hr>
+
+<hr>
+
+<h3>
+<a id="user-content-tokens" class="anchor" href="#tokens" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tokens</h3>
+
+<p>Tokens are used to perform requests, but they are temporary and thus the user must be revalidated every once in a while.</p>
+
+<hr>
+
+<h4>
+<a id="user-content-validate-a-user-get-an-access-token" class="anchor" href="#validate-a-user-get-an-access-token" aria-hidden="true"><span class="octicon octicon-link"></span></a>Validate a User, get an Access Token</h4>
+
+<p>This is used to get a temp access token that authorizes and validates the given user.</p>
+
+<p><code>POST /tokens/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email</td>
+<td><em>string</em></td>
+<td>the email of the user being validated.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>password</td>
+<td><em>string</em></td>
+<td>The user's password.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span> : {
+    <span class="pl-s"><span class="pl-pds">"</span>email<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_email<span class="pl-pds">"</span></span>,
+    <span class="pl-s"><span class="pl-pds">"</span>userid<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+  },  
+  <span class="pl-s"><span class="pl-pds">"</span>token<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$token_str<span class="pl-pds">"</span></span>,
+ }</pre></div>
+
+<hr>
+
+<hr>
+
+<h3>
+<a id="user-content-transactions" class="anchor" href="#transactions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Transactions</h3>
+
+<p><code>api.praxyk.com/transactions/</code> is the portal for all specific transaction information. Transactions are records that are generated for every service request that a user makes through our API. For instance, if a user makes a request to <code>api.praxyk.com/pod/bayes_spam/</code> with 100 email-bodies as data, a single transaction record is generated to group together those 100 inputs and their corresponding outputs.
+The user is given the ID of this transaction as a return to making the call to the <code>/pod/</code> service, and they can use this ID to obtain information on the status of their request by using the routes described in this section.</p>
+
+<hr>
+
+<h4>
+<a id="user-content-get-all-user-transactions" class="anchor" href="#get-all-user-transactions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get All User Transactions</h4>
+
+<p>This route can be used to access a user's entire history of transactions. Users must be authorized with an auth token to perform this request, and they can only access their own transaction history.</p>
+
+<p><code>GET /transactions/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>pagination</td>
+<td><em>bool</em></td>
+<td>If false, all results are dumped to the user.</td>
+<td>Yes (defaults to false)</td>
+</tr>
+<tr>
+<td>page</td>
+<td><em>int</em></td>
+<td>The 'page' of transactions you want returned.</td>
+<td>Yes (defaults to 0)</td>
+</tr>
+<tr>
+<td>pages</td>
+<td><em>int</em></td>
+<td>The number of pages to be returned (from <code>start_page</code> if provided or 0 if not)</td>
+<td>Yes (defaults to 0)</td>
+</tr>
+<tr>
+<td>page_size</td>
+<td><em>int</em></td>
+<td>The number of results on each page returned.</td>
+<td>Yes (defaults to 100)</td>
+</tr>
+<tr>
+<td>start_page</td>
+<td><em>int</em></td>
+<td>Only valid when used with <code>pages</code>, tells us the start page to return.</td>
+<td>Yes (defaults to 100)</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>userid<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+  <span class="pl-s"><span class="pl-pds">"</span>transactions<span class="pl-pds">"</span></span> : [
+    {
+      <span class="pl-s"><span class="pl-pds">"</span>trans_id<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$trans_id1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>user_id<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>command_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$command_url1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>data_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$data_url1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>results_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/results/$trans_id1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>   : <span class="pl-s"><span class="pl-pds">"</span>$status1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$created_at1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_total<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_files_uploaded1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_success<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_success1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_failed<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_failed1<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>size_total_KB<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$total_files_size_KB<span class="pl-pds">"</span></span>
+    },
+    {<span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span>},
+    {<span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>...<span class="pl-pds">"</span></span>}
+  ] 
+}</pre></div>
+
+<hr>
+
+<h4>
+<a id="user-content-get-a-single-transaction" class="anchor" href="#get-a-single-transaction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Get a Single Transaction</h4>
+
+<p>After making a request to a Praxyk service, the user is returned a transaction ID. They can use that ID to call a route under this category, which will return the specifics of that instance. The transaction object returned includes information on the number of files in the request and the total size of those files, which will count towards user data-ingress charges.</p>
+
+<p><code>GET /transactions/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>transaction<span class="pl-pds">"</span></span> :
+    {
+      <span class="pl-s"><span class="pl-pds">"</span>trans_id<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$trans_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>user_id<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$user_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>command_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$command_url<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>data_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$data_url<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>results_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/results/$trans_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>   : <span class="pl-s"><span class="pl-pds">"</span>$status<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$created_at<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_total<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_files_uploaded<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_success<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_success<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_failed<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_failed<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>size_total_KB<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$total_files_size_KB<span class="pl-pds">"</span></span>
+    }
+}</pre></div>
+
+<hr>
+
+<h4>
+<a id="user-content-update-a-transaction" class="anchor" href="#update-a-transaction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Update a Transaction</h4>
+
+<p>There are times when a user might want to change an active transaction, to cancel one in progress for instance. To do such they can use the route described below.</p>
+
+<p><code>PUT /transactions/{trans_id}</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>cancel</td>
+<td><em>bool</em></td>
+<td>Flag, if true any in-progress processing will stop.</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>transaction<span class="pl-pds">"</span></span> :
+    {
+      <span class="pl-s"><span class="pl-pds">"</span>trans_id<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$trans_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>command_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$command_url<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>data_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$data_url<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>results_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/results/$trans_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>   : <span class="pl-s"><span class="pl-pds">"</span>$status<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$created_at<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_total<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_files_uploaded<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_success<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_success<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_failed<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_failed<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>size_total_MB<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$total_files_size_MB<span class="pl-pds">"</span></span>
+    }
+}</pre></div>
+
+<hr>
+
+<hr>
+
+<h3>
+<a id="user-content-pod" class="anchor" href="#pod" aria-hidden="true"><span class="octicon octicon-link"></span></a>POD</h3>
+
+<p><code>api.praxyk.com/pod/</code> is the high-level route for all Prediction on Demand services. This route is used to pass data that needs analysis to specific POD models, the actual predictions made on the data that is passed in available through the <code>/results/{transaction_id}</code> route, where <code>transaction_id</code> is an ID that uniquely identifies your request through the Praxyk API. </p>
+
+<p>As of right now, no actual requests are made through <code>/pod/</code>, only through it's sub-routes which are shown below.</p>
+
+<hr>
+
+<hr>
+
+<h3>
+<a id="user-content-pod-ocr" class="anchor" href="#pod-ocr" aria-hidden="true"><span class="octicon octicon-link"></span></a>POD-OCR</h3>
+
+<p>Optical character recognition (OCR) is one of the first services to be offered through the Praxyk API, and it allows user's to extract strings of text present in a given image file. </p>
+
+<hr>
+
+<h4>
+<a id="user-content-make-a-new-pod-ocr-request" class="anchor" href="#make-a-new-pod-ocr-request" aria-hidden="true"><span class="octicon octicon-link"></span></a>Make a New POD-OCR Request</h4>
+
+<p>This route is used to instantiate a new request to the POD Ocular Character Recognition service. It takes an authorization token from the user and a list of image-files. The images can be any one of png, tif/tiff, jpg, bmp. You will receive in return a list of items describing the transaction, including a transaction ID that you can use to track the progress of and access the results of your request.
+The names of the files you upload are important, they will be used to index the results that are returned to you.</p>
+
+<p><code>POST /pod/ocr/</code></p>
+
+<p><strong>Parameters</strong></p>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>files</td>
+<td><em>list</em></td>
+<td>List of valid image file to perform recognition on.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>RESPONSE</strong></p>
+
+<div class="highlight highlight-source-json"><pre>{
+  <span class="pl-s"><span class="pl-pds">"</span>code<span class="pl-pds">"</span></span> : <span class="pl-c1">200</span>,
+  <span class="pl-s"><span class="pl-pds">"</span>transaction<span class="pl-pds">"</span></span> :
+    {
+      <span class="pl-s"><span class="pl-pds">"</span>trans_id<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$trans_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>command_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$command_url<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>data_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$data_url<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>results_url<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>api.praxyk.com/results/$trans_id<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>   : <span class="pl-s"><span class="pl-pds">"</span>$status<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>created_at<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$created_at<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_total<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_files_uploaded<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_success<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_success<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>uploads_failed<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$num_uploads_failed<span class="pl-pds">"</span></span>,
+      <span class="pl-s"><span class="pl-pds">"</span>size_total_KB<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>$total_files_size_KB<span class="pl-pds">"</span></span>
+    }
+}</pre></div>
+
+<hr>
+
+<h5>
+<a id="user-content-query-results" class="anchor" href="#query-results" aria-hidden="true"><span class="octicon octicon-link"></span></a>Query Results</h5>
+
+<p><code>api.praxyk.com/results/</code></p>
+
+<p>Users with a valid auth token can make <code>GET</code> requests to the results page, where a list of jobs will be displayed with the request and result (if the job is finished). If the user has enabled push notifications, in-progress jobs will be updated by the server. Otherwise, the user will need to refresh the page to refresh the data.</p>
+
+<p>A <code>GET</code> request to <code>/results/</code> will receive the response:</p>
+
+<pre><code>{
+  "code" : 200,
+  "transaction_ids" : ["$transaction_id1", "$transaction_id2", ...],
+}
+</code></pre>
+
+<h5>
+<a id="user-content-example-usage" class="anchor" href="#example-usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example Usage</h5>
+
+<p>Through the website:
+Users can log in and use the UI to upload images or send text to be processed with all of the details handled for them.</p>
+
+<p>In order to make a direct API call outside of the web UI, a valid auth token will need to be present in the <code>POST</code> body and the image/text data will need to be present in the HTTP request header. Any request without a valid auth token will be thrown out. Registered users can retrieve their auth token by making a <code>GET</code> call to api.praxyk.com/users/{username}</p>
+
+<p>A successful API request will receive the response:</p>
+
+<pre><code>{
+  "code" : 200,
+  "transaction_id" : "$transaction_id",
+}
+</code></pre>
+
+<p>Following this, the server will redirect to <code>/results/</code></p>
+
+<p>When the requested job is finished the server will push a notification to the user who made the request if the user has allowed notifications through their browser or in the <code>POST</code> request.</p>
+
+              </div>
+                </div>
+            <!--End Main Content Area-->
+            </div>
+
+            <div id="footerInnerSeparator"></div>
+        </div>
+    </div>
+
+    <div id="footerOuterSeparator"></div>
+
+    <div id="divFooter" class="footerArea">
+    </div>
+</div>
+<br /><br /><br />
+
+<script src="scripts/jquery.min.js" type="text/javascript"></script> 
+<script src="scripts/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="scripts/default.js" type="text/javascript"></script>
+
+
+
+
+
+</body>
+</html>
