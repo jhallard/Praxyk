@@ -19,10 +19,14 @@ import redis
 
 from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 
-import config
 from config import apiconf, REDIS_CONF
 
-# __all__ = ['libs', 'models', 'queue']
+import sys
+sys.path.append('../')
+# 
+from models import *
+# 
+# __all__ = ['libs', 'queue']
 
 
 PRAXYK_API_APP = Flask(__name__) # our main flask app object

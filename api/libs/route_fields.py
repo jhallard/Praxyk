@@ -25,15 +25,14 @@ def marshal_result(res) :
              "finished_at"   : convert_timestr(res.finished_at),
              "created_at"    : convert_timestr(res.created_at),
              "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number, _external=True),
-             "prediction"    : { "result_string" : res.result_string }
-    }
+             "result_string" : res.result_string }
 
 
 # this map defines how a user db object get's transformed into a user api return object.
 user_fields = {
     'name'            : fields.String,
     'email'           : fields.String,
-    'user_id'         : fields.Integer(attribute="id"),
+    'user_id'         : fields.String(attribute="id"),
     'uri'             : fields.Url(USER_ENDPOINT, absolute=True),
     'active'          : fields.Boolean,
     'transactions_url': fields.String,

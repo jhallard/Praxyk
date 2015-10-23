@@ -5,11 +5,11 @@
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
 
-## @info - This file defines all of the /users/ route for the Praxyk API.
-##         This involved creating a class with the PUT, GET, POST, and 
-##         DELETE methods defined. Once defined, the main API handler 
-##         (../api_server.py) can simply import this class and use it to 
-##         handle any user-related requests.
+## @info - This file defines all of the authorization functionality needed
+##         by this API. That includes wrappers to guarentee user authentication 
+##         via auth-tokens, and owner-resource validation to ensure that regular
+##         users can only access their own resources but admins can access anyones
+
 
 import sys, os
 import argparse
@@ -41,6 +41,8 @@ def requires_auth(f):
             token = request.values.get('token')
             if not token:
                 token = request.json.get('token')
+            if not token:
+                abort(403)
     	    token = Token.query.filter_by(value="%s"%token).first_or_404()
             user = None if not token else token.user
             if not token or not user :
@@ -89,11 +91,12 @@ class AuthRoute(Resource) :
             if not user :
                 abort(404)
 
+            # first try and get an existing and valid token
             tokens = Token.query.filter((Token.user_id==user.id and Token.valid)).first()
-
             if tokens :
                 return jsonify({"code" : 200, "user" : marshal(user, user_fields), "token" : tokens.value})
                 
+            # otherwise make them a new one
             new_token = Token(user_id=user.id)
             if not new_token :
                 abort(403)

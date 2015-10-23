@@ -40,7 +40,6 @@ from queue.start_worker import *
 
 # model includes
 from models import *
-from models.sql.pod import *
 
 #flask includes
 from flask import Flask, jsonify, request, Response, g
