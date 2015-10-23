@@ -91,7 +91,7 @@ class ResultRoute(Resource):
             page = {"page_number" : args.page, "results" : page_json}
 
         next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT, id=trans.id,
-                                                         page_size=args.page_size, page=next_page_num)
+                                                         page_size=args.page_size, page=next_page_num, _external=True)
         return {"code"        : 200,
                 "transaction" : marshal(trans, transaction_fields),
                 "page"        : page,

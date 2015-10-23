@@ -25,7 +25,8 @@ def marshal_result(res) :
              "finished_at"   : convert_timestr(res.finished_at),
              "created_at"    : convert_timestr(res.created_at),
              "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number, _external=True),
-             "result_string" : res.result_string }
+             "prediction"    : { "result_string" : res.result_string }
+    }
 
 
 # this map defines how a user db object get's transformed into a user api return object.
