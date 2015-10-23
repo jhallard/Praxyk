@@ -76,7 +76,9 @@ def process_pod_ocr(transaction, fileh) :
     file_num = transaction['file_num']
     files_total = transaction['files_total']
 
-    PRAXYK_API_APP.app_context().push()
+    app_context = PRAXYK_API_APP.app_context()
+    app_context.push()
+
     trans = Transaction.query.get(trans_id) # gets the sql transaction object from the db
 
     # this if statement checks if the trans has been canceled, if so we mark this result as canceled
@@ -88,12 +90,8 @@ def process_pod_ocr(transaction, fileh) :
             this_result.status = Result_POD_OCR.RESULT_CANCELED
             this_result.result_string = ""
             this_result.save()
-            PRAXYK_API_APP.app_context().pop()
+            app_context.pop()
         return this_result
-
-    if not this_result :
-        print "POD_OCR Worker Error, Can't Find This Result"
-        return False
 
     imgs_dir = STORE_BASENAME + str(trans_id)
     if not os.path.exists(imgs_dir):
@@ -106,6 +104,10 @@ def process_pod_ocr(transaction, fileh) :
 
     # get the individual result struct from redis that this queue task is processing
     this_result = Result_POD_OCR.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
+
+    if not this_result :
+        print "POD_OCR Worker Error, Can't Find This Result"
+        return False
 
     # update this result object in the redis db
     this_result.finished_at = datetime.datetime.now()
@@ -126,18 +128,7 @@ def process_pod_ocr(transaction, fileh) :
     # update the transaction object (group of results) in the redis db
     # super hacky way to avoid data races on items_finished
     results.items_finished += 1
-    update = False
     results.save()
-    # while update == False :
-        # try :
-            # # results.items_finished += 1
-            # results.items_finished.increment()
-            # results.save()
-            # update = True
-        # except Exception, e :
-            # results.save()
-            # update = False
-
 
     if results.items_finished  == results.items_total :
         # @TODO - remove the directory for this set of results
@@ -147,7 +138,7 @@ def process_pod_ocr(transaction, fileh) :
 
     print "POD_OCR Result String : (%s) " % this_result.result_string
     print "POD_OCR Worker Finished"
-    PRAXYK_API_APP.app_context().pop()
+    app_context.pop()
 
     return this_result
 
