@@ -1,0 +1,787 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>Praxyk API Documentation</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><h3 id="praxyk-api-documentation"><a class="header-link" href="#praxyk-api-documentation"></a>Praxyk API Documentation</h3>
+<h4 id="overview"><a class="header-link" href="#overview"></a>Overview</h4>
+<p>The API is our contract with all users of Praxyk services that defines exactly how to get data into and results out of our servers. All interactions with our services, even through the <a href="http://www.praxyk.com">main website</a>, happens through requests to this API. </p>
+<p>At a high level, the API needs to allow users to do a few things.</p>
+<ul class="list">
+<li>Manage their user account. This includes registering an account, updating their information, and being able to query for information on their account. It also involves authenticating requests and managing transaction history.</li>
+<li>Submit requests to our internal models. This mostly involves giving the users an interface to upload information to our servers to be analyzed.</li>
+<li>Receive the results of their requests to our internal models.</li>
+</ul>
+<p>As of right now, <code>Praxyk API v.0.1</code> is live at <code>api.praxyk.com:5000</code>. This is not an official release and hence is subject to change, when we reach the official <code>v.1</code> release, the <code>api.praxyk.com/v1/</code> route will have it&#39;s features and structures frozen, guaranteeing a consistent interface to users.</p>
+<h4 id="notes-about-pagination"><a class="header-link" href="#notes-about-pagination"></a>Notes About Pagination</h4>
+<p>Many routes that can return large batches of information to the user are paginated by default. This means that querying these routes will return a limited amount of data, along with a link to the next block of data. For example, calling a paginated-route with no page-related arguments will cause us to return page 0 with a default size of 100 values.</p>
+<pre class="hljs"><code>GET api.praxyk.com/results/<span class="hljs-number">12345</span>/</code></pre><p>returns</p>
+<pre class="hljs"><code>{
+ <span class="hljs-string">"code"</span> : <span class="hljs-number">200</span>,
+ <span class="hljs-string">"page"</span> : {
+    <span class="hljs-string">"page_number"</span> : <span class="hljs-number">1</span>,
+    <span class="hljs-string">"results"</span> : [<span class="hljs-string">"$item1"</span>, <span class="hljs-string">"..."</span>, <span class="hljs-string">"$item100"</span>],
+ }
+ <span class="hljs-string">"next_page"</span> : <span class="hljs-string">"api.praxyk.com/results/12345/?page=2"</span>
+}</code></pre><p><strong>Note</strong> -  Page numbers start from 1, not 0. </p>
+<p>Every paginated route can take any of the following optional arguments </p>
+<ul class="list">
+<li><code>pagination</code> - Boolean, if false we dump all resources to the user in a list. Defaults to true.</li>
+<li><code>page_size</code> - Page-size tells us how many items to put on each page. The default is 100.</li>
+<li><code>page=X</code> - This tells us to return a single page, given by X, of size <code>page_size</code>.</li>
+</ul>
+<p>Every request to a paginated route with <code>paginated=True</code> will be returned with a url to access the next page. If there is no next page, this will be the empty string.</p>
+<p>Turning off pagination returns a result like this (<code>N</code> is the total number of items for <code>/results/12345</code>)</p>
+<pre class="hljs"><code>GET api.praxyk.com/results/<span class="hljs-number">12345</span></code></pre><p>returns</p>
+<pre class="hljs"><code>{
+ <span class="hljs-string">"code"</span> : <span class="hljs-number">200</span>,
+ <span class="hljs-string">"results"</span> : [<span class="hljs-string">"$item1"</span>, <span class="hljs-string">"..."</span>, <span class="hljs-string">"$itemN"</span>]
+}</code></pre><h4 id="api-routes"><a class="header-link" href="#api-routes"></a>API Routes</h4>
+<p> <strong>API Base</strong> - <code>api.praxyk.com</code></p>
+<p> <strong>Current Version</strong> - v.0.1</p>
+<p> <strong>Version 1 Release</strong> - Early November, 2015</p>
+<ul class="list">
+<li><code>/users/</code><ul class="list">
+<li><code>GET /users/{user_id}</code></li>
+<li><code>GET /users/</code></li>
+<li><code>POST /users/</code></li>
+<li><code>PUT /users/{user_id}</code></li>
+<li><code>DELETE /users/{user_id}</code></li>
+</ul>
+</li>
+<li><code>/tokens/</code><ul class="list">
+<li><code>POST /tokens/</code></li>
+</ul>
+</li>
+<li><code>/pod/</code><ul class="list">
+<li><code>GET /pod/</code></li>
+<li><code>/pod/ocr/</code><ul class="list">
+<li><code>GET /pod/ocr/</code></li>
+<li><code>POST /pod/ocr/</code></li>
+</ul>
+</li>
+<li><code>/pod/bayes_spam/</code><ul class="list">
+<li><code>GET /pod/bayes_spam/</code></li>
+<li><code>POST /pod/bayes_spam/</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>/tlp/</code></li>
+<li><code>/transactions/</code><ul class="list">
+<li><code>GET /transactions/</code></li>
+<li><code>GET /transactions/{transaction_id}</code></li>
+<li><code>DELETE /transactions/{transaction_id}</code></li>
+</ul>
+</li>
+<li><code>/results/</code><ul class="list">
+<li><code>GET /results/{transaction_id}</code> </li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="users-route"><a class="header-link" href="#users-route"></a>Users Route</h3>
+<p>The users route (<code>/users/</code>) is used for all things related to individual users. This includes creating a user (POST), partially/fully updating a user (PUT), and getting limited info about a user (GET).</p>
+<hr>
+<h4 id="add-a-new-user"><a class="header-link" href="#add-a-new-user"></a>Add a New User</h4>
+<p>Add a new user to the system. Any user can post a registration request, but they must confirm their email before they are allowed to login. Email confirmations are sent from our servers upon completion of this request. Note that emails must be unique in our system.</p>
+<p><code>POST /users/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   email</td>
+<td><em>string</em></td>
+<td>The email associated with the user</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   name</td>
+<td><em>string</em></td>
+<td>The full name of the user (one string).</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   password</td>
+<td><em>string</em></td>
+<td>Password for the new user</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
+    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
+    "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
+    "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+    "<span class="hljs-attribute">transactions_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/?user_id=$user_id"</span></span>,
+    "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_time"</span>
+  </span>} 
+</span>}</code></pre><hr>
+<h4 id="update-an-existing-user"><a class="header-link" href="#update-an-existing-user"></a>Update an Existing User</h4>
+<p>To update an existing user, perform the action below. This action must be authenticated by a token from the user being updated.</p>
+<p><code>PUT /users/{userid}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   email</td>
+<td><em>string</em></td>
+<td>The email associated with the user</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>   password</td>
+<td><em>string</em></td>
+<td>Updated password for the user</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
+    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
+    "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
+    "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+    "<span class="hljs-attribute">transactions_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/?user_id=$user_id"</span></span>,
+    "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_time"</span>
+  </span>} 
+ </span>}</code></pre><hr>
+<h4 id="get-a-user-s-info"><a class="header-link" href="#get-a-user-s-info"></a>Get a User&#39;s Info</h4>
+<p>This returns information on a user, their transactions, and results. Note that the transactions are returned as a URL through which the caller can get paginated transaction information.</p>
+<p><code>GET /users/{userid}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
+    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
+    "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
+    "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+    "<span class="hljs-attribute">transactions_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/?user_id=$user_id"</span></span>,
+    "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_time"</span>
+  </span>}
+ </span>}</code></pre><hr>
+<h4 id="get-all-user-s-info"><a class="header-link" href="#get-all-user-s-info"></a>Get All User&#39;s Info</h4>
+<p>This is a route restricted to administrators, if you have an admin key you can query this route to get a paginated list of users sorted on their creation time in either ascending or descending order.</p>
+<p><code>GET /users/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>reverse_sort</td>
+<td><em>bool</em></td>
+<td>Tells us to return accounts, oldest to newest.</td>
+<td>Yes (default=True)</td>
+</tr>
+<tr>
+<td> pagination</td>
+<td><em>bool</em></td>
+<td>If false, all results are dumped to the user.</td>
+<td>Yes (defaults to true)</td>
+</tr>
+<tr>
+<td>   page</td>
+<td><em>int</em></td>
+<td>The &#39;page&#39; of transactions you want returned.</td>
+<td>Yes (defaults to 1)</td>
+</tr>
+<tr>
+<td>page_size</td>
+<td><em>int</em></td>
+<td>The number of results on each page returned.</td>
+<td>Yes (defaults to 100)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/?page=$page+1"</span></span>,
+  "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
+      "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-string">"$page"</span></span>,
+      "<span class="hljs-attribute">users</span>" : <span class="hljs-value">[
+        {
+           "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
+           "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+           "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
+           "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
+           "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+           "<span class="hljs-attribute">transactions_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/?user_id=$user_id"</span></span>,
+           "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_time"</span>
+         </span>},
+         {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+         {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>}
+     ]
+   </span>}
+ </span>}</code></pre><hr>
+<h4 id="delete-a-user"><a class="header-link" href="#delete-a-user"></a>Delete A User</h4>
+<p>This call will remove the given user&#39;s account from our system, including all stored result-data. Transaction history will be kept until last bill is paid.</p>
+<p><code>DELETE /users/{userid}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
+    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
+    "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
+    "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+    "<span class="hljs-attribute">transactions_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/?user_id=$user_id"</span></span>,
+    "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_time"</span>
+  </span>} 
+</span>}</code></pre><hr>
+<hr>
+<h3 id="tokens"><a class="header-link" href="#tokens"></a>Tokens</h3>
+<p>Tokens are used to perform requests, but they are temporary and thus the user must be revalidated every once in a while.</p>
+<hr>
+<h4 id="validate-a-user-get-an-access-token"><a class="header-link" href="#validate-a-user-get-an-access-token"></a>Validate a User, get an Access Token</h4>
+<p>This is used to get a temp access token that authorizes and validates the given user.</p>
+<p><code>POST /tokens/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> email</td>
+<td><em>string</em></td>
+<td>the email of the user being validated.</td>
+<td>No</td>
+</tr>
+<tr>
+<td> password</td>
+<td><em>string</em></td>
+<td>The user&#39;s password.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
+    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
+    "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
+    "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+    "<span class="hljs-attribute">transactions_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/?user_id=$user_id"</span></span>,
+    "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_time"</span>
+  </span>}</span>, 
+  "<span class="hljs-attribute">token</span>" : <span class="hljs-value"><span class="hljs-string">"$token_str"</span></span>,
+ }</code></pre><hr>
+<hr>
+<h3 id="transactions"><a class="header-link" href="#transactions"></a>Transactions</h3>
+<p><code>api.praxyk.com/transactions/</code> is the portal for all specific transaction information. Transactions are records that are generated for every service request that a user makes through our API. For instance, if a user makes a request to <code>api.praxyk.com/pod/bayes_spam/</code> with 100 email-bodies as data, a single transaction record is generated to group together those 100 inputs and their corresponding outputs.
+The user is given the ID of this transaction as a return to making the call to the <code>/pod/</code> service, and they can use this ID to obtain information on the status of their request by using the routes described in this section.</p>
+<hr>
+<h4 id="get-all-user-transactions"><a class="header-link" href="#get-all-user-transactions"></a>Get All User Transactions</h4>
+<p>This route can be used to access a user&#39;s entire history of transactions. Users must be authorized with an auth token to perform this request, and they can only access their own transaction history. The <code>user_id</code> field is required and for regular users must match the user who owns the token that is given with the request, administrators can request the transaction history of any or all users. Transactions follow the paginated result template defined at the top of this spec.</p>
+<p>Some notes about return values - <code>command_url</code> is the url that the transaction was generated from. For instance, if a user makes a request to the OCR model of the POD service of API v1, the <code>command_url</code> would be <code>/v1/pod/ocr/</code>. For the same request, the <code>service</code> value would be <code>pod</code>, and the <code>model</code> value would be <code>ocr</code>. </p>
+<p><code>GET /transactions/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   user_id</td>
+<td><em>string</em></td>
+<td>ID of the user whose data you&#39;re requesting.</td>
+<td>Yes (required for regular-users)</td>
+</tr>
+<tr>
+<td> pagination</td>
+<td><em>bool</em></td>
+<td>If false, all results are dumped to the user.</td>
+<td>Yes (defaults to true)</td>
+</tr>
+<tr>
+<td>   page</td>
+<td><em>int</em></td>
+<td>The &#39;page&#39; of transactions you want returned.</td>
+<td>Yes (defaults to 1)</td>
+</tr>
+<tr>
+<td>page_size</td>
+<td><em>int</em></td>
+<td>The number of results on each page returned.</td>
+<td>Yes (defaults to 100)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<p>If <code>pagination=True</code> (default action)</p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+  "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/transactions/?user_id=$user_id&amp;page=$page_number+1"</span></span>,
+  "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-string">"$page_number"</span></span>,
+    "<span class="hljs-attribute">transactions</span>" : <span class="hljs-value">[
+      {
+        "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id1"</span></span>,
+        "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id1"</span></span>,
+        "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url1"</span></span>,
+        "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url1"</span></span>,
+        "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id1"</span></span>,
+        "<span class="hljs-attribute">user_url</span>"  : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id1"</span></span>,
+        "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status1"</span></span>,
+        "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+        "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+        "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at1"</span></span>,
+        "<span class="hljs-attribute">finished_at</span>" : <span class="hljs-value"><span class="hljs-string">"$finished_at1"</span></span>,
+        "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded1"</span></span>,
+        "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success1"</span></span>,
+        "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed1"</span></span>,
+        "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_KB1"</span></span>,
+        "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/transactions/$trans_id1"</span></span>,
+      },
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>}
+    ] 
+  </span>}
+</span>}</code></pre><p><strong>RESPONSE</strong></p>
+<p>If <code>pagination=False</code></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+  "<span class="hljs-attribute">transactions</span>" : <span class="hljs-value">[
+    {
+      "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id1"</span></span>,
+      "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id1"</span></span>,
+      "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url1"</span></span>,
+      "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url1"</span></span>,
+      "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id1"</span></span>,
+      "<span class="hljs-attribute">user_url</span>"  : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id1"</span></span>,
+      "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status1"</span></span>,
+      "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+      "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+      "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at1"</span></span>,
+      "<span class="hljs-attribute">finished_at</span>" : <span class="hljs-value"><span class="hljs-string">"$finished_at1"</span></span>,
+      "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded1"</span></span>,
+      "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success1"</span></span>,
+      "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed1"</span></span>,
+      "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_KB1"</span></span>,
+      "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/$trans_id1"</span></span>,
+    },
+    {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+    {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>}
+  ] 
+</span>}</code></pre><hr>
+<h4 id="get-a-single-transaction"><a class="header-link" href="#get-a-single-transaction"></a>Get a Single Transaction</h4>
+<p>After making a request to a Praxyk service, the user is returned a transaction ID. They can use that ID to call a route under this category, which will return the specifics of that instance. The transaction object returned includes information on the number of files in the request and the total size of those files, which will count towards user data-ingress charges.</p>
+<p><code>GET /transactions/{transaction_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">transaction</span>" :
+    <span class="hljs-value">{
+      "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+      "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
+      "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
+      "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_url</span>"  : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+      "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status"</span></span>,
+      "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+      "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+      "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at"</span></span>,
+      "<span class="hljs-attribute">finished_at</span>" : <span class="hljs-value"><span class="hljs-string">"$finished_at"</span></span>,
+      "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded"</span></span>,
+      "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success"</span></span>,
+      "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed"</span></span>,
+      "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_KB"</span></span>,
+      "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/$trans_id"</span></span>,
+    }
+</span>}</code></pre><hr>
+<h4 id="update-a-transaction"><a class="header-link" href="#update-a-transaction"></a>Update a Transaction</h4>
+<p>There are times when a user might want to change an active transaction, to cancel one in progress for instance. To do such they can use the route described below.</p>
+<p><code>PUT /transactions/{transaction_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   cancel</td>
+<td><em>bool</em></td>
+<td>Flag, if true any in-progress processing will stop.</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">transaction</span>" :
+    <span class="hljs-value">{
+      "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
+      "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
+      "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id"</span></span>,
+      "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status"</span></span>,
+      "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+      "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+      "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at"</span></span>,
+      "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded"</span></span>,
+      "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success"</span></span>,
+      "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed"</span></span>,
+      "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_MB"</span>
+    </span>}
+</span>}</code></pre><hr>
+<hr>
+<h3 id="pod"><a class="header-link" href="#pod"></a>POD</h3>
+<p><code>api.praxyk.com/pod/</code> is the high-level route for all Prediction on Demand services. This route is used to pass data that needs analysis to specific POD models, the actual predictions made on the data that is passed in available through the <code>/results/{transaction_id}</code> route, where <code>transaction_id</code> is an ID that uniquely identifies your request through the Praxyk API. </p>
+<p>As of right now, no actual requests are made through <code>/pod/</code>, only through it&#39;s sub-routes which are shown below.</p>
+<hr>
+<hr>
+<h3 id="pod-ocr"><a class="header-link" href="#pod-ocr"></a>POD-OCR</h3>
+<p>Optical character recognition (OCR) is one of the first services to be offered through the Praxyk API, and it allows user&#39;s to extract strings of text present in a given image file. </p>
+<hr>
+<h4 id="make-a-new-pod-ocr-request"><a class="header-link" href="#make-a-new-pod-ocr-request"></a>Make a New POD-OCR Request</h4>
+<p>This route is used to instantiate a new request to the POD Ocular Character Recognition service. It takes an authorization token from the user and a list of image-files. The images can be any one of png, tif/tiff, jpg, bmp. You will receive in return a list of items describing the transaction, including a transaction ID that you can use to track the progress of and access the results of your request.
+The names of the files you upload are important, they will be used to index the results that are returned to you.</p>
+<p><code>POST /pod/ocr/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   files</td>
+<td><em>list</em></td>
+<td>List of valid image file to perform recognition on.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">transaction</span>" :
+    <span class="hljs-value">{
+      "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+      "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
+      "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
+      "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_url</span>"  : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+      "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status"</span></span>,
+      "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+      "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+      "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at"</span></span>,
+      "<span class="hljs-attribute">finished_at</span>" : <span class="hljs-value"><span class="hljs-string">"$finished_at"</span></span>,
+      "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded"</span></span>,
+      "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success"</span></span>,
+      "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed"</span></span>,
+      "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_KB"</span></span>,
+      "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/$trans_id"</span></span>,
+    }
+</span>}</code></pre><hr>
+<hr>
+<h3 id="results"><a class="header-link" href="#results"></a>Results</h3>
+<p>The transactions route just defines meta-data about a request made to a specific Praxyk service and model. In order to receive the fruits of your request to Praxyk services, you must query the <code>/results/</code> route of our API. This route allows you to get the results for each item that you uploaded for analysis via any of services and models.</p>
+<hr>
+<h4 id="get-results-for-a-single-transaction"><a class="header-link" href="#get-results-for-a-single-transaction"></a>Get Results for a Single Transaction</h4>
+<p>After making a request to a Praxyk service, you will have received a transaction ID. If you don&#39;t have this transaction ID, you can recover it by querying the <code>/transactions/?user_id=X</code> route. See the transactions sections of this document for more information.</p>
+<p>You can recover the results of your requests by querying this route with a specific transaction ID. This will return a paginated structure of results, where each result includes it&#39;s upload identifier (file-name for instance), the output from the machine learning model for input, and other meta-data.</p>
+<p>Since each model returns a different format of prediction, the predictions returned from each model are in their own dictionary under <code>result[&#39;prediction&#39;]</code>. Based on the model and service types of the transaction (OCR, spam-recognition, etc.), you can figure out how to get the relevant data out of the prediction dictionary. The data returned in the prediction dictionary for each specific service is in the next section of this spec.</p>
+<p><code>GET /results/{transaction_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td> pagination</td>
+<td><em>bool</em></td>
+<td>If false, all results are dumped to the user.</td>
+<td>Yes (defaults to true)</td>
+</tr>
+<tr>
+<td>   page</td>
+<td><em>int</em></td>
+<td>The &#39;page&#39; of transactions you want returned.</td>
+<td>Yes (defaults to 1)</td>
+</tr>
+<tr>
+<td>page_size</td>
+<td><em>int</em></td>
+<td>The number of results on each page returned.</td>
+<td>Yes (defaults to 100)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<p>If <code>pagination=True</code> (default action)</p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/{transaction_id}?page=$page_number+1"</span></span>,
+  "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-string">"$page_number"</span></span>,
+    "<span class="hljs-attribute">results</span>" : <span class="hljs-value">[
+      {
+        "<span class="hljs-attribute">created_at</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-22 19:53:08"</span></span>, 
+        "<span class="hljs-attribute">finished_at</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-22 19:53:14"</span></span>, 
+        "<span class="hljs-attribute">item_name</span>": <span class="hljs-value"><span class="hljs-string">"$image_name"</span></span>, 
+        "<span class="hljs-attribute">item_number</span>": <span class="hljs-value"><span class="hljs-string">"$item_number"</span></span>, 
+        "<span class="hljs-attribute">prediction</span>": <span class="hljs-value">{
+            "<span class="hljs-attribute">prediction_key1</span>" : <span class="hljs-value"><span class="hljs-string">"prediction_val1"</span></span>, 
+            "<span class="hljs-attribute">prediction_key2</span>" : <span class="hljs-value"><span class="hljs-string">"prediction_val2"</span></span>, 
+            "<span class="hljs-attribute">...</span>"  : <span class="hljs-value"><span class="hljs-string">"..."</span>
+        </span>}</span>,
+        "<span class="hljs-attribute">size_KB</span>": <span class="hljs-value"><span class="hljs-string">"$result_size"</span></span>, 
+        "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"$result_status"</span></span>, 
+        "<span class="hljs-attribute">uri</span>": <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/{transaction_id}?page_size=1&amp;page={$item_number}"</span>
+      </span>}, 
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>}
+    ] 
+  </span>}</span>,
+  "<span class="hljs-attribute">transaction</span>" :
+    <span class="hljs-value">{
+      "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+      "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
+      "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
+      "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_url</span>"  : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+      "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status"</span></span>,
+      "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+      "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+      "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at"</span></span>,
+      "<span class="hljs-attribute">finished_at</span>" : <span class="hljs-value"><span class="hljs-string">"$finished_at"</span></span>,
+      "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded"</span></span>,
+      "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success"</span></span>,
+      "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed"</span></span>,
+      "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_KB"</span></span>,
+      "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/$trans_id"</span></span>,
+    }
+</span>}</code></pre><p><strong>RESPONSE</strong></p>
+<p>If <code>pagination=False</code></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">results</span>" : <span class="hljs-value">[
+      {
+        "<span class="hljs-attribute">created_at</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-22 19:53:08"</span></span>, 
+        "<span class="hljs-attribute">finished_at</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-22 19:53:14"</span></span>, 
+        "<span class="hljs-attribute">item_name</span>": <span class="hljs-value"><span class="hljs-string">"$image_name"</span></span>, 
+        "<span class="hljs-attribute">item_number</span>": <span class="hljs-value"><span class="hljs-string">"$item_number"</span></span>, 
+        "<span class="hljs-attribute">prediction</span>": <span class="hljs-value">{
+            "<span class="hljs-attribute">prediction_key1</span>" : <span class="hljs-value"><span class="hljs-string">"prediction_val1"</span></span>, 
+            "<span class="hljs-attribute">prediction_key2</span>" : <span class="hljs-value"><span class="hljs-string">"prediction_val2"</span></span>, 
+            "<span class="hljs-attribute">...</span>"  : <span class="hljs-value"><span class="hljs-string">"..."</span>
+        </span>}</span>,
+        "<span class="hljs-attribute">size_KB</span>": <span class="hljs-value"><span class="hljs-string">"$result_size"</span></span>, 
+        "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"$result_status"</span></span>, 
+        "<span class="hljs-attribute">uri</span>": <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/{transaction_id}?page_size=1&amp;page={$item_number}"</span>
+      </span>}, 
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>}
+    ] 
+  </span>},
+  <span class="hljs-string">"transaction"</span> :
+    {
+      "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+      "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
+      "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
+      "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id"</span></span>,
+      "<span class="hljs-attribute">user_url</span>"  : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
+      "<span class="hljs-attribute">status</span>"   : <span class="hljs-value"><span class="hljs-string">"$status"</span></span>,
+      "<span class="hljs-attribute">service</span>"  : <span class="hljs-value"><span class="hljs-string">"$praxyk_service1"</span></span>,
+      "<span class="hljs-attribute">model</span>" : <span class="hljs-value"><span class="hljs-string">"$praxyk_model1"</span></span>,
+      "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$created_at"</span></span>,
+      "<span class="hljs-attribute">finished_at</span>" : <span class="hljs-value"><span class="hljs-string">"$finished_at"</span></span>,
+      "<span class="hljs-attribute">uploads_total</span>" : <span class="hljs-value"><span class="hljs-string">"$num_files_uploaded"</span></span>,
+      "<span class="hljs-attribute">uploads_success</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_success"</span></span>,
+      "<span class="hljs-attribute">uploads_failed</span>" : <span class="hljs-value"><span class="hljs-string">"$num_uploads_failed"</span></span>,
+      "<span class="hljs-attribute">size_total_KB</span>" : <span class="hljs-value"><span class="hljs-string">"$total_files_size_KB"</span></span>,
+      "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/transactions/$trans_id"</span></span>,
+    }
+}</code></pre><hr>
+<hr>
+<h3 id="predictions"><a class="header-link" href="#predictions"></a>Predictions</h3>
+<p>When you query for your results, you get returned a bunch of dictionaries filled with meta-data and a single sub-dictionary called <code>prediction</code> (see what&#39;s returned from <code>/results/XX</code> route above for more info). What that prediction dictionary contains depends on what service and model that result corresponds to. If you don&#39;t know what services and models are in terms of the Praxyk API, see the top of this spec.</p>
+<h4 id="predictions-for-pod-ocr"><a class="header-link" href="#predictions-for-pod-ocr"></a>Predictions for POD-OCR</h4>
+<p>Each request to the Optical Character Recognition model of the POD service entails providing the API with a series of images, and you expect a string of characters comprising the OCR-models prediction to be returned for each image submitted. This is exactly what the prediction dictionary for the POD-OCR service returns.</p>
+<p>Below is a single request dictionary that corresponds to a POD-OCR transaction, notice that the prediction dictionary contains only one item - <code>result_string</code>. This is a single string that is the output of our OCR model on the image given by <code>item_name</code>.</p>
+<pre class="hljs"><code>{
+   "<span class="hljs-attribute">created_at</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-22 19:53:08"</span></span>, 
+   "<span class="hljs-attribute">finished_at</span>": <span class="hljs-value"><span class="hljs-string">"2015-10-22 19:53:14"</span></span>, 
+   "<span class="hljs-attribute">item_name</span>": <span class="hljs-value"><span class="hljs-string">"$image_name"</span></span>, 
+   "<span class="hljs-attribute">item_number</span>": <span class="hljs-value"><span class="hljs-string">"$item_number"</span></span>, 
+   "<span class="hljs-attribute">prediction</span>": <span class="hljs-value">{
+       "<span class="hljs-attribute">result_string</span>" : <span class="hljs-value"><span class="hljs-string">"$ocr_prediction_string"</span>
+   </span>}</span>,
+   "<span class="hljs-attribute">size_KB</span>": <span class="hljs-value"><span class="hljs-string">"$result_size"</span></span>, 
+   "<span class="hljs-attribute">status</span>": <span class="hljs-value"><span class="hljs-string">"$result_status"</span></span>, 
+   "<span class="hljs-attribute">uri</span>": <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/{transaction_id}?page_size=1&amp;page={$item_number}"</span>
+</span>}</code></pre>    </article>
+  </body>
+</html>

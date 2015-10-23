@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>Optical Character Recognition (OCR)</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><p>One of Praxyk&#39;s primary features is its Prediction-on-Demand capability. Various pre-trained machine learning services are provided out of the box. All of this functionality is implemented inside the containers in a C++ library and passed up to Python through SWIG. Internal to the containers, each of these functions can be accessed as follows:</p>
+<h2 id="optical-character-recognition-ocr-"><a class="header-link" href="#optical-character-recognition-ocr-"></a>Optical Character Recognition (OCR)</h2>
+<p>The OCR functionality uses the Tesseract OCR library, with pre-trained data combined with training from our own handwriting. To access it, run Python and run the following:</p>
+<pre class="hljs"><code>import praxyk
+img_string = praxyk.<span class="hljs-function"><span class="hljs-title">get_string_from_image</span><span class="hljs-params">(<span class="hljs-string">"img.jpg"</span>)</span></span></code></pre><p>A Python RuntimeError will be thrown if the file does not exist or if the underlying libraries do not recognize the file as an image.</p>
+<p>A multi-threaded version of this function exists as well and can be used as follows.</p>
+<pre class="hljs"><code>import praxyk
+img_vec = praxyk.<span class="hljs-function"><span class="hljs-title">string_vector</span><span class="hljs-params">()</span></span>
+img_vec.<span class="hljs-function"><span class="hljs-title">push_back</span><span class="hljs-params">(<span class="hljs-string">"img1.jpg"</span>)</span></span>
+img_vec.<span class="hljs-function"><span class="hljs-title">push_back</span><span class="hljs-params">(<span class="hljs-string">"img2.jpg"</span>)</span></span>
+img_vec.<span class="hljs-function"><span class="hljs-title">push_back</span><span class="hljs-params">(<span class="hljs-string">"img3.jpg"</span>)</span></span>
+img_vec.<span class="hljs-function"><span class="hljs-title">push_back</span><span class="hljs-params">(<span class="hljs-string">"img4.jpg"</span>)</span></span>
+img_strings = praxyk.<span class="hljs-function"><span class="hljs-title">get_strings_from_images</span><span class="hljs-params">(img_vec)</span></span></code></pre><p>Note that this function takes in a praxyk.string_vector() and not a standard Python list.</p>
+<h2 id="spam-detection"><a class="header-link" href="#spam-detection"></a>Spam Detection</h2>
+<p>Spam detection is done through the MLPack library. The exposed functionality takes in a string and returns the change (0.0-1.0) that the string is a spam message. To access it, run Python and run the following:</p>
+<pre class="hljs"><code>import praxyk
+spam_chance = praxyk.<span class="hljs-function"><span class="hljs-title">get_spam_chance</span><span class="hljs-params">(msg)</span></span></code></pre>    </article>
+  </body>
+</html>

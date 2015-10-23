@@ -1,0 +1,655 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>DevOps API Documentation</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><h1 id="devops-api-documentation"><a class="header-link" href="#devops-api-documentation"></a>DevOps API Documentation</h1>
+<p>This document defines the API for the Praxyk devops server, which controls the compute resource distribution for our development group. </p>
+<p><strong>Host</strong> - <code>devops.praxyk.com</code></p>
+<p><strong>API Overview</strong></p>
+<p>This is a list of all possible API calls, the details of the parameters for each call is given in the next section.</p>
+<ul class="list">
+<li><code>/users/</code> - User creation, deletion, management.<ul class="list">
+<li><code>GET /users/{user}</code></li>
+<li><code>POST /users/</code></li>
+<li><code>PUT /users/{user}</code></li>
+</ul>
+</li>
+<li><code>/compute/</code> - VM creation, deletion, management.<ul class="list">
+<li><code>GET /compute/</code></li>
+<li><code>GET /compute/{instance_id}</code></li>
+<li><code>POST /compute/</code></li>
+<li><code>DELETE /compute{instance_id}</code></li>
+</ul>
+</li>
+<li><code>/snapshots/</code> - VM-snapshot creation, deletion, management.<ul class="list">
+<li><code>GET /compute/</code></li>
+<li><code>GET /compute/{instance_id}</code></li>
+<li><code>POST /compute/</code></li>
+<li><code>DELETE /compute{instance_id}</code></li>
+</ul>
+</li>
+<li><code>/tokens/</code><ul class="list">
+<li><code>POST /tokens/</code></li>
+</ul>
+</li>
+<li><code>/sshkeys/</code> - User SSH-key management.<ul class="list">
+<li><code>GET /sshkeys/</code> </li>
+<li><code>POST /sshkeys/</code> </li>
+<li><code>DELETE /sshkeys/{key_name}</code> </li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="users-route"><a class="header-link" href="#users-route"></a>Users Route</h3>
+<p>The users route (<code>/users/</code>) is used for all things related to individual users. This includes creating a user (POST), partially/fully updating a user (PUT), and getting limited info about a user (GET).</p>
+<hr>
+<h4 id="add-a-new-user"><a class="header-link" href="#add-a-new-user"></a>Add a New User</h4>
+<p>Add a new user to the system. Username must be unique. Only users with root priviledges can add users to the system.</p>
+<p><code>POST /users/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   name</td>
+<td><em>string</em></td>
+<td>The username of the new user</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   email</td>
+<td><em>string</em></td>
+<td>The email associated with the user</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   password</td>
+<td><em>string</em></td>
+<td>Password for the new user</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   auth</td>
+<td><em>int</em></td>
+<td>The auth level for the new user.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>512-bit auth token for root user.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">username</span>" : <span class="hljs-value"><span class="hljs-string">"$new_username"</span></span>,
+  "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span>
+ </span>}</code></pre><hr>
+<h4 id="update-an-existing-user"><a class="header-link" href="#update-an-existing-user"></a>Update an Existing User</h4>
+<p>To update an existing user, perform the action below. This action must be authenticated by a token either from the given user or from the root user.</p>
+<p><code>PUT /users/{user}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   email</td>
+<td><em>string</em></td>
+<td>The email associated with the user</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>   password</td>
+<td><em>string</em></td>
+<td>Updated password for the user</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+ "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+ "<span class="hljs-attribute">username</span>" : <span class="hljs-value"><span class="hljs-string">"$username"</span></span>,
+ "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$user_email"</span>
+ </span>}</code></pre><hr>
+<h4 id="get-a-user-s-info"><a class="header-link" href="#get-a-user-s-info"></a>Get a User&#39;s Info</h4>
+<p>This returns the users info given a name and a auth token for that user or root.</p>
+<p><code>GET /users/{user}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
+     "<span class="hljs-attribute">username</span>" : <span class="hljs-value"><span class="hljs-string">"$username"</span></span>,
+     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$user_email"</span></span>,
+     "<span class="hljs-attribute">instances</span>" : <span class="hljs-value">[<span class="hljs-string">"$inst_id"</span>, <span class="hljs-string">"$inst_id_2"</span>, <span class="hljs-string">"$inst_id_n"</span>]
+   </span>}
+ </span>}</code></pre><h4 id="get-all-user-s-info"><a class="header-link" href="#get-all-user-s-info"></a>Get All User&#39;s Info</h4>
+<p>This gets information on all existing users, can only be run by users with root privileges. </p>
+<p><code>GET /users/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">users</span>" : <span class="hljs-value">[
+    {
+      "<span class="hljs-attribute">username</span>" : <span class="hljs-value"><span class="hljs-string">"$username_1"</span></span>,
+      "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$user_email_1"</span></span>,
+      "<span class="hljs-attribute">instances</span>" : <span class="hljs-value">[<span class="hljs-string">"$inst_id"</span>, <span class="hljs-string">"$inst_id_2"</span>, <span class="hljs-string">"$inst_id_n"</span>]
+     </span>},
+     {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+     {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>}
+   ]
+ </span>}</code></pre><hr>
+<hr>
+<h3 id="tokens"><a class="header-link" href="#tokens"></a>Tokens</h3>
+<p>Tokens are used to perform requests, but they are temporary and thus the user must be revalidated every once in a while.</p>
+<hr>
+<h4 id="validate-a-user-get-an-access-token"><a class="header-link" href="#validate-a-user-get-an-access-token"></a>Validate a User, get an Access Token</h4>
+<p>This is used to get a temp access token that authorizes and validates the given user.</p>
+<p><code>POST /tokens/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td> username</td>
+<td><em>string</em></td>
+<td>the name of the user being validated.</td>
+<td>No</td>
+</tr>
+<tr>
+<td> password</td>
+<td><em>string</em></td>
+<td>The user&#39;s password.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">username</span>" : <span class="hljs-value"><span class="hljs-string">"$username"</span></span>,
+  "<span class="hljs-attribute">token</span>" : <span class="hljs-value"><span class="hljs-string">"$token_str"</span></span>,
+ }</code></pre><hr>
+<hr>
+<h3 id="compute"><a class="header-link" href="#compute"></a>Compute</h3>
+<p>This domain allows authenticated users (with an active access-token) to create and manage VM resources.</p>
+<hr>
+<h4 id="list-available-instances"><a class="header-link" href="#list-available-instances"></a>List Available Instances</h4>
+<p>Get a list of all available instances. Instances are returned as a list of dictionaries.</p>
+<p><code>GET /compute/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   username</td>
+<td><em>string</em></td>
+<td>Creator of instances returned.</td>
+<td>Yes (Defaults to &quot;ALL&quot;)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">instances</span>" : <span class="hljs-value">[
+    { 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_name_1"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_id_1"</span></span>,
+        "<span class="hljs-attribute">ip</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_ip_1"</span></span>,
+        "<span class="hljs-attribute">creator</span>" : <span class="hljs-value"><span class="hljs-string">"$creator_name_1"</span></span>,
+        "<span class="hljs-attribute">status</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_status_1"</span></span>,
+        "<span class="hljs-attribute">class</span>"  : <span class="hljs-value"><span class="hljs-string">"$inst_class_1"</span></span>,
+        "<span class="hljs-attribute">disk</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_disk_1"</span></span>,
+        "<span class="hljs-attribute">image</span>"  : <span class="hljs-value"><span class="hljs-string">"$inst_image_id_1"</span></span>,
+        "<span class="hljs-attribute">created_at</span>"  : <span class="hljs-value"><span class="hljs-string">"$created_timestamp_1"</span>
+      </span>},
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+    ]
+ </span>}</code></pre><hr>
+<h4 id="get-specific-instance"><a class="header-link" href="#get-specific-instance"></a>Get Specific Instance</h4>
+<p>Get a list of all available instances. Instances are returned as a list of dictionaries.</p>
+<p><code>GET /compute/{instance_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">instance</span>" : <span class="hljs-value">{ 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_name"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_id"</span></span>,
+        "<span class="hljs-attribute">ip</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_ip"</span></span>,
+        "<span class="hljs-attribute">creator</span>" : <span class="hljs-value"><span class="hljs-string">"$creator_name"</span></span>,
+        "<span class="hljs-attribute">status</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_status"</span></span>,
+        "<span class="hljs-attribute">class</span>"  : <span class="hljs-value"><span class="hljs-string">"$inst_class"</span></span>,
+        "<span class="hljs-attribute">disk</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_disk"</span></span>,
+        "<span class="hljs-attribute">image</span>"  : <span class="hljs-value"><span class="hljs-string">"$inst_image_id"</span></span>,
+        "<span class="hljs-attribute">created_at</span>"  : <span class="hljs-value"><span class="hljs-string">"$created_timestamp"</span>
+      </span>}
+ </span>}</code></pre><hr>
+<h4 id="create-new-instance"><a class="header-link" href="#create-new-instance"></a>Create New Instance</h4>
+<p>Create a new Virtual-Machine instance. As of right now the only provider is Digital Ocean, that might change in the near future.</p>
+<p><code>POST /compute/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>instance_name</td>
+<td><em>string</em></td>
+<td>Chosen name of the instance (unique)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>    image</td>
+<td><em>string</em></td>
+<td>ID of a boot-image (custom or public)</td>
+<td>Yes (defaults to Ubuntu 14.04 x86)</td>
+</tr>
+<tr>
+<td>    class</td>
+<td><em>string</em></td>
+<td>Chosen name of the instance (unique)</td>
+<td>YES (defaults to 1GB/30GB DO Inst)      </td>
+</tr>
+<tr>
+<td>    Provider</td>
+<td><em>string</em></td>
+<td>Provider ID Tag (not used currently)</td>
+<td>Yes (defaults to &quot;DO&quot;)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">instance</span>" : <span class="hljs-value">{ 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_name"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_id"</span></span>,
+        "<span class="hljs-attribute">ip</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_ip"</span></span>,
+        "<span class="hljs-attribute">creator</span>" : <span class="hljs-value"><span class="hljs-string">"$creator_name"</span></span>,
+        "<span class="hljs-attribute">status</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_status"</span></span>,
+        "<span class="hljs-attribute">class</span>"  : <span class="hljs-value"><span class="hljs-string">"$inst_class"</span></span>,
+        "<span class="hljs-attribute">disk</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_disk"</span></span>,
+        "<span class="hljs-attribute">image</span>"  : <span class="hljs-value"><span class="hljs-string">"$inst_image_id"</span></span>,
+        "<span class="hljs-attribute">created_at</span>"  : <span class="hljs-value"><span class="hljs-string">"$created_timestamp"</span>
+      </span>}
+ </span>}</code></pre><hr>
+<h4 id="delete-vm-instance"><a class="header-link" href="#delete-vm-instance"></a>Delete VM Instance</h4>
+<p>Deletes a VM instance. Root user can delete any instance, other users can only delete their own.</p>
+<p><code>DELETE /compute/{instance_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>take_snapshot</td>
+<td><em>bool</em></td>
+<td>Will cause the instance to be imaged before deletion.</td>
+<td>Yes (default = False)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">instance</span>" : <span class="hljs-value">{ 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_name"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$inst_id"</span>
+      </span>}
+ </span>}</code></pre><hr>
+<hr>
+<h3 id="snapshots"><a class="header-link" href="#snapshots"></a>Snapshots</h3>
+<p>Snapshots are just disk-images of virtual-machines at a given point in time. They can they be used to spin up other machines which are exact copies of the imaged-machine very quickly. Note that machines must be shutdown to perform a snapshot, the shutdown process can be performed via this API. See below for details.</p>
+<hr>
+<h4 id="list-available-snapshots"><a class="header-link" href="#list-available-snapshots"></a>List Available Snapshots</h4>
+<p>Get a list of all available snapshots. Snapshots are returned as a list of dictionaries.</p>
+<p><code>GET /snapshots/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">snapshots</span>" : <span class="hljs-value">[
+    { 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$snap_name_1"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$snap_id_1"</span></span>,
+        "<span class="hljs-attribute">inst_name</span>" : <span class="hljs-value"><span class="hljs-string">"$instance_name_1"</span></span>,
+        "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_timestamp_1"</span></span>,
+        "<span class="hljs-attribute">description</span>" : <span class="hljs-value"><span class="hljs-string">"$snapshot_description_1"</span></span>,
+      },
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+      {"<span class="hljs-attribute">...</span>" : <span class="hljs-value"><span class="hljs-string">"..."</span></span>},
+    ]
+ </span>}</code></pre><hr>
+<h4 id="get-specific-snapshot"><a class="header-link" href="#get-specific-snapshot"></a>Get Specific Snapshot</h4>
+<p>Get details about a specific snapshot by ID.</p>
+<p><code>GET /snapshots/{snapshot_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">snapshot</span>" : <span class="hljs-value">{ 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$snap_name"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$snap_id"</span></span>,
+        "<span class="hljs-attribute">inst_name</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_name"</span></span>,
+        "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_timestamp"</span></span>,
+        "<span class="hljs-attribute">description</span>" : <span class="hljs-value"><span class="hljs-string">"$snapshot_description"</span></span>,
+      }
+ </span>}</code></pre><hr>
+<h4 id="create-new-snapshot"><a class="header-link" href="#create-new-snapshot"></a>Create New Snapshot</h4>
+<p>Create a new snapshot of an existing Virtual-Machine instance. As said above, machines must be shut-down before they can be imaged. You can supply the <code>shutdown</code> parameter in the below <code>POST</code> to cause us to shutdown the virtual machine before imaging it, afterwards re-enabling it.</p>
+<p><code>POST /snapshots/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>snapshot_name</td>
+<td><em>string</em></td>
+<td>Chosen name for the Snapshot (unique).</td>
+<td>No</td>
+</tr>
+<tr>
+<td> instance_id</td>
+<td><em>string</em></td>
+<td>ID of an existing VM instance to image.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>description</td>
+<td><em>string</em></td>
+<td>Short description of the snapshot.</td>
+<td>Yes (default = &quot;&quot;)</td>
+</tr>
+<tr>
+<td> shutdown</td>
+<td><em>bool</em></td>
+<td>Tell us to shutdown the running instance.</td>
+<td>Yes (default = No)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">snapshot</span>" : <span class="hljs-value">{ 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$snap_name"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$snap_id"</span></span>,
+        "<span class="hljs-attribute">inst_name</span>" : <span class="hljs-value"><span class="hljs-string">"$inst_name"</span></span>,
+        "<span class="hljs-attribute">created_at</span>" : <span class="hljs-value"><span class="hljs-string">"$creation_timestamp"</span></span>,
+        "<span class="hljs-attribute">description</span>" : <span class="hljs-value"><span class="hljs-string">"$snapshot_description"</span></span>,
+      }
+ </span>}</code></pre><hr>
+<h4 id="delete-snapshot"><a class="header-link" href="#delete-snapshot"></a>Delete Snapshot</h4>
+<p>Deletes an existing snapshot. Right now only root user can delete snapshots.</p>
+<p><code>DELETE /snapshots/{snapshot_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">instance</span>" : <span class="hljs-value">{ 
+        "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$snap_name"</span></span>,
+        "<span class="hljs-attribute">id</span>"   : <span class="hljs-value"><span class="hljs-string">"$snap_id"</span>
+      </span>}
+ </span>}</code></pre><hr>
+<hr>
+<h3 id="ssh-keys"><a class="header-link" href="#ssh-keys"></a>SSH Keys</h3>
+<p>SSHKeys can be set for each user in the DevOps database, then when that user creates a virtual machine instance, the ssh key for that user will be automatically added to the instance. This allows the user to log into their new instance immediately without having to configure passwords.</p>
+<h4 id="create-ssh-key-for-user"><a class="header-link" href="#create-ssh-key-for-user"></a>Create SSH Key for User</h4>
+<p>Create a new SSH key entry in the database and stored on Digital Ocean&#39;s servers. As said above, after this is done, anytime this user makes a VM instance they will be able to log in just by giving their ssh-key password..</p>
+<p><code>POST /sshkeys/</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>Users temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>  username</td>
+<td><em>string</em></td>
+<td>User that the key will apply to.</td>
+<td>Yes (defaults to caller)</td>
+</tr>
+<tr>
+<td> key_name</td>
+<td><em>string</em></td>
+<td>A short name for the key</td>
+<td>No</td>
+</tr>
+<tr>
+<td>pubkey_text</td>
+<td><em>string</em></td>
+<td>The raw public key text for the key.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>fingerprint</td>
+<td><em>string</em></td>
+<td>The fingerprint for the ssh key.</td>
+<td>Yes (not currently used)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">key</span>"  : <span class="hljs-value">{
+             "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$keyname"</span></span>,
+             "<span class="hljs-attribute">username</span>" : <span class="hljs-value"><span class="hljs-string">"$username"</span></span>,
+             "<span class="hljs-attribute">keyid</span>"    : <span class="hljs-value"><span class="hljs-string">"$keyid"</span>
+           </span>}
+ </span>}</code></pre><hr>
+    </article>
+  </body>
+</html>
