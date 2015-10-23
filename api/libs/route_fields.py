@@ -33,7 +33,7 @@ def marshal_result(res) :
 user_fields = {
     'name'            : fields.String,
     'email'           : fields.String,
-    'user_id'         : fields.String(attribute="id"),
+    'user_id'         : fields.Integer(attribute="id"),
     'uri'             : fields.Url(USER_ENDPOINT, absolute=True),
     'active'          : fields.Boolean,
     'transactions_url': fields.String,
