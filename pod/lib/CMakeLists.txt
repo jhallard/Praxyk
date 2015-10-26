@@ -6,6 +6,7 @@ CONFIGURE_FILE(
 @ONLY)
 
 SET(praxyk_sources
+    facial_rec.cpp
     ocr.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/paths.cpp
     spam.cpp

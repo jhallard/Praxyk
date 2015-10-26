@@ -11,20 +11,24 @@ namespace praxyk {
 typedef struct {
     int x;
     int y;
-} coords_t;
+
+    int width;
+    int height;
+} box_t;
 
 typedef struct {
-    coords_t head;
-    coords_t left_eye;
-    coords_t right_eye;
-} face_coords_t;
+    box_t head;
+    box_t left_eye;
+    box_t right_eye;
+    box_t mouth;
+} face_box_t;
 
-typedef std::vector<face_coords_t> face_coords_vector_t;
+typedef std::vector<face_box_t> face_boxes_t;
 
-PRAXYK_API std::vector<face_coords_t> detect_faces_in_image(
+PRAXYK_API face_boxes_t detect_faces_in_image(
     const std::string &filename
 );
 
 }
 
-/* INCLUDED_PRAXYK_FACIAL_REC_HPP */
+#endif /* INCLUDED_PRAXYK_FACIAL_REC_HPP */

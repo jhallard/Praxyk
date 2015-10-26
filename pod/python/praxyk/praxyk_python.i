@@ -1,4 +1,5 @@
 %{
+    #include <praxyk/facial_rec.hpp>
     #include <praxyk/ocr.hpp>
     #include <praxyk/paths.hpp>
     #include <praxyk/spam.hpp>
@@ -26,6 +27,10 @@
 
 %include <praxyk_docstrings.i>
 %include <praxyk/config.hpp>
+
+%include <praxyk/facial_rec.hpp>
+%template(face_boxes) std::vector<praxyk::face_box_t>;
+
 %include <praxyk/ocr.hpp>
 %include <praxyk/paths.hpp>
 %include <praxyk/spam.hpp>
