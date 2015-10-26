@@ -1,3 +1,5 @@
+ADD_SUBDIRECTORY(landmark)
+
 CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/paths.cpp.in
     ${CMAKE_CURRENT_BINARY_DIR}/paths.cpp
@@ -26,6 +28,8 @@ SET(praxyk_libs
     ${Mlpack_LIBRARIES}
     ${LIBXML2_LIBRARIES}
     ${OpenCV_LIBRARIES}
+    clandmark
+    flandmark
 )
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
