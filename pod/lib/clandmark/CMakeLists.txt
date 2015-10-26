@@ -62,6 +62,6 @@ SET(landmark_data
 )
 INSTALL(
     FILES ${landmark_data}
-    DESTINATION ${PKG_DATA_DIR}/landmark
+    DESTINATION ${PKG_DATA_DIR}/clandmark
     COMPONENT "Data"
 )
