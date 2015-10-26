@@ -22,6 +22,8 @@ ELSE(OPENMP_FOUND)
     SET(USE_OPENMP OFF)
 ENDIF(OPENMP_FOUND)
 
+ADD_DEFINITIONS(-fPIC)
+
 SET(clandmark_srcs
     CLandmark.cpp
     CFeaturePool.cpp

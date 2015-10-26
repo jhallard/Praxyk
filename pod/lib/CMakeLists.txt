@@ -1,4 +1,4 @@
-ADD_SUBDIRECTORY(landmark)
+ADD_SUBDIRECTORY(clandmark)
 
 CONFIGURE_FILE(
     ${CMAKE_CURRENT_SOURCE_DIR}/paths.cpp.in
