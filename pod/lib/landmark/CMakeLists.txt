@@ -52,3 +52,14 @@ SET(flandmark_srcs
 ADD_LIBRARY(flandmark STATIC ${flandmark_srcs})
 TARGET_LINK_LIBRARIES(flandmark clandmark)
 SET_TARGET_PROPERTIES(clandmark PROPERTIES POSITION_INDEPENDENT_CODE TRUE)	# -fPIC
+
+SET(landmark_data
+    data/8Lfrontal_SPLIT_1_init.xml
+    data/flandmark_model.xml
+    data/haarcascade_frontalface_alt.xml
+)
+INSTALL(
+    FILES ${landmark_data}
+    DESTINATION ${PKG_DATA_DIR}/landmark
+    COMPONENT "Data"
+)
