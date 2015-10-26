@@ -16,6 +16,7 @@ INCLUDE_DIRECTORIES(
     ${Tesseract_INCLUDE_DIR}
     ${Mlpack_INCLUDE_DIR}
     ${LIBXML2_INCLUDE_DIR}
+    ${OpenCV_INCLUDE_DIR}
 )
 
 SET(praxyk_libs
@@ -24,6 +25,7 @@ SET(praxyk_libs
     ${Boost_LIBRARIES}
     ${Mlpack_LIBRARIES}
     ${LIBXML2_LIBRARIES}
+    ${OpenCV_LIBRARIES}
 )
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
