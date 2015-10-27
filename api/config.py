@@ -20,10 +20,12 @@ def load_json_file(fn) :
     return None
 
 
-DB_CONF_FILE  = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
-API_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
+DB_CONF_FILE     = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
+API_CONF_FILE    = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
+STRIPE_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/stripeconfig"
 dbconf        = load_json_file(DB_CONF_FILE)
 apiconf       = load_json_file(API_CONF_FILE)
+stripeconf    = load_json_file(STRIPE_CONF_FILE)
 
 dbuser     = dbconf['dbuser']
 dbip       = dbconf['dbip']
@@ -38,6 +40,13 @@ RQ_DEFAULT_PASSWORD = REDIS_CONF['dbpasswd']
 
 SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s/%s' % (dbuser, dbpasswd, dbip, dbname)
 SQLALCHEMY_ECHO         = True
+
+#STIPE API KEYS
+stripe_test_secret_key = stripeconf['test_secret_key']
+stripe_test_publishable_key = stripeconf['test_publishable_key']
+stripe_live_secret_key = stripeconf['live_secret_key']
+stripe_live_publishable_key = stripeconf['live_publishable_key']
+STRIPE_TEST_MODE = True;
 
 SECRET_KEY = os.urandom(24)
 

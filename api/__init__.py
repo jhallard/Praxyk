@@ -61,6 +61,8 @@ TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
 USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
+PAYMENT_ROUTE        = VERSION + "/payment/"
+PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/"
 
 # endpoints
 TRANSACTIONS_ENDPOINT = 'transactions'
@@ -76,6 +78,8 @@ CONFIRM_ENDPOINT      = 'confirm'
 POD_ENDPOINT            = "pod"
 POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
 POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
+PAYMENT_HANDLER_ENDPOINT = 'payment_handler'
+PAYMENT_ENDPOINT = 'payment'
 
 # services
 SERVICE_POD = "pod"
@@ -119,6 +123,16 @@ redis_pw   = REDIS_CONF['dbpasswd']
 redis_num  = REDIS_CONF['dbnum']
 # redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
 redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw, db=redis_num)
+
+#Stripe api keys
+stripe_secret_key = None;
+stripe_publishable_key = None;
+if STRIPE_TEST_MODE :
+   stripe_secret_key = stripe_test_secret_key
+   stripe_publishable_key = stripe_test_publishable_key
+else:
+   stripe_secret_key = stripe_live_secret_key
+   stripe_publishable_key = stripe_live_publishable_key
 
 
 
