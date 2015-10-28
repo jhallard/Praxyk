@@ -21,6 +21,7 @@
     }
 }
 
+%include <std_map.i>
 %include <std_string.i>
 %include <std_vector.i>
 %template(string_vector) std::vector<std::string>;
@@ -29,7 +30,8 @@
 %include <praxyk/config.hpp>
 
 %include <praxyk/facial_rec.hpp>
-%template(face_boxes) std::vector<praxyk::face_box_t>;
+%template(face_map)  std::map<std::string, praxyk::coords_t>;
+%template(face_maps) std::vector<std::map<std::string, praxyk::coords_t> >;
 
 %include <praxyk/ocr.hpp>
 %include <praxyk/paths.hpp>

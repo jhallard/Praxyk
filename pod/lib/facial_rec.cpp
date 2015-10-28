@@ -9,6 +9,7 @@
 #include <opencv2/objdetect/objdetect.hpp>
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -28,17 +29,35 @@ namespace praxyk {
         return result;
     }
 
-    face_boxes_t detect_faces_in_image(
+    static PRAXYK_INLINE face_maps_t dummy_map() {
+        face_maps_t ret(5);
+        for(size_t i = 0; i < 5; i++) {
+            for(size_t j = 0; j < 10; j++) {
+                std::string key;
+                std::stringstream stream;
+                stream << "key-" << j;
+                stream >> key;
+
+                coords_t val;
+                val.x = 37*(i*j+1);
+                val.y = 11*(i*(j/2)+3);
+
+                ret[i][key] = val;
+            }
+        }
+        return ret;
+    }
+
+    face_maps_t detect_faces_in_image(
         const std::string &filename
     ) {
         const std::string flandmark_model = get_clandmark_dir() + "/flandmark_model.xml";
         const std::string cascade_name = get_clandmark_dir() + "/haarcascade_frontalface_alt.xml";
 
-        face_boxes_t ret;
-
         /*
          * Initialization
          */
+        face_maps_t ret = dummy_map(); // For testing use
         clandmark::Flandmark* flandmark = clandmark::Flandmark::getInstanceOf(
                                                flandmark_model.c_str(), false
                                           );
@@ -85,7 +104,7 @@ namespace praxyk {
         );
         std::cout << "Faces detected: " << faces.size() << std::endl;
         for(size_t i = 0; i < faces.size(); i++) {
-            face_box_t face_box;
+            /*face_box_t face_box;
             // We already have the head itself, so put it in result
             face_box.head.x      = faces[i].x;
             face_box.head.y      = faces[i].y;
@@ -96,7 +115,7 @@ namespace praxyk {
             flandmark->detect_optimized(cimg_gray, bbox);
 
             ret.push_back(face_box);
-            delete cimg_gray;
+            delete cimg_gray;*/
         }
 
         /*
