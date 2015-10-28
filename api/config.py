@@ -41,13 +41,17 @@ RQ_DEFAULT_PASSWORD = REDIS_CONF['dbpasswd']
 SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s/%s' % (dbuser, dbpasswd, dbip, dbname)
 SQLALCHEMY_ECHO         = True
 
-#STIPE API KEYS
-stripe_test_secret_key = stripeconf['test_secret_key']
-stripe_test_publishable_key = stripeconf['test_publishable_key']
-stripe_live_secret_key = stripeconf['live_secret_key']
-stripe_live_publishable_key = stripeconf['live_publishable_key']
-STRIPE_TEST_MODE = True;
-
 SECRET_KEY = os.urandom(24)
 
 DEBUG = True
+
+#Stripe api keys
+stripe_secret_key = None
+stripe_publishable_key = None
+STRIPE_TEST_MODE = True
+if DEBUG:
+   stripe_secret_key = stripeconf['test_secret_key']
+   stripe_publishable_key = stripeconf['test_publishable_key']
+else:
+   stripe_secret_key = stripeconf['live_secret_key']
+   stripe_publishable_key = stripeconf['live_publishable_key']

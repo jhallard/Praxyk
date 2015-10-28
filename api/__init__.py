@@ -18,7 +18,7 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 # from flask.ext.rq import RQ
 
 import redis
-from config import apiconf, REDIS_CONF
+from config import apiconf, REDIS_CONF, stripeconf
 
 sys.path.append('../')
 
@@ -110,7 +110,7 @@ PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER'] = 'from@example.com'
 TOKEN_EXPIRATION = apiconf['token_expiration']
 
 
-from models.sql.user import User, Role, Transaction, Token
+from models.sql.user import User, Role, Transaction, Token, Payments
 
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(PRAXYK_API_APP, user_datastore)
@@ -123,16 +123,6 @@ redis_pw   = REDIS_CONF['dbpasswd']
 redis_num  = REDIS_CONF['dbnum']
 # redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
 redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw, db=redis_num)
-
-#Stripe api keys
-stripe_secret_key = None;
-stripe_publishable_key = None;
-if STRIPE_TEST_MODE :
-   stripe_secret_key = stripe_test_secret_key
-   stripe_publishable_key = stripe_test_publishable_key
-else:
-   stripe_secret_key = stripe_live_secret_key
-   stripe_publishable_key = stripe_live_publishable_key
 
 
 

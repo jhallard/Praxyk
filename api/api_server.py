@@ -33,8 +33,8 @@ from libs.confirm_route import ConfirmRoute
 from libs.pod.pod_route import POD_Route
 from libs.pod.ocr_route import POD_OCR_Route
 from libs.pod.bayes_spam_route import POD_Bayes_Spam_Route
-from libs.payments import Payments
-from libs.payment_handler import Payment_Handler
+from libs.payment_route import PaymentRoute
+from libs.payment_handler_route import PaymentHandlerRoute
 
 # queue includes
 from queue.task_lib import *
@@ -109,7 +109,7 @@ def create_initial_users() :
         db.session.commit()
 
         for user in INITIAL_USERS:
-            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], active=True)
+            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], active=True, coupon=None)
             user_datastore.activate_user(new_user)
             role = user_datastore.find_role(user['role'])
             user_datastore.add_role_to_user(new_user, role)

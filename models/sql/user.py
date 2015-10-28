@@ -24,10 +24,16 @@ from flask.ext.security.utils import encrypt_password, verify_password
 from flask import url_for
 from datetime import datetime as dt
 
+#stripe api
+import stripe
+from api.config import stripe_secret_key
+stripe.api_key = stripe_secret_key
+
 # grab other models we depend on
 from token import *
 from transaction import *
 from role import *
+from payments import *
 
 
 class User(db.Model, UserMixin):
@@ -39,9 +45,11 @@ class User(db.Model, UserMixin):
     _password    = db.Column(db.String(255))
     active       = db.Column(db.Boolean())
     created_at   = db.Column(db.DateTime)
+    stripe_id    = db.Column(db.String(32), unique=True)
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
     roles        = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
     tokens       = db.relationship('Token', backref='user', lazy='dynamic')
+    payments     = db.relationship('Payments', backref='user', lazy='dynamic')
 
     @hybrid_property
     def password(self) :
@@ -62,6 +70,7 @@ class User(db.Model, UserMixin):
         self.created_at = dt.now()
         self.active = active
         self.roles = roles
+        self.stripe_id = create_customer(email)
 
     def __repr__(self):
         return '<ID %r, Email %r>' % (self.id, self.email)
@@ -80,3 +89,8 @@ class User(db.Model, UserMixin):
         except : 
             return None
         return None
+    
+def create_customer(email,coupon):
+    result_json = stripe.Customer.create(email=email,coupon=coupon)
+    return result_json['id'] 
+        

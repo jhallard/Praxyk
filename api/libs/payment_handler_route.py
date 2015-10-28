@@ -32,6 +32,7 @@ class PaymentHandlerRoute(Resource) :
         self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
         super(ConfirmRoute, self).__init__()
+
    #Only Stripe has access to this api route
     def post(self, id) :
         try :
