@@ -5,15 +5,26 @@ export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 
 cd $HOME
-sudo apt-get install libboost-math-dev libboost-program-options-dev libboost-random-dev \
+
+sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
 libboost-test-dev libxml2-dev libarmadillo-dev automake libtool cmake swig python-dev \
-libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev
+libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev\
+clang gcc g++
+
+git clone https://github.com/uricamic/clandmark.git
+cd clandmark
+mkdir build && cd build
+cmake ..
+make -j4
+sudo make install
+
 git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
 cd tesseract
 ./autogen.sh
 ./configure
 sudo make install
-cd $HOME
+
+cd /
 git clone https://github.com/tesseract-ocr/tessdata
 sudo cp -r tessdata/* /usr/local/share/tessdata
 git clone https://github.com/mlpack/mlpack.git -b mlpack-1.0.12
