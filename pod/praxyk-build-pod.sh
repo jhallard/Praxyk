@@ -9,8 +9,9 @@ cd /
 sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
 libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev \
-clang gcc g++ ssh
+clang gcc g++ ssh libopencv-dev
 
+wget https://packages.debian.org/sid/amd64/cmake/download
 git clone https://github.com/uricamic/clandmark.git
 cd clandmark
 mkdir build && cd build
