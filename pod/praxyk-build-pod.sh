@@ -8,7 +8,7 @@ cd /
 
 sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
-libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev\
+libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev \
 clang gcc g++ ssh
 
 git clone https://github.com/uricamic/clandmark.git
