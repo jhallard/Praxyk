@@ -4,10 +4,10 @@ export PRAXYK_POD_DIR=$PWD
 export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 
-cd $HOME
+cd /
 
 sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
-libboost-test-dev libxml2-dev libarmadillo-dev automake libtool cmake swig python-dev \
+libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
 libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev\
 clang gcc g++ ssh
 
@@ -17,6 +17,7 @@ mkdir build && cd build
 cmake ..
 make -j4
 sudo make install
+cd /
 
 git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
 cd tesseract
