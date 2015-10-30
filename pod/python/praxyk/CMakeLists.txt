@@ -31,6 +31,7 @@ print(sysconfig.get_python_lib(plat_specific=True, prefix=''))
 
     SET(PRAXYK_PYTHON_FILES
         __init__.py
+        facial_tools.py
         ${CMAKE_CURRENT_BINARY_DIR}/praxyk_python.py
     )
 
