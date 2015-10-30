@@ -29,34 +29,89 @@ from libs.route_fields import *
 class PaymentRoute(Resource) :
 
     def __init__(self) :
-        self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
-        super(ConfirmRoute, self).__init__()
+        super(PaymentRoute, self).__init__()
+        
    #Add Payment info only if none on file
+    @requires_auth
     def post(self, id) :
         try :
+            user = User.query.get(id)
+        
+            if not user.card_id == None :
+               return jsonify({'code':400,'message':"There is already a card on file! Please delete that card to add another."})
+               
+            self.reqparse.add_argument('name', type=str, required=True, location='json')
+            self.reqparse.add_argument('address1', type=str, required=True, location='json')
+            self.reqparse.add_argument('address2', type=str, required=True, location='json')
+            self.reqparse.add_argument('city', type=str, required=True, location='json')
+            self.reqparse.add_argument('state', type=str, required=True, location='json')
+            self.reqparse.add_argument('zip', type=int, required=True, location='json')
+            self.reqparse.add_argument('credit_number', type=int, required=True, location='json')
+            self.reqparse.add_argument('exp_month', type=int, required=True, location='json')
+            self.reqparse.add_argument('exp_year', type=int, required=True, location='json')
+            self.reqparse.add_argument('cvc', type=str, required=True, location='json')
             args = self.reqparse.parse_args()
-            email = self.confirm_token(id)
-            if not email :
-                return abort(404)	
             
-            user = User.query.filter_by(email=email).first()
-            user.active=True
-
-            db.session.commit()
-            return redirect("http://www.praxyk.com/login.html", code=302)
+            token = stripe.Token.create(
+               card={
+                  "number":args.credit_number,
+                  "exp_month":args.exp_month,
+                  "exp_year":args.exp_year,
+                  "cvc":args.cvc
+                  "name":args.name,
+                  "address_city":args.city,
+                  "address_line1":args.address1,
+                  "address_line2":args.address2,
+                  "address_state":args.state,
+                  "address_zip":args.zip
+                  
+               })
+               
+               customer = stripe.Customer.retrieve(user.customer_id)
+               card = customer.sources.create(source=token.id)
+               
+               user.card_id = card.id
+               
+               db.session.add(user)
+               db.session.commit()
+               
+               return jsonify({'code':200,'message':'Your card was successfully added!'})
+            
+        except stripe.error.CardError, e:            
+            return jsonify({'code': 400,'message':'There was an error with your card! Please make sure that all details are correct.'})
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)
+            
    #Retrieve Payment Info
     def get(self, id) :
         return self.post(id)
-   #Update Payment Info
-    def put(self,id):
-        return self.post(id)
+        
    #Remove Payment Info
+   @requires_auth
     def delete(self,id):
-        return self.post(id)
+        user = User.query.get(id)
+        try:
+         if user.card_id == None:
+            return jsonify({'code':400,'message':"There is not a card on file!"})
+            
+         customer = stripe.Customer.retrieve(user.customer_id)
+         card = customer.sources.retrieve(user.card_id).delete()
+         
+         if not card.deleted :
+            return jsonify({'code':400,'message':"There was a problem removing you card!"})
+            
+         user.card_id = None
+         
+         db.session.add(user)
+         db.session.commit()
+        
+        return jsonify({'code':200,'message':'Your card was successfully removed!'})
+        
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            abort(404)
 
 
 
