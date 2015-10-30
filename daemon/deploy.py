@@ -4,8 +4,8 @@ import os
 import subprocess
 
 def deploy_container(host_addr):
-    print('Running docker container praxyk-latest...')
-    command = ['docker', 'run', 'praxyk:latest']
+    print('Running docker container praxyk:latest...')
+    command = ['docker', 'run', '-d', 'praxyk:latest']
     try:
         pipe = subprocess.Popen(command)
     except Exception as e:

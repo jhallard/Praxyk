@@ -11,8 +11,9 @@ import subprocess
 class MyDaemon(Daemon):
     def run(self):
         print('Generating queue...')
-        q = queue.gen_queue('localhost', 6379, '')
+        q = queue.gen_queue('fileserver.local', 6379, '')
         print('Done')
+        results = list()
         threads = dict()
         containers = dict()
         print('Getting number of threads %s can handle...' % socket.gethostname())
