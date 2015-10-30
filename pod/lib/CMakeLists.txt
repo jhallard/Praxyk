@@ -15,6 +15,7 @@ SET(praxyk_sources
 INCLUDE_DIRECTORIES(
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/clandmark
     ${FANN_INCLUDE_DIRS}
     ${Tesseract_INCLUDE_DIR}
     ${Mlpack_INCLUDE_DIR}
