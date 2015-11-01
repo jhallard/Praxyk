@@ -256,6 +256,12 @@ public:
 	 */
 	inline int getLandmarksCount(void) { return vertices.size(); }
 
+    /**
+     * @brief getLandmarksNames
+     * @return
+     */
+    inline const std::vector<Vertex>& getVertices(void) { return vertices; }
+
 	/**
 	 * @brief getEdgesCount
 	 * @return
@@ -510,6 +516,7 @@ protected:
 	// Output
 	fl_double_t *landmarksPositions;					/**< */
 	int *landmarksPositionsNF;							/**< */
+    std::vector<std::string> landmarksNames;
 
 	// Graph
 	std::vector< Vertex > vertices;						/**< */

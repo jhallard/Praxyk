@@ -95,6 +95,8 @@ void CLandmark::init(
 	landmarksPositions = new fl_double_t[2*kLandmarksCount];
 	landmarksPositionsNF = new int[2*kLandmarksCount];
 
+    landmarksNames = std::vector<std::string>(kLandmarksCount);
+
 	memset(groundTruthPositions, 0, sizeof(fl_double_t)*2*kLandmarksCount);
 	memset(groundTruthPositionsNF, 0, sizeof(int)*2*kLandmarksCount);
 	memset(landmarksPositions, 0, sizeof(fl_double_t)*2*kLandmarksCount);
