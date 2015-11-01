@@ -85,18 +85,19 @@ namespace praxyk {
         );
         std::cout << "Faces detected: " << faces.size() << std::endl;
         for(size_t i = 0; i < faces.size(); i++) {
-            /*face_box_t face_box;
-            // We already have the head itself, so put it in result
-            face_box.head.x      = faces[i].x;
-            face_box.head.y      = faces[i].y;
-            face_box.head.width  = faces[i].width;
-            face_box.head.height = faces[i].height;
+            face_map_t face_map;
+            face_map["head"] = coords_t();
+            face_map["head"].x = faces[i].x;
+            face_map["head"].y = faces[i].y;
+            face_map["dimensions"].x = faces[i].width;
+            face_map["dimensions"].y = faces[i].height;
 
             cimg_library::CImg<unsigned char>* cimg_gray = cvImg_to_CImg(image_gray);
             flandmark->detect_optimized(cimg_gray, bbox);
+            clandmark::fl_double_t* landmarks = flandmark->getLandmarks();
 
-            ret.push_back(face_box);
-            delete cimg_gray;*/
+            ret.push_back(face_map);
+            delete cimg_gray;
         }
 
         /*
