@@ -29,25 +29,6 @@ namespace praxyk {
         return result;
     }
 
-    static PRAXYK_INLINE face_maps_t dummy_map() {
-        face_maps_t ret(5);
-        for(size_t i = 0; i < 5; i++) {
-            for(size_t j = 0; j < 10; j++) {
-                std::string key;
-                std::stringstream stream;
-                stream << "key-" << j;
-                stream >> key;
-
-                coords_t val;
-                val.x = 37*(i*j+1);
-                val.y = 11*(i*(j/2)+3);
-
-                ret[i][key] = val;
-            }
-        }
-        return ret;
-    }
-
     face_maps_t detect_faces_in_image(
         const std::string &filename
     ) {
@@ -57,7 +38,7 @@ namespace praxyk {
         /*
          * Initialization
          */
-        face_maps_t ret = dummy_map(); // For testing use
+        face_maps_t ret;
         clandmark::Flandmark* flandmark = clandmark::Flandmark::getInstanceOf(
                                                flandmark_model.c_str(), false
                                           );
