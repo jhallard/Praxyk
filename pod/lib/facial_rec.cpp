@@ -83,7 +83,9 @@ namespace praxyk {
             1.1, 2, (0 | CV_HAAR_SCALE_IMAGE),
             cv::Size(30, 30)
         );
+        std::cout << faces.size() << " faces" << std::endl;
         for(size_t i = 0; i < faces.size(); i++) {
+            std::cout << i << std::endl;
             // Bounding box for finding facial features
             bbox[0] = faces[i].x;
             bbox[1] = faces[i].y;
@@ -99,24 +101,24 @@ namespace praxyk {
             face_map["head"] = coords_t();
             face_map["head"].x = faces[i].x;
             face_map["head"].y = faces[i].y;
+            std::cout << "Face at " << faces[i].x << "," << faces[i].y << std::endl;
             face_map["dimensions"].x = faces[i].width;
             face_map["dimensions"].y = faces[i].height;
 
             // Detect facial features
             cimg_library::CImg<unsigned char>* cimg_gray = cvImg_to_CImg(image_gray);
             flandmark->detect_optimized(cimg_gray, bbox);
+            delete cimg_gray;
 
             // Facial feature information
-            const std::vector<clandmark::Vertex> vertices = flandmark->getVertices();
+            const std::vector<clandmark::Vertex>& vertices = flandmark->getVertices();
             clandmark::fl_double_t* landmarks = flandmark->getLandmarks();
-            for(size_t i = 0; i < vertices.size(); i++) {
-                face_map[vertices[i].name] = coords_t();
-                face_map[vertices[i].name].x = int(landmarks[i*2]);
-                face_map[vertices[i].name].y = int(landmarks[(i*2)+1]);
+            for(size_t j = 1; j < vertices.size(); j++) {
+                face_map[vertices[j].name] = coords_t();
+                face_map[vertices[j].name].x = int(landmarks[j*2]);
+                face_map[vertices[j].name].y = int(landmarks[(j*2)+1]);
             }
             ret.push_back(face_map);
-
-            delete cimg_gray;
         }
 
         /*
