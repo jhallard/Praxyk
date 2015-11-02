@@ -15,11 +15,10 @@ from flask.ext.security import Security, SQLAlchemyUserDatastore
 
 from itsdangerous import URLSafeTimedSerializer
 
-from api import db, CONFIRM_ENDPOINT, USER_ENDPOINT
+from api import db, USER_ENDPOINT,USERS_ENDPOINT
 from api import User, Role, user_datastore
 
 from auth_route import *
-
 from libs.route_fields import *
 
 
@@ -58,7 +57,7 @@ class PaymentRoute(Resource) :
                   "number":args.credit_number,
                   "exp_month":args.exp_month,
                   "exp_year":args.exp_year,
-                  "cvc":args.cvc
+                  "cvc":args.cvc,
                   "name":args.name,
                   "address_city":args.city,
                   "address_line1":args.address1,
@@ -68,15 +67,15 @@ class PaymentRoute(Resource) :
                   
                })
                
-               customer = stripe.Customer.retrieve(user.customer_id)
-               card = customer.sources.create(source=token.id)
+            customer = stripe.Customer.retrieve(user.customer_id)
+            card = customer.sources.create(source=token.id)
                
-               user.card_id = card.id
+            user.card_id = card.id
                
-               db.session.add(user)
-               db.session.commit()
+            db.session.add(user)
+            db.session.commit()
                
-               return jsonify({'code':200,'message':'Your card was successfully added!'})
+            return jsonify({'code':200,'message':'Your card was successfully added!'})
             
         except stripe.error.CardError, e:            
             return jsonify({'code': 400,'message':'There was an error with your card! Please make sure that all details are correct.'})
@@ -85,11 +84,24 @@ class PaymentRoute(Resource) :
             abort(404)
             
    #Retrieve Payment Info
+    @requires_auth
     def get(self, id) :
-        return self.post(id)
+	user = User.query.get(id)
+	if user.card_id == None:
+		return jsonify({'code':200,'message':'Your card was successfully removed!'})
+	try:
+            
+         customer = stripe.Customer.retrieve(user.customer_id)
+         card = customer.sources.retrieve(user.card_id).delete()
         
-   #Remove Payment Info
-   @requires_auth
+         return card
+        
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            abort(404)
+        
+    #Remove Payment Info
+    @requires_auth
     def delete(self,id):
         user = User.query.get(id)
         try:
@@ -107,7 +119,7 @@ class PaymentRoute(Resource) :
          db.session.add(user)
          db.session.commit()
         
-        return jsonify({'code':200,'message':'Your card was successfully removed!'})
+         return jsonify({'code':200,'message':'Your card was successfully removed!'})
         
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
