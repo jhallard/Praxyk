@@ -5,7 +5,7 @@ ln -s ~/.praxyk_travis ~/.praxyk
 
 declare -a arr=("api") # "models" "queue" "website" "pod" "devops" "docs")
 
-sudo apt-get install -y git python-pip build-essential
+apt-get install -y git python-pip build-essential
 
 for i in "${arr[@]}"
 do
