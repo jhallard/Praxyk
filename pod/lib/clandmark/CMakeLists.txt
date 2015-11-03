@@ -57,8 +57,7 @@ TARGET_LINK_LIBRARIES(flandmark clandmark)
 SET_TARGET_PROPERTIES(clandmark PROPERTIES POSITION_INDEPENDENT_CODE TRUE)	# -fPIC
 
 SET(landmark_data
-    data/8Lfrontal_SPLIT_1_init.xml
-    data/flandmark_model.xml
+    data/clandmark_model.xml
     data/haarcascade_frontalface_alt.xml
 )
 INSTALL(

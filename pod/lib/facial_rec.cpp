@@ -31,7 +31,7 @@ namespace praxyk {
     face_maps_t detect_faces_in_image(
         const std::string &filename
     ) {
-        const std::string flandmark_model = get_clandmark_dir() + "/flandmark_model.xml";
+        const std::string clandmark_model = get_clandmark_dir() + "/clandmark_model.xml";
         const std::string cascade_name = get_clandmark_dir() + "/haarcascade_frontalface_alt.xml";
 
         /*
@@ -39,7 +39,7 @@ namespace praxyk {
          */
         face_maps_t ret;
         clandmark::Flandmark* flandmark = clandmark::Flandmark::getInstanceOf(
-                                               flandmark_model.c_str(), false
+                                               clandmark_model.c_str(), false
                                           );
         if(!flandmark) {
             throw std::runtime_error("Failed to initialize CLandmark.");
