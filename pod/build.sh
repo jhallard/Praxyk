@@ -6,10 +6,15 @@ export CXX=/usr/bin/clang++
 
 cd $HOME
 sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
+<<<<<<< HEAD:pod/build.sh
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
 libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev \
 clang gcc g++ ssh libopencv-dev
 
+=======
+libboost-test-dev libxml2-dev libarmadillo-dev automake libtool cmake swig python-dev \
+libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev clang
+>>>>>>> master:pod/praxyk-build-pod.sh
 git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
 cd tesseract
 ./autogen.sh
