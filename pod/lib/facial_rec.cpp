@@ -8,7 +8,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
 
-#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -83,9 +82,7 @@ namespace praxyk {
             1.1, 2, (0 | CV_HAAR_SCALE_IMAGE),
             cv::Size(30, 30)
         );
-        std::cout << faces.size() << " faces" << std::endl;
         for(size_t i = 0; i < faces.size(); i++) {
-            std::cout << i << std::endl;
             // Bounding box for finding facial features
             bbox[0] = faces[i].x;
             bbox[1] = faces[i].y;
@@ -101,7 +98,6 @@ namespace praxyk {
             face_map["head"] = coords_t();
             face_map["head"].x = faces[i].x;
             face_map["head"].y = faces[i].y;
-            std::cout << "Face at " << faces[i].x << "," << faces[i].y << std::endl;
             face_map["dimensions"].x = faces[i].width;
             face_map["dimensions"].y = faces[i].height;
 
