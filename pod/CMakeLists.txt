@@ -70,7 +70,7 @@ ADD_SUBDIRECTORY(tests)
 # Final Display
 ####################################################################
 MESSAGE(STATUS "")
-MESSAGE(STATUS "Building Praxyk - Server Side.")
+MESSAGE(STATUS "Building Praxyk - POD Library.")
 MESSAGE(STATUS " - Build type: ${CMAKE_BUILD_TYPE}")
 MESSAGE(STATUS " - Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE(STATUS "")

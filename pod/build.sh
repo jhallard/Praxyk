@@ -5,16 +5,12 @@ export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 
 cd $HOME
+sudo apt-get update
 sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
-<<<<<<< HEAD:pod/build.sh
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
 libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev \
 clang gcc g++ ssh libopencv-dev
 
-=======
-libboost-test-dev libxml2-dev libarmadillo-dev automake libtool cmake swig python-dev \
-libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev clang
->>>>>>> master:pod/praxyk-build-pod.sh
 git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
 cd tesseract
 ./autogen.sh
@@ -26,8 +22,10 @@ git clone https://github.com/tesseract-ocr/tessdata
 sudo cp -r tessdata/* /usr/local/share/tessdata
 
 git clone https://github.com/mlpack/mlpack.git -b mlpack-1.0.12
-mkdir mlpack/build
-cd mlpack/build
+mkdir -p mlpack/build
+cd mlpack
+git apply $PRAXYK_POD_DIR/patches/mlpack_lib_only.patch
+cd build
 cmake ..
 sudo make install
 
@@ -41,3 +39,5 @@ cmake ..
 sudo make install
 
 sudo ldconfig
+
+python -c "import praxyk"
