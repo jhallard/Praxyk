@@ -61,7 +61,7 @@ TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
 USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
-PAYMENT_ROUTE        = VERSION + "/payment/"
+PAYMENT_ROUTE        = VERSION + "/payment/<int:id>"
 PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/"
 
 # endpoints

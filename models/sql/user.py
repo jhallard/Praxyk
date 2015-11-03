@@ -71,7 +71,7 @@ class User(db.Model, UserMixin):
         self.created_at = dt.now()
         self.active = active
         self.roles = roles
-        self.stripe_id = create_customer(email)
+        self.customer_id = create_customer(email)
 
     def __repr__(self):
         return '<ID %r, Email %r>' % (self.id, self.email)
@@ -93,5 +93,6 @@ class User(db.Model, UserMixin):
     
 def create_customer(email):
     result_json = stripe.Customer.create(email=email)
-    return result_json['id'] 
+    print("CUSTOMER ID: "+result_json.id+"\n")
+    return result_json.id 
         
