@@ -8,5 +8,5 @@ do
     ./"$i"/"$i"_build.sh
     RETVAL=$?
     [ $RETVAL -eq 0 ] && echo "$i" Build Success
-    [ $RETVAL -ne 0 ] && echo "$i" Build Failure && return 1
+    [ $RETVAL -ne 0 ] && echo "$i" Build Failure && echo 1
 done
