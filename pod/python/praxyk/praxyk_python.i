@@ -29,6 +29,7 @@
 %include <praxyk_docstrings.i>
 %include <praxyk/config.hpp>
 
+%rename(__detect_faces_in_image) praxyk::detect_faces_in_image;
 %include <praxyk/facial_rec.hpp>
 %template(face_map)  std::map<std::string, praxyk::coords_t>;
 %template(face_maps) std::vector<std::map<std::string, praxyk::coords_t> >;
