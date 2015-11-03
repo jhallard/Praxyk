@@ -25,15 +25,15 @@ API_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
 dbconf        = load_json_file(DB_CONF_FILE)
 apiconf       = load_json_file(API_CONF_FILE)
 
-dbuser     = dbconf['dbuser']
-dbip       = dbconf['dbip']
-dbpasswd   = dbconf['dbpw']
-dbname     = dbconf['dbname']
-REDIS_CONF = dbconf['redisdb']
+dbuser     = dbconf.get('dbuser', "")
+dbip       = dbconf.get('dbip', "")
+dbpasswd   = dbconf.get('dbpw', "")
+dbname     = dbconf.get('dbname', "")
+REDIS_CONF = dbconf.get('redisdb', "")
 
-RQ_DEFAULT_HOST = REDIS_CONF['dbip']
-RQ_DEFAULT_PORT = REDIS_CONF['port']
-RQ_DEFAULT_PASSWORD = REDIS_CONF['dbpasswd']
+RQ_DEFAULT_HOST = REDIS_CONF.get('dbip', "")
+RQ_DEFAULT_PORT = REDIS_CONF.get('port', "")
+RQ_DEFAULT_PASSWORD = REDIS_CONF.get('dbpasswd', "")
 # RQ_DEFAULT_DB = 1
 
 SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s/%s' % (dbuser, dbpasswd, dbip, dbname)
