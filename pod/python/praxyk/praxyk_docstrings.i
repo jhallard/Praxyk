@@ -45,3 +45,9 @@ to where CMake installed Praxyk. By default, this directory is \"(INSTALL PREFIX
 Returns:
     str: Praxyk's data directory
 "
+
+%feature("docstring") praxyk::get_clandmark_dir \
+"
+Returns the directory where Praxyk stores the trained data used internally by CLandmark for facial
+feature recognition.
+"
