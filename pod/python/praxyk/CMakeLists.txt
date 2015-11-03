@@ -32,6 +32,16 @@ print(sysconfig.get_python_lib(plat_specific=True, prefix=''))
     SET(PRAXYK_PYTHON_FILES
         __init__.py
         facial_tools.py
+    )
+
+    FOREACH(pyfile ${PRAXYK_PYTHON_FILES})
+        CONFIGURE_FILE(
+            ${CMAKE_CURRENT_SOURCE_DIR}/${pyfile}
+            ${CMAKE_CURRENT_BINARY_DIR}/${pyfile}
+        )
+    ENDFOREACH(pyfile ${PRAXYK_PYTHON_FILES})
+
+    LIST(APPEND PRAXYK_PYTHON_FILES
         ${CMAKE_CURRENT_BINARY_DIR}/praxyk_python.py
     )
 
