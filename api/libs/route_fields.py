@@ -43,6 +43,7 @@ user_fields = {
 
 transaction_fields = {
     'trans_id'        : fields.String(attribute="id"),
+    'name'            : fields.String,
     'user_id'         : fields.Integer,
     'command_url'     : fields.String,
     'data_url'        : fields.String,

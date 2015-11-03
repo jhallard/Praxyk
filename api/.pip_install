@@ -1,0 +1,1 @@
+ flask flask-security flask-httpauth flask-restful flask-bcrypt rom Flask-JWT flask-user flask-rq Falsk-login==0.2.11 flask-cors --upgrade stripe
