@@ -1,6 +1,10 @@
 echo "Beginning Praxyk Build Process"
 
+cp -R .praxyk/ ~/ # move the fake config files to the home directory
+
 declare -a arr=("api") # "models" "queue" "website" "pod" "devops" "docs")
+
+sudo apt-get install -y git python-pip build-essential
 
 for i in "${arr[@]}"
 do

@@ -1,10 +1,10 @@
-cat .ubuntu_install | xargs sudo apt-get install
+cat api/.ubuntu_install | xargs sudo apt-get -y install
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo API Ubuntu Requirements Install Success
-[ $RETVAL -ne 0 ] && echo API Ubuntu Requirements Install Failure && return 1
-sudo pip install -r .pip_install
+[ $RETVAL -ne 0 ] && echo API Ubuntu Requirements Install Failure && echo 1
+sudo pip install -r api/.pip_install
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo API Pip Requirements Install Success
-[ $RETVAL -ne 0 ] && echo API Pip Requirements Install Failure && return 1
+[ $RETVAL -ne 0 ] && echo API Pip Requirements Install Failure && echo 1
 
-return 0
+echo 0
