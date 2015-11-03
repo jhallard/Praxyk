@@ -1,6 +1,6 @@
 echo "Beginning Praxyk Build Process"
 
-cp -R .praxyk/ ~/ .praxyk_travis # move the fake config files to the home directory
+cp -R .praxyk/ ~/.praxyk_travis # move the fake config files to the home directory
 ln -s ~/.praxyk_travis ~/.praxyk
 
 declare -a arr=("api") # "models" "queue" "website" "pod" "devops" "docs")
