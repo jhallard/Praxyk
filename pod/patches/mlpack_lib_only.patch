@@ -1,0 +1,493 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 881f7d6..18c0658 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -281,33 +281,3 @@ if (DOXYGEN_FOUND)
+       OPTIONAL
+   )
+ endif (DOXYGEN_FOUND)
+-
+-# Make a target to generate the man page documentation, but only if we are on a
+-# UNIX-like system.
+-if (UNIX)
+-  find_program(TXT2MAN txt2man)
+-
+-  # It's not a requirement that we make man pages.
+-  if (NOT TXT2MAN)
+-    message(WARNING "txt2man not found; man pages will not be generated.")
+-  else (NOT TXT2MAN)
+-    # We have the tools.  We can make them.
+-    add_custom_target(man ALL
+-        ${CMAKE_CURRENT_SOURCE_DIR}/CMake/allexec2man.sh
+-            ${CMAKE_CURRENT_SOURCE_DIR}/CMake/exec2man.sh
+-            ${CMAKE_BINARY_DIR}/share/man
+-        WORKING_DIRECTORY
+-          ${CMAKE_BINARY_DIR}/bin
+-        DEPENDS
+-          allkfn allknn allkrann cf det emst fastmks gmm hmm_generate hmm_loglik
+-          hmm_train hmm_viterbi kernel_pca kmeans lars linear_regression
+-          local_coordinate_coding nbc nca nmf pca radical range_search
+-          sparse_coding
+-        COMMENT "Generating man pages from built executables."
+-    )
+-
+-    # Set the rules to install the documentation.
+-    install(DIRECTORY ${CMAKE_BINARY_DIR}/share/man/
+-        DESTINATION share/man/man1/)
+-  endif (NOT TXT2MAN)
+-endif (UNIX)
+diff --git a/src/mlpack/CMakeLists.txt b/src/mlpack/CMakeLists.txt
+index 6ed5bcb..5449652 100644
+--- a/src/mlpack/CMakeLists.txt
++++ b/src/mlpack/CMakeLists.txt
+@@ -7,7 +7,6 @@ set(MLPACK_SRCS ${MLPACK_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/core.hpp")
+ set(DIRS
+   core
+   methods
+-  tests
+ )
+ 
+ foreach(dir ${DIRS})
+diff --git a/src/mlpack/methods/cf/CMakeLists.txt b/src/mlpack/methods/cf/CMakeLists.txt
+index 6413af4..3dc0d34 100644
+--- a/src/mlpack/methods/cf/CMakeLists.txt
++++ b/src/mlpack/methods/cf/CMakeLists.txt
+@@ -13,11 +13,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(cf
+-  cf_main.cpp
+-)
+-target_link_libraries(cf
+-  mlpack
+-)
+-install(TARGETS cf RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/decision_stump/CMakeLists.txt b/src/mlpack/methods/decision_stump/CMakeLists.txt
+index 3c811b8..7d09213 100644
+--- a/src/mlpack/methods/decision_stump/CMakeLists.txt
++++ b/src/mlpack/methods/decision_stump/CMakeLists.txt
+@@ -15,12 +15,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(decision_stump
+-  decision_stump_main.cpp
+-)
+-target_link_libraries(decision_stump
+-  mlpack
+-)
+-
+-install(TARGETS decision_stump RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/det/CMakeLists.txt b/src/mlpack/methods/det/CMakeLists.txt
+index a75b00a..d4ad05d 100644
+--- a/src/mlpack/methods/det/CMakeLists.txt
++++ b/src/mlpack/methods/det/CMakeLists.txt
+@@ -18,13 +18,3 @@ foreach(file ${SOURCES})
+ endforeach()
+ # append sources (with directory name) to list of all MLPACK sources (used at the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-# executable
+-add_executable(det
+-  det_main.cpp
+-)
+-# link dependencies of executable
+-target_link_libraries(det
+-  mlpack
+-)
+-install(TARGETS det RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/emst/CMakeLists.txt b/src/mlpack/methods/emst/CMakeLists.txt
+index 928c82a..f50a013 100644
+--- a/src/mlpack/methods/emst/CMakeLists.txt
++++ b/src/mlpack/methods/emst/CMakeLists.txt
+@@ -20,11 +20,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(emst
+-  emst_main.cpp
+-)
+-target_link_libraries(emst
+-  mlpack
+-)
+-install(TARGETS emst RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/fastmks/CMakeLists.txt b/src/mlpack/methods/fastmks/CMakeLists.txt
+index fac46b6..6f2a5bd 100644
+--- a/src/mlpack/methods/fastmks/CMakeLists.txt
++++ b/src/mlpack/methods/fastmks/CMakeLists.txt
+@@ -15,12 +15,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(fastmks
+-  fastmks_main.cpp
+-)
+-target_link_libraries(fastmks
+-  mlpack
+-)
+-
+-install(TARGETS fastmks RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/gmm/CMakeLists.txt b/src/mlpack/methods/gmm/CMakeLists.txt
+index a9305cc..474fcea 100644
+--- a/src/mlpack/methods/gmm/CMakeLists.txt
++++ b/src/mlpack/methods/gmm/CMakeLists.txt
+@@ -20,13 +20,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-# main executable, em
+-add_executable(gmm
+-  gmm_main.cpp
+-)
+-# link dependencies of mog_em
+-target_link_libraries(gmm
+-  mlpack
+-)
+-install(TARGETS gmm RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/hmm/CMakeLists.txt b/src/mlpack/methods/hmm/CMakeLists.txt
+index 0f4e07a..6c802b3 100644
+--- a/src/mlpack/methods/hmm/CMakeLists.txt
++++ b/src/mlpack/methods/hmm/CMakeLists.txt
+@@ -15,34 +15,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(hmm_train
+-  hmm_train_main.cpp
+-)
+-target_link_libraries(hmm_train
+-  mlpack
+-)
+-
+-add_executable(hmm_loglik
+-  hmm_loglik_main.cpp
+-)
+-target_link_libraries(hmm_loglik
+-  mlpack
+-)
+-
+-add_executable(hmm_viterbi
+-  hmm_viterbi_main.cpp
+-)
+-target_link_libraries(hmm_viterbi
+-  mlpack
+-)
+-
+-add_executable(hmm_generate
+-  hmm_generate_main.cpp
+-)
+-target_link_libraries(hmm_generate
+-  mlpack
+-)
+-
+-install(TARGETS hmm_train hmm_loglik hmm_viterbi hmm_generate
+-  RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/kernel_pca/CMakeLists.txt b/src/mlpack/methods/kernel_pca/CMakeLists.txt
+index 4b5fcb5..1924e43 100644
+--- a/src/mlpack/methods/kernel_pca/CMakeLists.txt
++++ b/src/mlpack/methods/kernel_pca/CMakeLists.txt
+@@ -15,11 +15,3 @@ endforeach()
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+ 
+ add_subdirectory(kernel_rules)
+-
+-add_executable(kernel_pca
+-  kernel_pca_main.cpp
+-)
+-target_link_libraries(kernel_pca
+-  mlpack
+-)
+-install(TARGETS kernel_pca RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/kmeans/CMakeLists.txt b/src/mlpack/methods/kmeans/CMakeLists.txt
+index 85995a0..ab6c2c8 100644
+--- a/src/mlpack/methods/kmeans/CMakeLists.txt
++++ b/src/mlpack/methods/kmeans/CMakeLists.txt
+@@ -19,12 +19,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-# The main K-Means executable.
+-add_executable(kmeans
+-  kmeans_main.cpp
+-)
+-target_link_libraries(kmeans
+-  mlpack
+-)
+-install(TARGETS kmeans RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/lars/CMakeLists.txt b/src/mlpack/methods/lars/CMakeLists.txt
+index a502937..2a14b5c 100644
+--- a/src/mlpack/methods/lars/CMakeLists.txt
++++ b/src/mlpack/methods/lars/CMakeLists.txt
+@@ -12,11 +12,3 @@ foreach(file ${SOURCES})
+ endforeach()
+ # append sources (with directory name) to list of all MLPACK sources (used at the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(lars
+-  lars_main.cpp
+-)
+-target_link_libraries(lars
+-  mlpack
+-)
+-install(TARGETS lars RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/linear_regression/CMakeLists.txt b/src/mlpack/methods/linear_regression/CMakeLists.txt
+index 6d76b0e..b19f66e 100644
+--- a/src/mlpack/methods/linear_regression/CMakeLists.txt
++++ b/src/mlpack/methods/linear_regression/CMakeLists.txt
+@@ -14,11 +14,3 @@ endforeach()
+ # append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(linear_regression
+-  linear_regression_main.cpp
+-)
+-target_link_libraries(linear_regression
+-  mlpack
+-)
+-install(TARGETS linear_regression RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/local_coordinate_coding/CMakeLists.txt b/src/mlpack/methods/local_coordinate_coding/CMakeLists.txt
+index 6c7d302..e646af5 100644
+--- a/src/mlpack/methods/local_coordinate_coding/CMakeLists.txt
++++ b/src/mlpack/methods/local_coordinate_coding/CMakeLists.txt
+@@ -16,12 +16,3 @@ endforeach()
+ 
+ # append sources (with directory name) to list of all MLPACK sources (used at the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(local_coordinate_coding
+-    lcc_main.cpp
+-)
+-
+-target_link_libraries(local_coordinate_coding
+-  mlpack
+-)
+-install(TARGETS local_coordinate_coding RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/logistic_regression/CMakeLists.txt b/src/mlpack/methods/logistic_regression/CMakeLists.txt
+index e262d2d..6c22c43 100644
+--- a/src/mlpack/methods/logistic_regression/CMakeLists.txt
++++ b/src/mlpack/methods/logistic_regression/CMakeLists.txt
+@@ -16,11 +16,3 @@ endforeach()
+ # append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(logistic_regression
+-  logistic_regression_main.cpp
+-)
+-target_link_libraries(logistic_regression
+-  mlpack
+-)
+-install(TARGETS logistic_regression RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/lsh/CMakeLists.txt b/src/mlpack/methods/lsh/CMakeLists.txt
+index a8e1239..5f63e66 100644
+--- a/src/mlpack/methods/lsh/CMakeLists.txt
++++ b/src/mlpack/methods/lsh/CMakeLists.txt
+@@ -14,14 +14,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_CONTRIB_SRCS ${MLPACK_CONTRIB_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-# The code to compute the approximate neighbor for the given query and reference
+-# sets with p-stable LSH.
+-add_executable(lsh
+-  lsh_main.cpp
+-)
+-target_link_libraries(lsh
+-  mlpack
+-)
+-
+-install(TARGETS lsh RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/mvu/CMakeLists.txt b/src/mlpack/methods/mvu/CMakeLists.txt
+index ae8e6f7..d989c3b 100644
+--- a/src/mlpack/methods/mvu/CMakeLists.txt
++++ b/src/mlpack/methods/mvu/CMakeLists.txt
+@@ -13,11 +13,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(mvu
+-  mvu_main.cpp
+-)
+-target_link_libraries(mvu
+-  mlpack
+-)
+-install(TARGETS mvu RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/naive_bayes/CMakeLists.txt b/src/mlpack/methods/naive_bayes/CMakeLists.txt
+index 726b28b..95f681b 100644
+--- a/src/mlpack/methods/naive_bayes/CMakeLists.txt
++++ b/src/mlpack/methods/naive_bayes/CMakeLists.txt
+@@ -13,11 +13,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(nbc
+-  nbc_main.cpp
+-)
+-target_link_libraries(nbc
+-  mlpack
+-)
+-install(TARGETS nbc RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/nca/CMakeLists.txt b/src/mlpack/methods/nca/CMakeLists.txt
+index 0b2777c..36eb583 100644
+--- a/src/mlpack/methods/nca/CMakeLists.txt
++++ b/src/mlpack/methods/nca/CMakeLists.txt
+@@ -15,11 +15,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(nca
+-  nca_main.cpp
+-)
+-target_link_libraries(nca
+-  mlpack
+-)
+-install(TARGETS nca RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/neighbor_search/CMakeLists.txt b/src/mlpack/methods/neighbor_search/CMakeLists.txt
+index ddf3a8c..0b80324 100644
+--- a/src/mlpack/methods/neighbor_search/CMakeLists.txt
++++ b/src/mlpack/methods/neighbor_search/CMakeLists.txt
+@@ -26,19 +26,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(allknn
+-  allknn_main.cpp
+-)
+-target_link_libraries(allknn
+-  mlpack
+-)
+-
+-add_executable(allkfn
+-  allkfn_main.cpp
+-)
+-target_link_libraries(allkfn
+-  mlpack
+-)
+-
+-install(TARGETS allknn allkfn RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/nmf/CMakeLists.txt b/src/mlpack/methods/nmf/CMakeLists.txt
+index b1c2b51..e69de29 100644
+--- a/src/mlpack/methods/nmf/CMakeLists.txt
++++ b/src/mlpack/methods/nmf/CMakeLists.txt
+@@ -1,7 +0,0 @@
+-add_executable(nmf
+-  nmf_main.cpp
+-)
+-target_link_libraries(nmf
+-  mlpack
+-)
+-install(TARGETS nmf RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/pca/CMakeLists.txt b/src/mlpack/methods/pca/CMakeLists.txt
+index 0a5665f..13b3cd7 100644
+--- a/src/mlpack/methods/pca/CMakeLists.txt
++++ b/src/mlpack/methods/pca/CMakeLists.txt
+@@ -13,11 +13,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(pca
+-  pca_main.cpp
+-)
+-target_link_libraries(pca
+-  mlpack
+-)
+-install(TARGETS pca RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/perceptron/CMakeLists.txt b/src/mlpack/methods/perceptron/CMakeLists.txt
+index b31efce..f4a953f 100644
+--- a/src/mlpack/methods/perceptron/CMakeLists.txt
++++ b/src/mlpack/methods/perceptron/CMakeLists.txt
+@@ -18,12 +18,3 @@ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+ 
+ add_subdirectory(initialization_methods)
+ add_subdirectory(learning_policies)
+-
+-add_executable(perceptron
+-  perceptron_main.cpp
+-)
+-target_link_libraries(perceptron
+-  mlpack
+-)
+-
+-install(TARGETS perceptron RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/radical/CMakeLists.txt b/src/mlpack/methods/radical/CMakeLists.txt
+index 4c7ad1e..d0944bc 100644
+--- a/src/mlpack/methods/radical/CMakeLists.txt
++++ b/src/mlpack/methods/radical/CMakeLists.txt
+@@ -12,11 +12,3 @@ foreach(file ${SOURCES})
+ endforeach()
+ # append sources (with directory name) to list of all MLPACK sources (used at the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(radical
+-  radical_main.cpp
+-)
+-target_link_libraries(radical
+-  mlpack
+-)
+-install(TARGETS radical RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/range_search/CMakeLists.txt b/src/mlpack/methods/range_search/CMakeLists.txt
+index 763f0a0..d46d08d 100644
+--- a/src/mlpack/methods/range_search/CMakeLists.txt
++++ b/src/mlpack/methods/range_search/CMakeLists.txt
+@@ -16,11 +16,3 @@ endforeach()
+ # Append sources (with directory name) to list of all MLPACK sources (used at
+ # the parent scope).
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(range_search
+-  range_search_main.cpp
+-)
+-target_link_libraries(range_search
+-  mlpack
+-)
+-install(TARGETS range_search RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/rann/CMakeLists.txt b/src/mlpack/methods/rann/CMakeLists.txt
+index b848cd2..a90635f 100644
+--- a/src/mlpack/methods/rann/CMakeLists.txt
++++ b/src/mlpack/methods/rann/CMakeLists.txt
+@@ -24,15 +24,3 @@ foreach(file ${SOURCES})
+ endforeach()
+ # append sources (with directory name) to list of all MLPACK sources (used at the parent scope)
+ set(MLPACK_CONTRIB_SRCS ${MLPACK_CONTRIB_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-
+-# The code to compute the rank-approximate neighbor
+-# for the given query and reference sets
+-add_executable(allkrann
+-  allkrann_main.cpp
+-)
+-target_link_libraries(allkrann
+-  mlpack
+-)
+-
+-install(TARGETS allkrann RUNTIME DESTINATION bin)
+diff --git a/src/mlpack/methods/sparse_coding/CMakeLists.txt b/src/mlpack/methods/sparse_coding/CMakeLists.txt
+index 5c0cec3..52cb127 100644
+--- a/src/mlpack/methods/sparse_coding/CMakeLists.txt
++++ b/src/mlpack/methods/sparse_coding/CMakeLists.txt
+@@ -16,11 +16,3 @@ endforeach()
+ 
+ # append sources (with directory name) to list of all MLPACK sources (used at the parent scope)
+ set(MLPACK_SRCS ${MLPACK_SRCS} ${DIR_SRCS} PARENT_SCOPE)
+-
+-add_executable(sparse_coding
+-  sparse_coding_main.cpp
+-)
+-target_link_libraries(sparse_coding
+-  mlpack
+-)
+-install(TARGETS sparse_coding RUNTIME DESTINATION bin)

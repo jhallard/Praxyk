@@ -18,6 +18,7 @@ FIND_PACKAGE(FANN REQUIRED)
 FIND_PACKAGE(Tesseract REQUIRED)
 FIND_PACKAGE(MLPack REQUIRED)
 FIND_PACKAGE(LibXml2 2.6.0 REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED)
 
 SET(BOOST_REQUIRED_COMPONENTS
     thread
@@ -69,7 +70,7 @@ ADD_SUBDIRECTORY(tests)
 # Final Display
 ####################################################################
 MESSAGE(STATUS "")
-MESSAGE(STATUS "Building Praxyk - Server Side.")
+MESSAGE(STATUS "Building Praxyk - POD Library.")
 MESSAGE(STATUS " - Build type: ${CMAKE_BUILD_TYPE}")
 MESSAGE(STATUS " - Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE(STATUS "")
