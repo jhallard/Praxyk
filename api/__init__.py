@@ -63,6 +63,7 @@ POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
 PAYMENT_ROUTE        = VERSION + "/payment/<int:id>"
 PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/"
+COUPON_ROUTE = VERSION + "/coupon/<int:id>"
 
 # endpoints
 TRANSACTIONS_ENDPOINT = 'transactions'
@@ -80,6 +81,7 @@ POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
 POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
 PAYMENT_HANDLER_ENDPOINT = 'payment_handler'
 PAYMENT_ENDPOINT = 'payment'
+COUPON_ENDPOINT = 'coupon'
 
 # services
 SERVICE_POD = "pod"

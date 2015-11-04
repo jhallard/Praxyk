@@ -105,6 +105,8 @@ class PaymentRoute(Resource) :
          card = customer.sources.retrieve(user.card_id)
 
          result = {
+                  "code":200,
+                  "message":"",
                   "number":card.last4,
                   "exp_month":card.exp_month,
                   "exp_year":card.exp_year,

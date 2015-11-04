@@ -35,6 +35,7 @@ from libs.pod.ocr_route import POD_OCR_Route
 from libs.pod.bayes_spam_route import POD_Bayes_Spam_Route
 from libs.payment_route import PaymentRoute
 from libs.payment_handler_route import PaymentHandlerRoute
+from libs.coupon_route import CouponRoute
 
 # queue includes
 from queue.task_lib import *
@@ -96,6 +97,7 @@ api.add_resource(POD_Bayes_Spam_Route, POD_BAYES_SPAM_ROUTE, endpoint=POD_BAYES_
 
 api.add_resource(PaymentRoute,PAYMENT_ROUTE,endpoint=PAYMENT_ENDPOINT)
 api.add_resource(PaymentHandlerRoute,PAYMENT_HANDLER_ROUTE,endpoint=PAYMENT_HANDLER_ENDPOINT)
+api.add_resource(CouponRoute,COUPON_ROUTE,endpoint=COUPON_ENDPOINT)
 
 @PRAXYK_API_APP.teardown_appcontext
 def shutdown_session(exception=None):
