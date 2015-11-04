@@ -18,6 +18,8 @@ from api import *
 
 import datetime
 
+import praxyk
+
 
 # @info - takes a given json file and loads it into an active dictionary for return
 def load_json_file(fn) :
@@ -42,6 +44,18 @@ class TaskQueue(object) :
         job = self.q.enqueue(process_pod_ocr, trans, fileh)
         return job
         
+def removeDirectory(directory):
+    if os.path.exists(directory):
+        try:
+            if os.path.isdir(directory):
+                return shutil.rmtree(directory)
+            else:
+                return os.remove(directory)
+        except:
+			return False
+    else:
+		return False
+
 def get_redis_conn() :
     redis_host = REDIS_CONF['dbip']
     redis_port = REDIS_CONF['port']
@@ -63,6 +77,7 @@ def get_sql_conf() :
 def convert_timestr(dt) :
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
+STORE_BASENAME = os.path.dirname(os.path.realpath(__file__)) + "/images/"
 def process_pod_ocr(transaction, fileh) :
     print "POD-OCR Worker Starting"
     print "result id     : " + str(transaction['file_num'])
@@ -73,7 +88,9 @@ def process_pod_ocr(transaction, fileh) :
     file_num = transaction['file_num']
     files_total = transaction['files_total']
 
-    PRAXYK_API_APP.app_context().push()
+    app_context = PRAXYK_API_APP.app_context()
+    app_context.push()
+
     trans = Transaction.query.get(trans_id) # gets the sql transaction object from the db
 
     # this if statement checks if the trans has been canceled, if so we mark this result as canceled
@@ -84,14 +101,9 @@ def process_pod_ocr(transaction, fileh) :
             this_result.finished_at = datetime.datetime.now()
             this_result.status = Result_POD_OCR.RESULT_CANCELED
             this_result.result_string = ""
+            this_result.save(full=True)
+            app_context.pop()
         return this_result
-
-    results = Results.query.filter(transaction_id=trans_id).first() # gets the redis transaction
-                                                                    # object that contains indiv.
-                                                                    # result information
-    if not results :
-        print "POD_OCR Worker Error, Can't Find Results"
-        return False
 
     # get the individual result struct from redis that this queue task is processing
     this_result = Result_POD_OCR.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
@@ -100,22 +112,51 @@ def process_pod_ocr(transaction, fileh) :
         print "POD_OCR Worker Error, Can't Find This Result"
         return False
 
-    # update this result object in the redis db
+
+	# if we're the first image in the queue, create the working directory for this transaction
+    imgs_dir = STORE_BASENAME + str(trans_id)
+    if not os.path.exists(imgs_dir):
+        os.makedirs(imgs_dir)
+
+	# put the image data into a temporary file for the OCR program to use
+    file_img = imgs_dir+fileh['name']+'_'+str(file_num)
+    with open(file_img, 'wr+') as fh :
+        fh.write(fileh['data'])
+
+    # get the actual ocr string from the praxyk pytrhon library
+    this_result.result_string = praxyk.get_string_from_image(file_img)
+
     this_result.finished_at = datetime.datetime.now()
     this_result.status = Result_POD_OCR.RESULT_FINISHED
-    this_result.result_string = "This Was A Hand Generated String"
-    this_result.save()
+    
+    # update this result object in the redis db
+    this_result.save(full=True)
 
-    # update the transaction object (group of results) in the redis db
+    # clean up the image space used
+    os.remove(file_img)
+
+    results = Results.query.filter(transaction_id=trans_id).first() # gets the redis transaction
+                                                                    # object that contains indiv.
+                                                                    # transaction information
+    if not results :
+        print "POD_OCR Worker Error, Can't Find Results"
+        return False
+
     results.items_finished += 1
-    results.save()
+    results.save(full=True, force=True)
+    rom.session.commit(all=True, full=True)
 
+	# this checks if this task item is the last one of the transaction group. If so, clean up the working
+	# directory and update the SQL transaction object to reflect that the request is finished.
     if results.items_finished  == results.items_total :
+        removeDirectory(imgs_dir)
         trans.finished_at = datetime.datetime.now()
         trans.status = Transaction.TRANSACTION_FINISHED
         db.session.commit()
 
+    print "POD_OCR Result String : (%s) " % this_result.result_string
     print "POD_OCR Worker Finished"
+    app_context.pop()
 
     return this_result
 

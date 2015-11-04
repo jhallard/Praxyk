@@ -89,6 +89,7 @@ class AuthRoute(Resource) :
             user = User.authenticate(args['email'], args['password'])
 
             if not user :
+                print "can't find user"
                 abort(404)
 
             # first try and get an existing and valid token
@@ -99,12 +100,32 @@ class AuthRoute(Resource) :
             # otherwise make them a new one
             new_token = Token(user_id=user.id)
             if not new_token :
+                print "can't make new token"
                 abort(403)
             user.tokens.append(new_token)
 
             db.session.add(user)
             db.session.commit()
             return jsonify({"code" : 200, "user" : marshal(user, user_fields), "token" : new_token.value})
+        except Exception, e :
+            print str(e)
+            return abort(403)
+
+    # @info - this route can be used to confirm that a token is still valid. Simply call it with a token and 
+    #         it will return the same info that would be returned in the case of a login with email and pw,
+    #         or it will 403 if the token is invalid.
+    @requires_auth
+    def get(self) :
+        try : 
+            caller = g._caller
+
+            # first try and get an existing and valid token
+            tokens = Token.query.filter((Token.user_id==caller.id and Token.valid)).first()
+            if tokens :
+                return jsonify({"code" : 200, "user" : marshal(caller, user_fields), "token" : tokens.value})
+                
+            if not tokens :
+                abort(403)
         except Exception, e :
             print str(e)
             return abort(403)
