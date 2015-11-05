@@ -1,6 +1,6 @@
 function log_dump {
-    echo "$1 Build Log : \n\n"
-    cat $1/.build.log
+    echo "$1 Build Log :"
+    cat .build.log
 }
 
 
