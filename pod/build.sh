@@ -22,14 +22,6 @@ RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Tesseract Requirements Install Success
 [ $RETVAL -ne 0 ] && echo POD Tesseract Requirements Install Failure && exit 1
 
-cd $HOME
-git clone https://github.com/tesseract-ocr/tessdata
-sudo cp -r tessdata/* /usr/local/share/tessdata
-
-RETVAL=$?
-[ $RETVAL -eq 0 ] && echo POD Tesseract-Data Requirements Install Success
-[ $RETVAL -ne 0 ] && echo POD Tesseract-Data Requirements Install Failure && exit 1
-
 git clone https://github.com/mlpack/mlpack.git -b mlpack-1.0.12
 mkdir -p mlpack/build
 cd mlpack

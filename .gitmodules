@@ -1,0 +1,3 @@
+[submodule "pod/Praxyk-data"]
+	path = pod/Praxyk-data
+	url = https://github.com/Praxyk/Praxyk-data
