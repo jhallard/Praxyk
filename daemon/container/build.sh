@@ -12,7 +12,7 @@ ID=$(echo $OUT | cut -d \  -f 9)
 IMID=$(echo $IMAGE | cut -d \  -f 10)
 echo "Image ID is " $IMID
 echo "Tagging" $ID
-docker tag -f $IMID "praxyk:latest"
+docker tag -f $IMID "tekgek/praxyk:latest"
 echo "Exporting image to" $1
 
 "docker" "export" $ID > $1

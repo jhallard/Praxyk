@@ -16,7 +16,7 @@ def deploy_container():
         return 1
     return 0
 
-def start_vm():
+def start_vm(working_path):
     """
     /XXX Code to get VM instance info and start it goes here
     Note: root access required for this to work. (Preferably login as root
@@ -25,7 +25,7 @@ def start_vm():
 
     dummy_ip = '127.0.0.1'
     dummy_user='mike'
-    dummy_password='password'
+    dummy_password='michael12'
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -36,7 +36,7 @@ def start_vm():
     stdin, stdout, stderr = ssh.exec_command('echo $HOME')
     homedir = stdout.readlines()[0]
     homedir = homedir.replace('\n', '') + '/'
-    scp.put('local.py', homedir + 'vm_init.py')
+    scp.put(working_path + '/' + 'local.py', homedir + 'vm_init.py')
 
     stdin, stdout, stderr = ssh.exec_command(homedir + 'vm_init.py')
     info = json.loads(stdout.readlines()[0])

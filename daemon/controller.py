@@ -1,19 +1,30 @@
 #!/usr/bin/env python
 
 import os, sys, time
+import redis
+from rq import Queue, Connection
 from daemon import Daemon
 import multiprocessing
 import socket
 import argparse
-from api import queue
 from daemon_utils import deploy_container
 import subprocess
 import daemon_utils
 import json
 
+WORKING_PATH = os.getcwd()
 DB_FILE = str()
 MAX_VMS = 0
 QUEUE_HOST = str()
+QUEUE_PASSWORD = str()
+QUEUE_PORT = 6379
+
+def gen_queue(redis_server_url, redis_server_port, password):
+    print('Establishing Redis connection...')
+    print('  Server: %s' % redis_server_url)
+    print('    Port: %s' % redis_server_port)
+    q = Queue(connection=redis.Redis(host=redis_server_url, port=redis_server_port, password=password))
+    return q
 
 class Machine(object):
     def __init__(self, hostname, thread_count, ip='None'):
@@ -51,7 +62,7 @@ def load_imbalance(machs, queue_len):
     cap = 0
     for i in machs.machines:
         cap = cap + i.thread_count
-    if (cap > queue_len):
+    if (cap < queue_len):
         if(len(machs.machines) + 1 > MAX_VMS):
             print('Too many VMs running.  Cannot create another one.')
             return False
@@ -61,7 +72,7 @@ def load_imbalance(machs, queue_len):
 class MyDaemon(Daemon):
     def run(self):
         print('Generating queue...')
-        q = queue.gen_queue(QUEUE_HOST, 6379, '')
+        q = gen_queue(QUEUE_HOST, QUEUE_PORT, QUEUE_PASSWORD)
         print('Loading machine database...')
         machs = VMLog()
         if os.path.isfile(DB_FILE) is True:
@@ -77,11 +88,18 @@ class MyDaemon(Daemon):
         print('Done')
         db.close()
 
+        print('Starting new instance...')
+        new_mach_info = daemon_utils.start_vm(WORKING_PATH)
+        machs.add(new_mach_info['host_name'],
+                  new_mach_info['thread_count'])
+        db = open(DB_FILE, 'w')
+        db.write(json.dumps(machs.to_json(), indent=2))
+        db.close()
+
         while True:
-            print(len(q))
             if load_imbalance(machs, len(q)):
                 print('Starting new instance')
-                new_mach_info = daemon_utils.start_vm()
+                new_mach_info = daemon_utils.start_vm(WORKING_PATH)
                 machs.add(new_mach_info['host_name'],
                           new_mach_info['thread_count'])
                 db = open(DB_FILE, 'w')
@@ -102,11 +120,15 @@ if __name__ == "__main__":
     parser.add_argument('--db_file', type=str, required=True)
     parser.add_argument('--max_vms', type=int, required=True)
     parser.add_argument('--queue_host', type=str, required=True)
+    parser.add_argument('--queue_password', type=str, required=True)
+    parser.add_argument('--queue_port', type=int, required=True)
     args = parser.parse_args()
 
     DB_FILE = args.db_file
     MAX_VMS = int(args.max_vms)
     QUEUE_HOST = args.queue_host
+    QUEUE_PASSWORD = args.queue_password
+    QUEUE_PORT = args.queue_port
 
     daemon = MyDaemon('/tmp/praxyk.pid')
     if args.start:
