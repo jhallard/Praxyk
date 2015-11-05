@@ -1,0 +1,3 @@
+[submodule "docs/wiki/praxyk_wiki_md"]
+	path = docs/wiki/praxyk_wiki_md
+	url = https://github.com/Praxyk/Praxyk.wiki.git
