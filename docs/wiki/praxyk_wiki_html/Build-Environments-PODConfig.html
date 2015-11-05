@@ -13,10 +13,11 @@
 <p>Prediction on Demand is a service that has actively running ML models encapsulated in linux containers. This environments can handle many different containers at once and must manage getting data from the master-server into the right container and then out the same path.</p>
 <p><strong>Build Script as of 10/19/2015</strong></p>
 <p>This will install the necessary Tesseract library and other dependencies on an Ubuntu 14.04 VM.</p>
-<pre class="hljs"><code>sudo apt-get install libboost-math-dev libboost-program-options-dev libboost-random-dev \
-libboost-test-dev libxml2-dev libarmadillo-dev automake libtool cmake swig python-dev \
+<pre class="hljs"><code>sudo apt-get update
+sudo apt-get install cmake git ssh libboost-math-dev libboost-program-options-dev libboost-random-dev \
+libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
 libleptonica-dev libfann-dev libicu-dev libpango1.<span class="hljs-number">0</span>-dev libcairo2-dev libboost-thread-dev \
-libopencv-core-dev
+libopencv-dev
 git <span class="hljs-built_in">clone</span> https://github.com/tesseract-ocr/tesseract -b <span class="hljs-number">3.02</span>.<span class="hljs-number">02</span>
 <span class="hljs-built_in">cd</span> tesseract
 ./autogen.sh

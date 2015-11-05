@@ -9,27 +9,30 @@
     <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
   </head>
   <body>
-    <article class="markdown-body"><h3 id="praxyk-api-documentation"><a class="header-link" href="#praxyk-api-documentation"></a>Praxyk API Documentation</h3>
+    <article class="markdown-body"><h1 id="praxyk-api-documentation"><a class="header-link" href="#praxyk-api-documentation"></a>Praxyk API Documentation</h1>
 <h4 id="overview"><a class="header-link" href="#overview"></a>Overview</h4>
-<p>The API is our contract with all users of Praxyk services that defines exactly how to get data into and results out of our servers. All interactions with our services, even through the <a href="http://www.praxyk.com">main website</a>, happens through requests to this API. </p>
+<p>The API is our contract with all users of Praxyk services that defines exactly how to get data into and results out of our servers. All interactions with our services, even through the <a href="http://www.praxyk.com">main website</a>, happen through requests to this API. </p>
 <p>At a high level, the API needs to allow users to do a few things.</p>
 <ul class="list">
 <li>Manage their user account. This includes registering an account, updating their information, and being able to query for information on their account. It also involves authenticating requests and managing transaction history.</li>
 <li>Submit requests to our internal models. This mostly involves giving the users an interface to upload information to our servers to be analyzed.</li>
 <li>Receive the results of their requests to our internal models.</li>
 </ul>
-<p>As of right now, <code>Praxyk API v.0.1</code> is live at <code>api.praxyk.com:5000</code>. This is not an official release and hence is subject to change, when we reach the official <code>v.1</code> release, the <code>api.praxyk.com/v1/</code> route will have it&#39;s features and structures frozen, guaranteeing a consistent interface to users.</p>
+<p>As of right now, <code>Praxyk API v.0.1</code> is live at <code>api.praxyk.com</code>. This is not an official release and hence is subject to change, when we reach the official <code>v.1</code> release, the <code>api.praxyk.com/v1/</code> route will have it&#39;s features and structures frozen, guaranteeing a consistent interface to users.</p>
 <h4 id="notes-about-pagination"><a class="header-link" href="#notes-about-pagination"></a>Notes About Pagination</h4>
 <p>Many routes that can return large batches of information to the user are paginated by default. This means that querying these routes will return a limited amount of data, along with a link to the next block of data. For example, calling a paginated-route with no page-related arguments will cause us to return page 0 with a default size of 100 values.</p>
 <pre class="hljs"><code>GET api.praxyk.com/results/<span class="hljs-number">12345</span>/</code></pre><p>returns</p>
 <pre class="hljs"><code>{
- <span class="hljs-string">"code"</span> : <span class="hljs-number">200</span>,
- <span class="hljs-string">"page"</span> : {
-    <span class="hljs-string">"page_number"</span> : <span class="hljs-number">1</span>,
-    <span class="hljs-string">"results"</span> : [<span class="hljs-string">"$item1"</span>, <span class="hljs-string">"..."</span>, <span class="hljs-string">"$item100"</span>],
- }
- <span class="hljs-string">"next_page"</span> : <span class="hljs-string">"api.praxyk.com/results/12345/?page=2"</span>
-}</code></pre><p><strong>Note</strong> -  Page numbers start from 1, not 0. </p>
+ "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
+ "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
+    "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-number">1</span></span>,
+    "<span class="hljs-attribute">results</span>" : <span class="hljs-value">[<span class="hljs-string">"$item1"</span>, <span class="hljs-string">"..."</span>, <span class="hljs-string">"$item100"</span>]</span>,
+ }</span>,
+ "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/12345/?page=2"</span></span>,
+ "<span class="hljs-attribute">prev_page</span>" : <span class="hljs-value"><span class="hljs-string">""</span></span>,
+ "<span class="hljs-attribute">first_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/12345/?page=1"</span></span>,
+ "<span class="hljs-attribute">last_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/12345/?page=6"</span>
+</span>}</code></pre><p><strong>Note</strong> -  Page numbers start from 1, not 0. </p>
 <p>Every paginated route can take any of the following optional arguments </p>
 <ul class="list">
 <li><code>pagination</code> - Boolean, if false we dump all resources to the user in a list. Defaults to true.</li>
@@ -56,7 +59,14 @@
 </ul>
 </li>
 <li><code>/tokens/</code><ul class="list">
+<li><code>GET /tokens/</code></li>
 <li><code>POST /tokens/</code></li>
+</ul>
+</li>
+<li><code>/payment/</code><ul class="list">
+<li><code>GET /payment/</code></li>
+<li><code>POST /payment/</code></li>
+<li><code>DELETE /payment/</code></li>
 </ul>
 </li>
 <li><code>/pod/</code><ul class="list">
@@ -77,7 +87,7 @@
 <li><code>/transactions/</code><ul class="list">
 <li><code>GET /transactions/</code></li>
 <li><code>GET /transactions/{transaction_id}</code></li>
-<li><code>DELETE /transactions/{transaction_id}</code></li>
+<li><code>PUT /transactions/{transaction_id}</code></li>
 </ul>
 </li>
 <li><code>/results/</code><ul class="list">
@@ -129,7 +139,7 @@
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
-    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
     "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
     "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
     "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
@@ -154,7 +164,7 @@
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 <tr>
@@ -176,7 +186,7 @@
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
-    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
     "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
     "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
     "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
@@ -201,7 +211,7 @@
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 </tbody>
@@ -211,7 +221,7 @@
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
-    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
     "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
     "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
     "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
@@ -236,7 +246,7 @@
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 <tr>
@@ -269,12 +279,14 @@
 <pre class="hljs"><code>{
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/?page=$page+1"</span></span>,
+  "<span class="hljs-attribute">first_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/?page=1"</span></span>,
+  "<span class="hljs-attribute">last_page</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/?page=${total/page_size + 1}"</span></span>,
   "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
       "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-string">"$page"</span></span>,
       "<span class="hljs-attribute">users</span>" : <span class="hljs-value">[
         {
            "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
-           "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+           "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
            "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
            "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
            "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
@@ -303,7 +315,7 @@
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 </tbody>
@@ -313,7 +325,7 @@
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
-    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
     "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
     "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
     "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
@@ -358,7 +370,7 @@
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">user</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"$new_email"</span></span>,
-    "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+    "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
     "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$user_name"</span></span>,
     "<span class="hljs-attribute">active</span>" : <span class="hljs-value"><span class="hljs-string">"$account_confirmed"</span></span>,
     "<span class="hljs-attribute">uri</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/users/$user_id"</span></span>,
@@ -368,9 +380,149 @@
   "<span class="hljs-attribute">token</span>" : <span class="hljs-value"><span class="hljs-string">"$token_str"</span></span>,
  }</code></pre><hr>
 <hr>
+<h3 id="payments"><a class="header-link" href="#payments"></a>Payments</h3>
+<p><code>api.praxyk.com/payment/</code> is the handler for payment method information. This includes setting, removing, and viewing.</p>
+<hr>
+<h4 id="get-payment-information"><a class="header-link" href="#get-payment-information"></a>Get Payment Information</h4>
+<p>This route returns the payment information of a user. To implement the call, the user must be authenticated with an auth token and only their payment info is returned.</p>
+<p><code>GET /payment/{user_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>User&#39;s temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   user_id</td>
+<td><em>string</em></td>
+<td>ID of the user whose data you&#39;re requesting.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  <span class="hljs-string">"code"</span>:<span class="hljs-number">200</span>,
+  <span class="hljs-string">"message"</span>:<span class="hljs-string">""</span>,
+  <span class="hljs-string">"number"</span>:last4,
+  <span class="hljs-string">"exp_month"</span>:exp_month,
+  <span class="hljs-string">"exp_year"</span>:exp_year,
+  <span class="hljs-string">"name"</span>:<span class="hljs-string">"name"</span>,
+  <span class="hljs-string">"address1"</span>:<span class="hljs-string">"address_line1"</span>,
+  <span class="hljs-string">"address2"</span>:<span class="hljs-string">"address_line2"</span>,
+  <span class="hljs-string">"city"</span>:<span class="hljs-string">"address_city"</span>,
+  <span class="hljs-string">"state"</span>:<span class="hljs-string">"address_state"</span>,
+  <span class="hljs-string">"zip"</span>:address_zip,
+  <span class="hljs-string">"brand"</span>:<span class="hljs-string">"brand"</span>
+}</code></pre><hr>
+<h4 id="add-payment-information"><a class="header-link" href="#add-payment-information"></a>Add Payment Information</h4>
+<p>This route adds the payment information to a user. To implement the call, the user must be authenticated with an auth token and their payment info is added to only their account. The credit/debit card information must pass cvc and billing address checks inorder to be valid.</p>
+<p><code>POST /payment/{user_id}</code></p>
+<p><strong>Parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+<th>Optional</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>   token</td>
+<td><em>string</em></td>
+<td>User&#39;s temporary access token.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   user_id</td>
+<td><em>string</em></td>
+<td>ID of the user whose data you&#39;re requesting.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   name</td>
+<td><em>string</em></td>
+<td>Name of the Card Holder.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   card_number</td>
+<td><em>int</em></td>
+<td>Number of the credit/debit card.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   exp_month</td>
+<td><em>int</em></td>
+<td>Month of the expiration date.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   exp_year</td>
+<td><em>int</em></td>
+<td>Year of the expiration date.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   cvc</td>
+<td><em>int</em></td>
+<td>The security code on the back of the card.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   address1</td>
+<td><em>string</em></td>
+<td>The first line of the billing address.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   address2</td>
+<td><em>string</em></td>
+<td>The second line of the billing address.</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>   city</td>
+<td><em>string</em></td>
+<td>The city of the billing address.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   state</td>
+<td><em>string</em></td>
+<td>The state of the billing address.</td>
+<td>No</td>
+</tr>
+<tr>
+<td>   zip</td>
+<td><em>int</em></td>
+<td>The zip code of the billing address.</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>RESPONSE</strong></p>
+<pre class="hljs"><code>{
+  "<span class="hljs-attribute">code</span>":<span class="hljs-value"><span class="hljs-number">200</span></span>,
+  "<span class="hljs-attribute">message</span>":<span class="hljs-value"><span class="hljs-string">"The Card was added!"</span>
+</span>}</code></pre><hr>
+<hr>
 <h3 id="transactions"><a class="header-link" href="#transactions"></a>Transactions</h3>
 <p><code>api.praxyk.com/transactions/</code> is the portal for all specific transaction information. Transactions are records that are generated for every service request that a user makes through our API. For instance, if a user makes a request to <code>api.praxyk.com/pod/bayes_spam/</code> with 100 email-bodies as data, a single transaction record is generated to group together those 100 inputs and their corresponding outputs.
-The user is given the ID of this transaction as a return to making the call to the <code>/pod/</code> service, and they can use this ID to obtain information on the status of their request by using the routes described in this section.</p>
+The user is given the ID of this transaction as a return to making the call to the <code>/pod/</code> service, and they can use this ID to obtain information on the status of their request by using the routes described in this section. Transactions can also be named upon creation, which makes it easier to recall what purpose each transaction served.</p>
 <hr>
 <h4 id="get-all-user-transactions"><a class="header-link" href="#get-all-user-transactions"></a>Get All User Transactions</h4>
 <p>This route can be used to access a user&#39;s entire history of transactions. Users must be authorized with an auth token to perform this request, and they can only access their own transaction history. The <code>user_id</code> field is required and for regular users must match the user who owns the token that is given with the request, administrators can request the transaction history of any or all users. Transactions follow the paginated result template defined at the top of this spec.</p>
@@ -390,7 +542,7 @@ The user is given the ID of this transaction as a return to making the call to t
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 <tr>
@@ -423,13 +575,16 @@ The user is given the ID of this transaction as a return to making the call to t
 <p>If <code>pagination=True</code> (default action)</p>
 <pre class="hljs"><code>{
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
-  "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+  "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
   "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/transactions/?user_id=$user_id&amp;page=$page_number+1"</span></span>,
+  "<span class="hljs-attribute">first_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/transactions/?user_id=$user_id&amp;page=1"</span></span>,
+  "<span class="hljs-attribute">last_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/transactions/?user_id=$user_id&amp;page=${total/page_size + 1}"</span></span>,
   "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-string">"$page_number"</span></span>,
     "<span class="hljs-attribute">transactions</span>" : <span class="hljs-value">[
       {
         "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id1"</span></span>,
+        "<span class="hljs-attribute">name</span>"  : <span class="hljs-value"><span class="hljs-string">"$trans_name1"</span></span>,
         "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id1"</span></span>,
         "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url1"</span></span>,
         "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url1"</span></span>,
@@ -454,10 +609,11 @@ The user is given the ID of this transaction as a return to making the call to t
 <p>If <code>pagination=False</code></p>
 <pre class="hljs"><code>{
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
-  "<span class="hljs-attribute">userid</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
+  "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
   "<span class="hljs-attribute">transactions</span>" : <span class="hljs-value">[
     {
       "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id1"</span></span>,
+      "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_name1"</span></span>,
       "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id1"</span></span>,
       "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url1"</span></span>,
       "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url1"</span></span>,
@@ -495,7 +651,7 @@ The user is given the ID of this transaction as a return to making the call to t
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 </tbody>
@@ -506,6 +662,7 @@ The user is given the ID of this transaction as a return to making the call to t
   "<span class="hljs-attribute">transaction</span>" :
     <span class="hljs-value">{
       "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_name"</span></span>,
       "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
       "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
       "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
@@ -540,7 +697,7 @@ The user is given the ID of this transaction as a return to making the call to t
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 <tr>
@@ -557,6 +714,7 @@ The user is given the ID of this transaction as a return to making the call to t
   "<span class="hljs-attribute">transaction</span>" :
     <span class="hljs-value">{
       "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_name"</span></span>,
       "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
       "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
       "<span class="hljs-attribute">results_url</span>" : <span class="hljs-value"><span class="hljs-string">"api.praxyk.com/results/$trans_id"</span></span>,
@@ -577,11 +735,10 @@ The user is given the ID of this transaction as a return to making the call to t
 <hr>
 <hr>
 <h3 id="pod-ocr"><a class="header-link" href="#pod-ocr"></a>POD-OCR</h3>
-<p>Optical character recognition (OCR) is one of the first services to be offered through the Praxyk API, and it allows user&#39;s to extract strings of text present in a given image file. </p>
+<p>Optical character recognition (OCR) is one of the first services to be offered through the Praxyk API, and it allows users to extract strings of text that present in a submitted image file. </p>
 <hr>
 <h4 id="make-a-new-pod-ocr-request"><a class="header-link" href="#make-a-new-pod-ocr-request"></a>Make a New POD-OCR Request</h4>
-<p>This route is used to instantiate a new request to the POD Ocular Character Recognition service. It takes an authorization token from the user and a list of image-files. The images can be any one of png, tif/tiff, jpg, bmp. You will receive in return a list of items describing the transaction, including a transaction ID that you can use to track the progress of and access the results of your request.
-The names of the files you upload are important, they will be used to index the results that are returned to you.</p>
+<p>This route is used to instantiate a new request to the POD Ocular Character Recognition service. It takes an authorization token from the user and a list of image-files. The images can be any one of png, tif, tiff, jpg, bmp. You will receive in return a group of meta-data describing the transaction, including a transaction ID that you can use to track the progress of and access the results of your request.</p>
 <p><code>POST /pod/ocr/</code></p>
 <p><strong>Parameters</strong></p>
 <table>
@@ -597,7 +754,7 @@ The names of the files you upload are important, they will be used to index the 
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 <tr>
@@ -614,6 +771,7 @@ The names of the files you upload are important, they will be used to index the 
   "<span class="hljs-attribute">transaction</span>" :
     <span class="hljs-value">{
       "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_name"</span></span>,
       "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
       "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
       "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
@@ -654,7 +812,7 @@ The names of the files you upload are important, they will be used to index the 
 <tr>
 <td>   token</td>
 <td><em>string</em></td>
-<td>Users temporary access token.</td>
+<td>User&#39;s temporary access token.</td>
 <td>No</td>
 </tr>
 <tr>
@@ -682,6 +840,8 @@ The names of the files you upload are important, they will be used to index the 
 <pre class="hljs"><code>{
   "<span class="hljs-attribute">code</span>" : <span class="hljs-value"><span class="hljs-number">200</span></span>,
   "<span class="hljs-attribute">next_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/{transaction_id}?page=$page_number+1"</span></span>,
+  "<span class="hljs-attribute">first_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/transaction_id}?page=1"</span></span>,
+  "<span class="hljs-attribute">last_page</span>" : <span class="hljs-value"><span class="hljs-string">"http://api.praxyk.com/v1/results/transaction_id}?page=${total/page_size + 1}"</span></span>,
   "<span class="hljs-attribute">page</span>" : <span class="hljs-value">{
     "<span class="hljs-attribute">page_number</span>" : <span class="hljs-value"><span class="hljs-string">"$page_number"</span></span>,
     "<span class="hljs-attribute">results</span>" : <span class="hljs-value">[
@@ -706,6 +866,7 @@ The names of the files you upload are important, they will be used to index the 
   "<span class="hljs-attribute">transaction</span>" :
     <span class="hljs-value">{
       "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_name"</span></span>,
       "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
       "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
       "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
@@ -748,6 +909,7 @@ The names of the files you upload are important, they will be used to index the 
   <span class="hljs-string">"transaction"</span> :
     {
       "<span class="hljs-attribute">trans_id</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_id"</span></span>,
+      "<span class="hljs-attribute">name</span>" : <span class="hljs-value"><span class="hljs-string">"$trans_name"</span></span>,
       "<span class="hljs-attribute">user_id</span>" : <span class="hljs-value"><span class="hljs-string">"$user_id"</span></span>,
       "<span class="hljs-attribute">command_url</span>" : <span class="hljs-value"><span class="hljs-string">"$command_url"</span></span>,
       "<span class="hljs-attribute">data_url</span>" : <span class="hljs-value"><span class="hljs-string">"$data_url"</span></span>,
