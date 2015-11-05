@@ -14,6 +14,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 ########################################################################
 # Search for dependencies here
 ########################################################################
+FIND_PACKAGE(CLANDMARK REQUIRED)
 FIND_PACKAGE(FANN REQUIRED)
 FIND_PACKAGE(Tesseract REQUIRED)
 FIND_PACKAGE(MLPack REQUIRED)

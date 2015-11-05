@@ -1,8 +1,8 @@
 #include <praxyk/facial_rec.hpp>
 #include <praxyk/paths.hpp>
 
-#include "clandmark/CSparseLBPFeatures.h"
-#include "clandmark/Flandmark.h"
+#include <clandmark/CSparseLBPFeatures.h>
+#include <clandmark/Flandmark.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
