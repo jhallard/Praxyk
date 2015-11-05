@@ -17,7 +17,9 @@ sudo apt-get install -y git python-dev python-pip build-essential
 for i in "${arr[@]}"
 do
     echo "\t Starting $i Build Process"
-    ./"$i"/"$i"_build.sh
+    cd "$i"
+    ./"$i"_build.sh
+    cd ..
     RETVAL=$?
     [ $RETVAL -eq 0 ] && echo "\t Module $i Build Success"
     [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && log_dump "$i" && exit 1
