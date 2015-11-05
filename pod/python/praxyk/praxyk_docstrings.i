@@ -51,3 +51,8 @@ Returns:
 Returns the directory where Praxyk stores the trained data used internally by CLandmark for facial
 feature recognition.
 "
+
+%feature("docstring") praxyk::get_mlpack_dir \
+"
+Returns the directory where Praxyk stores the trained data used internally by MLPack for spam detection.
+"
