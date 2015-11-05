@@ -21,7 +21,7 @@ do
     ./"$i"_build.sh
     RETVAL=$?
     [ $RETVAL -eq 0 ] && echo "\t Module $i Build Success"
-    [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && log_dump "$i" && exit 1
+    [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && exit 1
     cd ..
 done
 
