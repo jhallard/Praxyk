@@ -3,6 +3,10 @@ function log_dump {
     cat .build.log
 }
 
+function setup_databases {
+    mysql -e "create database IF NOT EXISTS test;" -uroot
+}
+
 
 echo "Beginning Praxyk Build Process"
 echo "______________________________"
@@ -24,6 +28,8 @@ do
     [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && exit 1
     cd ..
 done
+
+setup_databases
 
 echo "Praxyk Server Build Success"
 echo "______________________________"

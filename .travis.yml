@@ -6,12 +6,10 @@ python:
 
 services:
 - redis-server
+- mysql
 
 before_install:
 - git submodule update --init --recursive
-- sudo apt-get update -qq
-- sudo apt-get install -qq mysql-server-5.6 mysql-client-5.6 mysql-client-core-5.6
-- mysql -e "create database IF NOT EXISTS test;" -uroot
 
 script:
 - bash build.sh
