@@ -18,7 +18,7 @@ for i in "${arr[@]}"
 do
     echo "\t Starting $i Build Process"
     cd "$i"
-    ./"$i"_build.sh
+    ./build.sh
     RETVAL=$?
     [ $RETVAL -eq 0 ] && echo "\t Module $i Build Success"
     [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && exit 1
