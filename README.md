@@ -1,5 +1,5 @@
 
-![Travis-CI Build](https://travis-ci.org/jhallard/Praxyk.svg?branch=api)
+![Travis-CI Build](https://travis-ci.org/jhallard/Praxyk.svg)
 Praxyk
 ===========
 
