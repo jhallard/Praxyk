@@ -1,4 +1,4 @@
-![Travis-CI Build](https://travis-ci.org/jhallard/Praxyk.svg)
+![Travis-CI Build](https://travis-ci.org/Praxyk/Praxyk.svg)
 
 Praxyk
 =========
@@ -9,6 +9,7 @@ ___
  * [Wiki](https://github.com/Praxyk/Praxyk/wiki/Home)
  * [API Documentation](https://github.com/Praxyk/Praxyk/wiki/Praxyk-API)
  * [Builds and Tests](https://travis-ci.org/Praxyk/Praxyk)
+
 ___
 
 
