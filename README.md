@@ -1,34 +1,41 @@
-
 ![Travis-CI Build](https://travis-ci.org/jhallard/Praxyk.svg)
+
 Praxyk
-===========
+=========
 
-Machine Learning as a Service
-
-#### Overview
-
-##### Motivations :
- * The space of problems that can be solved with machine-learning has drastically increased recently.
- * Large scale data-collection is ubiquitous, even among non-tech businesses.
- * The prevalence of 'big-data' makes customizable machine-learning tools in high demand.
- * Setting up the infrastructure and configuring it to process one's data can be costly and time consuming.
- * It often does not make financial sense for smaller businesses to set up their own ML frameworks
-
-##### (non-new) Idea
-Implement the most popular machine-learning tools and offer access to their predictive capabilities as a service through a dedicated API.
-
- * Abstracts the issue of designing and maintaining a custom ML framework away from the customer.
- * Makes the predictive power of ML more accessible, especially for small businesses.
-
-##### Services
-
- * POD - Prediction on Demand
-A collection of pre-trained ML tools for quick and simple solutions to popular prediction tasks (face recognition, spam detection, speech recognition, etc.). These models are active at all times, ready to respond to task requests.
+Machine Learning Services
+___
+ * [Website](https://praxyk.com) 
+ * [Wiki](https://github.com/Praxyk/Praxyk/wiki/Home)
+ * [API Documentation](https://github.com/Praxyk/Praxyk/wiki/Praxyk-API)
+ * [Builds and Tests](https://travis-ci.org/Praxyk/Praxyk)
+___
 
 
- * TLP - Templated Learning Platform
-A managed platform where users can train and configure ML-tool templates. Once configured to their liking, these custom instances can be saved by the user and deployed again at their will.
+##### Praxyk is a 100% open-source Machine-Learning-as-a-Service provider.
 
+* **Chose A Model** - Praxyk offers a variety of pre-trained machine learning models for you to choose from. Everything from ocular-character-recognition, to facial detection, to spam detection models are pre-trained and live on our servers.
+* **Upload Your Data** - Upload anything from a few bytes to terabytes of data directly to our servers.
+* **Receive Predictions** - We'll run your data through the chosen model on our fast, stable, and secure architecture and return the results to you.
+
+
+### Services
+
+Praxyk plans to offer two main types of services, **Prediction on Demand** and the **Templated Learning Platform**. As of right now only the former is implemented, but we will keep you updated with our plans towards the latter. These two services are described below.
+
+#### Prediction on Demand
+Prediction on Demand (**POD**) is a way for you to access world-class and pre-trained machine learning models instantly through our API.  We have chosen some of the most common use-cases of machine learning, facial recognition for instance, and developed powerful models to solve these common problems. We then host these models on our server farm and offer access to them via our API and website. Some of the models offered by POD are given below.
+ * Ocular Character Recognition
+ * Facial Recignition
+ * Spam Detection
+
+#### Templated Learning Platform
+The templated learning platform is the natural extension to the POD service. Instead of hosting static models for the public to use, the templated learning platform allows you to start with templates of machine learning models which can then be trained to suit your more specific goals.
+
+### Project Goals                                                                                                                                            
+ We strive to accomplish two primary goals :
+ * Abstract the issue of designing and maintaining a custom Machine-Learning framework away from the customer.
+ * Make the predictive power of Machine-Learning more accessible, especially for individuals and small businesses.
 
 ##### Project Details
 This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 2015.
@@ -41,3 +48,4 @@ This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 
  * Michael Vincent
 
  This project followed Scrum methodology; relevant Scrum documents can be found in the docs directory.
+

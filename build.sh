@@ -5,6 +5,7 @@ function log_dump {
 
 
 echo "Beginning Praxyk Build Process"
+echo "______________________________"
 
 cp -R .praxyk/ ~/.praxyk_travis # move the fake config files to the home directory
 ln -s ~/.praxyk_travis ~/.praxyk
@@ -15,13 +16,14 @@ sudo apt-get install -y git python-dev python-pip build-essential
 
 for i in "${arr[@]}"
 do
-    echo Starting "$i" Build Process
+    echo "\t Starting $i Build Process"
     ./"$i"/"$i"_build.sh
     RETVAL=$?
-    [ $RETVAL -eq 0 ] && echo "$i Build Success"
-    [ $RETVAL -ne 0 ] && echo "$i Build Failure" && log_dump "$i" && exit 1
+    [ $RETVAL -eq 0 ] && echo "\t Module $i Build Success"
+    [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && log_dump "$i" && exit 1
 done
 
-echo "Build Success"
+echo "Praxyk Server Build Success"
+echo "______________________________"
 exit 0
 
