@@ -32,13 +32,21 @@ RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD MLPack Requirements Install/Build Success
 [ $RETVAL -ne 0 ] && echo POD MLPack Requirements Install Failure && exit 1
 
+git clone https://github.com/Praxyk/clandmark -b praxyk
+mkdir -p clandmark/build
+cd clandmark/build && cmake .. && sudo make install > .build.log
+
+RETVAL=$?
+[ $RETVAL -eq 0 ] && echo POD CLandmark Requirements Install/Build Success
+[ $RETVAL -ne 0 ] && echo POD CLandmark Requirements Install Failure && exit 1
+
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> $HOME/.bashrc
 sudo ldconfig
 
 cd $PRAXYK_POD_DIR
 mkdir -p build
 cd build
-cmake .. &&  sudo make install > .build.log
+cmake .. && sudo make install > .build.log
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Full Build Success
