@@ -5,14 +5,15 @@ python:
   - "2.7"
 
 services:
-- redis-server
-- mysql
+  - mysql
+  - redis-server
 
 before_install:
-- git submodule update --init --recursive
+  - git submodule update --init --recursive
+  - sudo apt-get update -y
 
 script:
-- bash build.sh
+  - bash build.sh
 
 notifications:
   slack:
