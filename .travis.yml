@@ -6,8 +6,8 @@ services:
   - mysql
 
 before_install:
-  - git submodule update --init --recursive
   - sudo apt-get -qqy update 
+  - git submodule update --init --recursive
 
 install:
   - bash build.sh
