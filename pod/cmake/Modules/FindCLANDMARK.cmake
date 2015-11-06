@@ -24,7 +24,7 @@
 #
 # =============================================================================
 
-find_path(CLANDMARK_INCLUDE_DIR CLandmark.h)
+find_path(CLANDMARK_INCLUDE_DIR clandmark/CLandmark.h)
 find_library(CLANDMARK_LIBRARY NAMES clandmark)
 
 set(CLANDMARK_LIBRARIES ${CLANDMARK_LIBRARY})
