@@ -11,7 +11,7 @@ RETVAL=$?
 [ $RETVAL -eq 0 ] && echo API : Ubuntu Requirements Install Success
 [ $RETVAL -ne 0 ] && echo API : Ubuntu Requirements Install Failure && exit 1
 
-sudo pip install -rq .pip_install > .build.log
+sudo pip install -r --quiet .pip_install > .build.log
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo API : Pip Requirements Install Success
 [ $RETVAL -ne 0 ] && echo API : Pip Requirements Install Failure && exit 1
