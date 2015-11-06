@@ -8,8 +8,7 @@ cd $HOME
 sudo apt-get -qqy update
 sudo apt-get -qqy install libboost-math-dev libboost-program-options-dev libboost-random-dev \
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
-libleptonica-dev libfann-dev libicu-dild.log
-clang gcc g++ ssh libopencv-dev > .build.log 
+libleptonica-dev libfann-dev libicu-dev clang gcc g++ ssh libopencv-dev > .build.log
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Ubuntu Requirements Install Success
