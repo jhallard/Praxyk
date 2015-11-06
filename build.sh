@@ -20,12 +20,12 @@ sudo apt-get install -y git python-dev python-pip build-essential > .build.log
 
 for i in "${arr[@]}"
 do
-    echo "\t Starting $i Build Process"
+    echo "  Starting $i Build Process"
     cd "$i"
     ./build.sh
     RETVAL=$?
-    [ $RETVAL -eq 0 ] && echo "\t Module $i Build Success"
-    [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && exit 1
+    [ $RETVAL -eq 0 ] && echo "  Module $i Build Success"
+    [ $RETVAL -ne 0 ] && echo "  Module $i Build Failure" && exit 1
     cd ..
 done
 
