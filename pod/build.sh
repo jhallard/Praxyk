@@ -8,7 +8,7 @@ cd $HOME
 sudo apt-get -qqy update
 sudo apt-get -qqy install libboost-math-dev libboost-program-options-dev libboost-random-dev \
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
-libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev \
+libleptonica-dev libfann-dev libicu-dild.log
 clang gcc g++ ssh libopencv-dev > .build.log 
 
 RETVAL=$?
@@ -42,10 +42,9 @@ RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD CLandmark Requirements Install/Build Success
 [ $RETVAL -ne 0 ] && echo POD CLandmark Requirements Install Failure && exit 1
 
-echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> $HOME/.bashrc
-echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages:$PYTHONPATH' >> $HOME/.bashrc
-echo 'export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH' >> $HOME/.bashrc
-source $HOME/.bashrc
+export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/usr/local/lib/python2.7/dist-packages:$PYTHONPATH
+export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH
 sudo ldconfig
 
 cd $PRAXYK_POD_DIR

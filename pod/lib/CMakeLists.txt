@@ -29,8 +29,11 @@ SET(praxyk_libs
     ${Mlpack_LIBRARIES}
     ${LIBXML2_LIBRARIES}
     ${OpenCV_LIBRARIES}
-    clandmark
 )
+
+IF(OPENMP_FOUND)
+    LIST(APPEND praxyk_libs gomp)
+ENDIF(OPENMP_FOUND)
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
 ADD_LIBRARY(praxyk SHARED ${praxyk_sources})

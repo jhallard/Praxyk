@@ -29,6 +29,14 @@ IF(NOT ${Boost_FOUND})
     MESSAGE(FATAL_ERROR "Boost.Thread is required.")
 ENDIF(NOT ${Boost_FOUND})
 
+FIND_PACKAGE(OpenMP)
+IF(OPENMP_FOUND)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ELSE(OPENMP_FOUND)
+    SET(USE_OPENMP OFF)
+ENDIF(OPENMP_FOUND)
+
 ########################################################################
 # Global flags
 ########################################################################
