@@ -5,8 +5,8 @@ export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 
 cd $HOME
-sudo apt-get update
-sudo apt-get install -y libboost-math-dev libboost-program-options-dev libboost-random-dev \
+sudo apt-get -qqy update
+sudo apt-get -qqy install libboost-math-dev libboost-program-options-dev libboost-random-dev \
 libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
 libleptonica-dev libfann-dev libicu-dev libpango1.0-dev libcairo2-dev libboost-thread-dev \
 clang gcc g++ ssh libopencv-dev > .build.log 

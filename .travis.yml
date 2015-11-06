@@ -1,9 +1,6 @@
 sudo: required
 dist: trusty
 
-python:
-  - "2.7"
-
 services:
   - redis-server
   - mysql
