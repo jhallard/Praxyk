@@ -49,7 +49,7 @@ sudo ldconfig
 cd $PRAXYK_POD_DIR
 mkdir -p build
 cd build
-cmake .. && sudo make install > .build.log
+cmake .. && sudo make install
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Full Build Success
