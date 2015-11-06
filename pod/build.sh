@@ -57,7 +57,7 @@ RETVAL=$?
 
 sudo ldconfig
 
-python -c "import praxyk" > .build.log 2>&1
+python -c "import praxyk"
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo Praxyk Python Import Success
