@@ -29,7 +29,7 @@ do
     cd ..
 done
 
-setup_databases
+# setup_databases
 
 echo "Praxyk Server Build Success"
 echo "______________________________"
