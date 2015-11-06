@@ -16,7 +16,7 @@ ___
 
 ##### Praxyk is a 100% open-source Machine-Learning-as-a-Service provider.
 
-* **Chose A Model** - Praxyk offers a variety of pre-trained machine learning models for you to choose from. Everything from ocular-character-recognition, to facial detection, to spam detection models are pre-trained and live on our servers.
+* **Choose A Model** - Praxyk offers a variety of pre-trained machine learning models for you to choose from. Everything from optical character recognition, to facial detection, to spam detection models are pre-trained and live on our servers.
 * **Upload Your Data** - Upload anything from a few bytes to terabytes of data directly to our servers.
 * **Receive Predictions** - We'll run your data through the chosen model on our fast, stable, and secure architecture and return the results to you.
 
