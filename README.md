@@ -27,7 +27,7 @@ Praxyk plans to offer two main types of services, **Prediction on Demand** and t
 
 #### Prediction on Demand
 Prediction on Demand (**POD**) is a way for you to access world-class and pre-trained machine learning models instantly through our API.  We have chosen some of the most common use-cases of machine learning, facial recognition for instance, and developed powerful models to solve these common problems. We then host these models on our server farm and offer access to them via our API and website. Some of the models offered by POD are given below.
- * Ocular Character Recognition
+ * Optical Character Recognition
  * Facial Recignition
  * Spam Detection
 
@@ -49,5 +49,5 @@ This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 
  * Nick Church
  * Michael Vincent
 
- This project followed Scrum methodology; relevant Scrum documents can be found in the docs directory.
+This project followed Scrum methodology; relevant Scrum documents can be found in the docs directory.
 
