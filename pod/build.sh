@@ -43,6 +43,7 @@ RETVAL=$?
 [ $RETVAL -ne 0 ] && echo POD CLandmark Requirements Install Failure && exit 1
 
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> $HOME/.bashrc
+echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages:$PYTHONPATH' >> $HOME/.bashrc
 sudo ldconfig
 
 cd $PRAXYK_POD_DIR
