@@ -16,7 +16,7 @@ RETVAL=$?
 [ $RETVAL -ne 0 ] && echo POD Ubuntu Requirements Install Failure && exit 1
 
 git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
-cd tesseract && ./autogen.sh && ./configure && sudo make install > .build.log 2>&1
+cd tesseract && ./autogen.sh && ./configure && sudo make install
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Tesseract Requirements Install Success
@@ -27,7 +27,7 @@ git clone https://github.com/mlpack/mlpack.git -b mlpack-1.0.12
 mkdir -p mlpack/build
 cd mlpack
 git apply $PRAXYK_POD_DIR/patches/mlpack_lib_only.patch
-cd build && cmake .. && sudo make install > .build.log 2>&1
+cd build && cmake .. && sudo make install
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD MLPack Requirements Install/Build Success
@@ -36,7 +36,7 @@ RETVAL=$?
 cd $HOME
 git clone https://github.com/Praxyk/clandmark -b praxyk
 mkdir -p clandmark/build
-cd clandmark/build && cmake .. && sudo make install > .build.log 2>&1
+cd clandmark/build && cmake .. && sudo make install
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD CLandmark Requirements Install/Build Success
