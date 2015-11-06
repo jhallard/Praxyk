@@ -44,6 +44,7 @@ RETVAL=$?
 
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> $HOME/.bashrc
 echo 'export PYTHONPATH=/usr/local/lib/python2.7/dist-packages:$PYTHONPATH' >> $HOME/.bashrc
+echo 'export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH' >> $HOME/.bashrc
 sudo ldconfig
 
 cd $PRAXYK_POD_DIR
