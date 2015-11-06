@@ -30,7 +30,6 @@ SET(praxyk_libs
     ${LIBXML2_LIBRARIES}
     ${OpenCV_LIBRARIES}
     clandmark
-    flandmark
 )
 
 ADD_DEFINITIONS(-DPRAXYK_DLL_EXPORTS)
