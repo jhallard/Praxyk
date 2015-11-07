@@ -8,18 +8,18 @@ cd $HOME
 sudo apt-get -qqy update
 sudo apt-get -qqy install libboost-all-dev libxml2-dev libarmadillo-dev automake autotools-dev \
 libtool cmake swig python-dev libleptonica-dev libfann-dev libicu-dev clang gcc g++ ssh \
-libopencv-dev > .build.log
+libopencv-dev tesseract-ocr-dev > .build.log
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Ubuntu Requirements Install Success
 [ $RETVAL -ne 0 ] && echo POD Ubuntu Requirements Install Failure && exit 1
 
-git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
-cd tesseract && ./autogen.sh && ./configure && sudo make install
+#git clone https://github.com/tesseract-ocr/tesseract -b 3.02.02
+#cd tesseract && ./autogen.sh && ./configure && sudo make install
 
-RETVAL=$?
-[ $RETVAL -eq 0 ] && echo POD Tesseract Requirements Install Success
-[ $RETVAL -ne 0 ] && echo POD Tesseract Requirements Install Failure && exit 1
+#RETVAL=$?
+#[ $RETVAL -eq 0 ] && echo POD Tesseract Requirements Install Success
+#[ $RETVAL -ne 0 ] && echo POD Tesseract Requirements Install Failure && exit 1
 
 cd $HOME
 git clone https://github.com/mlpack/mlpack.git -b mlpack-1.0.12

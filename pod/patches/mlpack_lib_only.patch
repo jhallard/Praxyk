@@ -1,8 +1,17 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 881f7d6..18c0658 100644
+index 881f7d6..02f1ca6 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -281,33 +281,3 @@ if (DOXYGEN_FOUND)
+@@ -173,8 +173,6 @@ set(Boost_ADDITIONAL_VERSIONS
+   "1.49.0" "1.50.0" "1.51.0" "1.52.0" "1.53.0" "1.54.0" "1.55.0")
+ find_package(Boost 1.49
+     COMPONENTS
+-      program_options
+-      unit_test_framework
+       random
+     REQUIRED
+ )
+@@ -281,33 +279,3 @@ if (DOXYGEN_FOUND)
        OPTIONAL
    )
  endif (DOXYGEN_FOUND)
@@ -48,6 +57,35 @@ index 6ed5bcb..5449652 100644
  )
  
  foreach(dir ${DIRS})
+diff --git a/src/mlpack/core.hpp b/src/mlpack/core.hpp
+index d9db552..7c2e040 100644
+--- a/src/mlpack/core.hpp
++++ b/src/mlpack/core.hpp
+@@ -159,7 +159,7 @@
+ // Now the core mlpack classes.
+ #include <mlpack/core/util/arma_traits.hpp>
+ #include <mlpack/core/util/log.hpp>
+-#include <mlpack/core/util/cli.hpp>
++//#include <mlpack/core/util/cli.hpp>
+ #include <mlpack/core/data/load.hpp>
+ #include <mlpack/core/data/save.hpp>
+ #include <mlpack/core/data/normalize_labels.hpp>
+diff --git a/src/mlpack/core/util/CMakeLists.txt b/src/mlpack/core/util/CMakeLists.txt
+index 9bdc625..f65ff57 100644
+--- a/src/mlpack/core/util/CMakeLists.txt
++++ b/src/mlpack/core/util/CMakeLists.txt
+@@ -1,11 +1,6 @@
+ # Define the files we need to compile.
+ # Anything not in this list will not be compiled into MLPACK.
+ set(SOURCES
+-  cli.hpp
+-  cli.cpp
+-  cli_deleter.hpp
+-  cli_deleter.cpp
+-  cli_impl.hpp
+   log.hpp
+   log.cpp
+   nulloutstream.hpp
 diff --git a/src/mlpack/methods/cf/CMakeLists.txt b/src/mlpack/methods/cf/CMakeLists.txt
 index 6413af4..3dc0d34 100644
 --- a/src/mlpack/methods/cf/CMakeLists.txt
