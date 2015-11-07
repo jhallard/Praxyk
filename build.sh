@@ -14,7 +14,7 @@ echo "______________________________"
 cp -R .praxyk/ ~/.praxyk_travis # move the fake config files to the home directory
 ln -s ~/.praxyk_travis ~/.praxyk
 
-declare -a arr=("api" "pod" "models") # "queue" "website" "pod" "devops" "docs")
+declare -a arr=("api" "pod" "models" "docs") # "queue" "website" "pod" "devops" 
 
 sudo apt-get install -y git python-dev python-pip build-essential
 git submodule update --init --recursive
