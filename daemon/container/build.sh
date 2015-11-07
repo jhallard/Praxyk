@@ -5,7 +5,10 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-docker build .
+docker build -no-cache -rm=true .
+if [ $? != 0 ]; then
+  echo "Error: docker build command failed."
+  exit 1
 OUT=$(docker ps -a)
 IMAGE=$(docker images)
 ID=$(echo $OUT | cut -d \  -f 9)
@@ -13,6 +16,3 @@ IMID=$(echo $IMAGE | cut -d \  -f 10)
 echo "Image ID is " $IMID
 echo "Tagging" $ID
 docker tag -f $IMID "tekgek/praxyk:latest"
-echo "Exporting image to" $1
-
-"docker" "export" $ID > $1
