@@ -128,9 +128,11 @@ class ResultRoute(Resource):
         last_page_num = (amount/page_size) + 1
 
         if startind < 0 or startind > amount :
-            return (None, None)
+            return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
+                    'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
         if endind < 0 :
-            return (None, None)
+            return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
+                    'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
 
         results_json = []
         results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
