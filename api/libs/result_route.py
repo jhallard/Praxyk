@@ -88,10 +88,10 @@ class ResultRoute(Resource):
 
         page_results  = self.get_page_from_results(result_list, args.page, args.page_size)
 
-        page_json = page_results['results_json']
-        next_page_num = page_results['next_page_num']
-        prev_page_num = page_results['prev_page_num']
-        last_page_num = page_results['last_page_num']
+        page_json = page_results.get('results_json', None)
+        next_page_num = page_results.get('next_page_num', None)
+        prev_page_num = page_results.get('prev_page_num', None)
+        last_page_num = page_results.get('last_page_num', None)
 
         if page_json :
             page = {"page_number" : args.page, "results" : page_json}

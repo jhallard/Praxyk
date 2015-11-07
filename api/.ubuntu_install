@@ -1,1 +1,1 @@
-git build-essential python-pip vim tmux python-pip mysql-client python-sqlalchemy libssl-dev libffi-dev python-dev libffi-dev python-m2crypto redis-server python-redis python-dev python-dateutil
+mysql-client python-sqlalchemy libssl-dev libffi-dev python-dev libffi-dev python-m2crypto python-redis python-dateutil python-tornado

@@ -3,6 +3,10 @@ function log_dump {
     cat .build.log
 }
 
+function setup_databases {
+    mysql -e "create database IF NOT EXISTS test;" -uroot
+}
+
 
 echo "Beginning Praxyk Build Process"
 echo "______________________________"
@@ -10,20 +14,22 @@ echo "______________________________"
 cp -R .praxyk/ ~/.praxyk_travis # move the fake config files to the home directory
 ln -s ~/.praxyk_travis ~/.praxyk
 
-declare -a arr=("api" "pod" ) # "models" "queue" "website" "pod" "devops" "docs")
+declare -a arr=("api" "pod" "models" "docs") # "queue" "website" "pod" "devops" 
 
-sudo apt-get install -y git python-dev python-pip build-essential > .build.log
+sudo apt-get install -y git python-dev python-pip build-essential
+git submodule update --init --recursive
 
 for i in "${arr[@]}"
 do
-    echo "\t Starting $i Build Process"
+    echo "  Starting $i Build Process"
     cd "$i"
-    ./"$i"_build.sh
+    ./build.sh
     RETVAL=$?
-    [ $RETVAL -eq 0 ] && echo "\t Module $i Build Success"
-    [ $RETVAL -ne 0 ] && echo "\t Module $i Build Failure" && exit 1
+    [ $RETVAL -eq 0 ] && echo "  Module $i Build Success"
+    [ $RETVAL -ne 0 ] && echo "  Module $i Build Failure" && exit 1
     cd ..
 done
+
 
 echo "Praxyk Server Build Success"
 echo "______________________________"
