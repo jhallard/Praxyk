@@ -41,6 +41,6 @@ cmake ..
 sudo make install</code></pre><p>TODO: Remove automatic checkout of pod branch when it&#39;s merged in</p>
 <p><strong>The LD_LIBRARY_PATH Environment Variable</strong></p>
 <p>By default, CMake will install Praxyk into /usr/local; however, by default, Linux will not look in /usr/local/lib for libraries, so the following line will need to be added to the relevant user&#39;s .bashrc:</p>
-<pre class="hljs"><code><span class="hljs-built_in">export</span> LD_LIBRARY_PATH=/usr/<span class="hljs-built_in">local</span>/lib:<span class="hljs-variable">$LD_LIBRARY_PATH</span></code></pre>    </article>
+<pre class="hljs"><code>export LD_LIBRARY_PATH=/usr/local/lib:<span class="hljs-variable">$LD</span>_LIBRARY_PATH</code></pre>    </article>
   </body>
 </html>

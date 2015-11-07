@@ -8,6 +8,8 @@
 
 echo "Deploying Praxyk API Server"
 
+API_DEPLOY_DIR=$CWD
+
 xargs sudo apt-get -y install < .ubuntu_install
 
 RETVAL=$?
@@ -26,9 +28,16 @@ sudo mkdir /var/www/praxyk_api_server
 sudo cp api_server.wsgi /var/www/praxyk_api_server/
 sudo cp api.praxyk.com.conf /etc/apache2/sites-available/api.praxyk.com.conf
 
+cd ~
+cp -R praxyk praxyk-api-live
+cd $API_DEPLOY_DIR
+
 sudo service apache2 restart
 
+sudo a2dissite 000-default.conf
 sudo a2ensite api.praxyk.com.conf
+
+sudo service apache2 restart
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo "  API-Deploy : Apache Site Started"

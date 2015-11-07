@@ -12,7 +12,7 @@
     <article class="markdown-body"><p>The queueing system for Praxyk is based off of RQ, available <a href="python-rq.org">here</a>.</p>
 <h1 id="concept"><a class="header-link" href="#concept"></a>Concept</h1>
 <p>The queue would take in requests as they come, and distribute them to available workers in containers.  Enqueueing a request is as simple as:</p>
-<pre class="hljs"><code>    queue.enqueue(func_call, arg1, arg2,<span class="hljs-keyword">...</span>)</code></pre><p>These requests will then be picked up by the workers, which will execute the desired function call.  </p>
+<pre class="hljs"><code>    queue.<span class="hljs-function"><span class="hljs-title">enqueue</span><span class="hljs-params">(func_call, arg1, arg2,...)</span></span></code></pre><p>These requests will then be picked up by the workers, which will execute the desired function call.  </p>
 <h1 id="build-and-sample-execution"><a class="header-link" href="#build-and-sample-execution"></a>Build and sample execution</h1>
 <p>The prerequisite to RQ is the Redis server.  To install:</p>
 <pre class="hljs"><code>    git checkout -<span class="hljs-keyword">b</span> master_queueing

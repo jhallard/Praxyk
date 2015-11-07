@@ -2,7 +2,7 @@
 import sys 
 import os
 
-user = os.expanduser("~")
+user = os.path.expanduser("~")
 sys.path.insert(0, user+'/praxyk-api-live/')
 sys.path.insert(0, user+'/praxyk-api-live/api')
 sys.path.insert(0, user+'/praxyk-api-live/api/')
