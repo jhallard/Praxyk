@@ -4,6 +4,8 @@ export PRAXYK_POD_DIR=$PWD
 export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 
+git submodule update --init --recursive
+
 cd $HOME
 sudo apt-get -qqy update
 sudo apt-get -qqy install libboost-all-dev libxml2-dev libarmadillo-dev automake autotools-dev \
