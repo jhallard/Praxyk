@@ -9,6 +9,7 @@ docker build -no-cache -rm=true .
 if [ $? != 0 ]; then
   echo "Error: docker build command failed."
   exit 1
+fi
 OUT=$(docker ps -a)
 IMAGE=$(docker images)
 ID=$(echo $OUT | cut -d \  -f 9)
