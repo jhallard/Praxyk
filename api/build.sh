@@ -5,13 +5,13 @@
 # requirements needed by the API server
 
 touch .build.log
-xargs sudo apt-get -qqy install < .ubuntu_install > .build.log
+xargs sudo apt-get -y install < .ubuntu_install
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo API : Ubuntu Requirements Install Success
 [ $RETVAL -ne 0 ] && echo API : Ubuntu Requirements Install Failure && exit 1
 
-sudo pip install -r .pip_install --quiet  
+sudo pip install -r .pip_install 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo API : Pip Requirements Install Success
 [ $RETVAL -ne 0 ] && echo API : Pip Requirements Install Failure && exit 1

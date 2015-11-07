@@ -16,7 +16,8 @@ ln -s ~/.praxyk_travis ~/.praxyk
 
 declare -a arr=("api" "pod" ) # "models" "queue" "website" "pod" "devops" "docs")
 
-sudo apt-get install -y git python-dev python-pip build-essential > .build.log
+sudo apt-get install -y git python-dev python-pip build-essential
+git submodule update --init --recursive
 
 for i in "${arr[@]}"
 do
@@ -29,7 +30,6 @@ do
     cd ..
 done
 
-# setup_databases
 
 echo "Praxyk Server Build Success"
 echo "______________________________"
