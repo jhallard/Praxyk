@@ -1,3 +1,10 @@
+#!/usr/bin/env python                                                                                                                                
+
+## @auth John Allard, Nick Corgan, others
+## @date Oct 2015
+## @github https://github.com/jhallard/praxyk
+## @license MIT
+
 import os, sys, json, redis
 from rq import Queue, Connection
 import datetime
