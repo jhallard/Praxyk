@@ -31,25 +31,32 @@ class PaymentHandlerRoute(Resource) :
     def __init__(self) :
         self.transaction_id = None
         self.reqparse = reqparse.RequestParser()
-        super(ConfirmRoute, self).__init__()
+        super(PaymentHandlerRoute, self).__init__()
 
    #Only Stripe has access to this api route
     def post(self, id) :
         try :
-            args = self.reqparse.parse_args()
-            email = self.confirm_token(id)
-            if not email :
-                return abort(404)	
-            
-            user = User.query.filter_by(email=email).first()
-            user.active=True
-
-            db.session.commit()
-            return redirect("http://www.praxyk.com/login.html", code=302)
+            stripe_data = request.get_json()
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)
 
+def send_email(self, to, subject, template):
+        try :
+            msg = Message(
+                subject,
+                recipients=[to],
+                html=template,
+                sender=PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER']
+            )
+            mail.send(msg)
+            return True
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            return False
+            
+def charge_user(billing_data):
+	pass
 
 
 

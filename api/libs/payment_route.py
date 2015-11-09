@@ -23,7 +23,10 @@ from api import User, Role, user_datastore
 from auth_route import *
 from libs.route_fields import *
 
+#stripe config
 import stripe
+from api.config import stripe_secret_key
+stripe.api_key = stripe_secret_key
 
 
 # @info - class that users can post/get from , in order to active their account that they previously registered.
@@ -45,7 +48,7 @@ class PaymentRoute(Resource) :
             
             user = User.query.get(id)
         
-            if not user.card_id == None :
+            if not user.payment_info.card_id == None :
                return jsonify({'code':400,'message':"There is already a card on file! Please delete that card to add another."})
                
             self.reqparse.add_argument('name', type=str, required=True, location='json')
@@ -74,10 +77,11 @@ class PaymentRoute(Resource) :
                   "address_zip":args.zip
                   
                },)         
-            customer = stripe.Customer.retrieve(user.customer_id)
+            customer = stripe.Customer.retrieve(user.payment_info.customer_id)
             card = customer.sources.create(source=token.id)
                
-            user.card_id = card.id
+            user.payment_info.card_id = card.id
+            user.active=True
                
             db.session.add(user)
             db.session.commit()
@@ -97,12 +101,12 @@ class PaymentRoute(Resource) :
         if not caller or not validate_owner(caller, id) :
             abort(404)
 	user = User.query.get(id)
-	if user.card_id == None:
+	if user.payment_info.card_id == None:
 		return jsonify({'code':400,'message':'You have no card on file!'})
 	try:
             
-         customer = stripe.Customer.retrieve(user.customer_id)
-         card = customer.sources.retrieve(user.card_id)
+         customer = stripe.Customer.retrieve(user.payment_info.customer_id)
+         card = customer.sources.retrieve(user.payment_info.card_id)
 
          result = {
                   "code":200,
@@ -133,16 +137,17 @@ class PaymentRoute(Resource) :
             abort(404)
         user = User.query.get(id)
         try:
-         if user.card_id == None:
+         if user.payment_info.card_id == None:
             return jsonify({'code':400,'message':"There is not a card on file!"})
             
-         customer = stripe.Customer.retrieve(user.customer_id)
-         card = customer.sources.retrieve(user.card_id).delete()
+         customer = stripe.Customer.retrieve(user.payment_info.customer_id)
+         card = customer.sources.retrieve(user.payment_info.card_id).delete()
          
          if not card.deleted :
             return jsonify({'code':400,'message':"There was a problem removing you card!"})
             
-         user.card_id = None
+         user.payment_info.card_id = None
+         user.active=False
          
          db.session.add(user)
          db.session.commit()

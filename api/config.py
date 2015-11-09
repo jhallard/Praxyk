@@ -48,7 +48,6 @@ DEBUG = True
 #Stripe api keys
 stripe_secret_key = None
 stripe_publishable_key = None
-STRIPE_TEST_MODE = True
 if DEBUG:
    stripe_secret_key = stripeconf['test_secret_key']
    stripe_publishable_key = stripeconf['test_publishable_key']

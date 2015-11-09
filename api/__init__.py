@@ -112,7 +112,7 @@ PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER'] = 'from@example.com'
 TOKEN_EXPIRATION = apiconf['token_expiration']
 
 
-from models.sql.user import User, Role, Transaction, Token, Payments
+from models.sql.user import User, Role, Transaction, Token, Payment_Info
 
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(PRAXYK_API_APP, user_datastore)
