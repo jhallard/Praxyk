@@ -93,6 +93,7 @@ class User(db.Model, UserMixin):
         return None
     
 def create_customer(email):
-    result_json = stripe.Customer.create(email=email,plan="POD_SERVICES")
+    result_json = stripe.Customer.create(email=email,plan="POD_Services")
     return result_json.id 
+    return 0
         

@@ -62,7 +62,9 @@ class POD_OCR_Route(Resource) :
             if not caller :
                 abort(404)
 
+
             (new_trans, files_success) = self.setup_transaction(request, caller)
+
 
             caller.transactions.append(new_trans)
             db.session.commit()
@@ -99,6 +101,7 @@ class POD_OCR_Route(Resource) :
             for file_struct in files_success :
                 trans = {
                      "trans_id"    : new_trans.id,
+                     "name"        : new_trans.name,
                      "file_num"    : file_count,
                      "files_total" : new_trans.uploads_success,
                      "created_at"  : new_trans.created_at,
@@ -130,7 +133,9 @@ class POD_OCR_Route(Resource) :
 
             command_url = url_for(POD_OCR_ENDPOINT)
 
-            new_trans = Transaction(user_id=caller.id, command_url=command_url, status=Transaction.TRANSACTION_NEW)
+            trans_name = request.values.get('name', "")
+
+            new_trans = Transaction(user_id=caller.id, name=trans_name, command_url=command_url, status=Transaction.TRANSACTION_NEW)
 
             new_trans.uploads_success =  0 if not files_success else len(files_success)
             new_trans.uploads_failed =   0 if not files_failed else len(files_failed)
@@ -158,7 +163,7 @@ class POD_OCR_Route(Resource) :
             files = []
             if request.files :
                 files = request.files.getlist('files')
-            if not files :
+            if not files and request.values :
                 files = request.values.get('files', [])
             if not files :
                 return ([], [])

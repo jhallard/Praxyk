@@ -86,7 +86,7 @@ def parse_args(argv) :
 
 # @info - start adding the API endpoints. Each endpoint gets its own class. 
 #         The classes are in /praxyk/api/libs/*_route.py
-#	      All of the constants are defined in /api/__init__.py
+#         All of the constants are defined in /api/__init__.py
 api.add_resource(AuthRoute, TOKENS_ROUTE, endpoint=TOKEN_ENDPOINT)
 api.add_resource(AuthRoute, AUTH_ROUTE, endpoint=AUTH_ENDPOINT)
 api.add_resource(AuthRoute, LOGIN_ROUTE, endpoint=LOGIN_ENDPOINT)

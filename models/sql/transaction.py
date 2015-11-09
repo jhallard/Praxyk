@@ -49,10 +49,6 @@ class Transaction(db.Model) :
     TRANSACTION_FAILED = "failed"
 
     @hybrid_property
-    def name(self) :
-       return self._name if self._name else "user_%_trans_%" % (self.user_id, self.id) 
-
-    @hybrid_property
     def results_url(self) :
        return url_for(RESULT_ENDPOINT, id=self.id, _external=True) 
 
@@ -80,7 +76,7 @@ class Transaction(db.Model) :
         self.model           = self.command_url.split("/")[3]
         self.service         = self.command_url.split("/")[2]
         self.version         = self.command_url.split("/")[1]
-        self._name           = name
+        self.name            = name
 
  
     def __repr__(self):

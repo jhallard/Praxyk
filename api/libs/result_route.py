@@ -83,7 +83,7 @@ class ResultRoute(Resource):
         if not args.pagination :
             results_json = []
             for res in result_list :
-                results_json.append(marshal_result(res))
+                results_json.append(marshal_result(res, trans.service))
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
         page_results  = self.get_page_from_results(result_list, args.page, args.page_size)
