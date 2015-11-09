@@ -18,7 +18,7 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 # from flask.ext.rq import RQ
 
 import redis
-from config import apiconf, REDIS_CONF
+from config import apiconf, REDIS_CONF, stripeconf
 
 sys.path.append('../')
 
@@ -61,6 +61,9 @@ TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
 USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
+PAYMENT_ROUTE        = VERSION + "/payment/<int:id>"
+PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/"
+COUPON_ROUTE = VERSION + "/coupon/<int:id>"
 
 # endpoints
 TRANSACTIONS_ENDPOINT = 'transactions'
@@ -76,6 +79,9 @@ CONFIRM_ENDPOINT      = 'confirm'
 POD_ENDPOINT            = "pod"
 POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
 POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
+PAYMENT_HANDLER_ENDPOINT = 'payment_handler'
+PAYMENT_ENDPOINT = 'payment'
+COUPON_ENDPOINT = 'coupon'
 
 # services
 SERVICE_POD = "pod"
@@ -106,7 +112,7 @@ PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER'] = 'from@example.com'
 TOKEN_EXPIRATION = apiconf['token_expiration']
 
 
-from models.sql.user import User, Role, Transaction, Token
+from models.sql.user import User, Role, Transaction, Token, Payments
 
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(PRAXYK_API_APP, user_datastore)
