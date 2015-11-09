@@ -21,15 +21,15 @@ Implement the most popular machine-learning tools and offer access to their pred
 ##### Services
 
  * POD - Prediction on Demand
-A collection of pre-trained ML tools for quick and simple solutions to popular prediction tasks  (face recognition, spam detection, speech recognition, etc.). These models are active at all times, ready to respond to task requests.
+A collection of pre-trained ML tools for quick and simple solutions to popular prediction tasks (face recognition, spam detection, speech recognition, etc.). These models are active at all times, ready to respond to task requests.
 
 
- * TLP - Templated Learning Platform                                                                               
+ * TLP - Templated Learning Platform
 A managed platform where users can train and configure ML-tool templates. Once configured to their liking, these custom instances can be saved by the user and deployed again at their will.
 
 
 ##### Project Details
-This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 2015. 
+This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 2015.
 
  * John Allard
  * Nicholas Corgan
@@ -38,3 +38,4 @@ This is a project for CS115 Intro to Software Engineering at UCSC, Fall quarter 
  * Nick Church
  * Michael Vincent
 
+ This project followed Scrum methodology; relevant Scrum documents can be found in the docs directory.
