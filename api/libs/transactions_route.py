@@ -52,6 +52,8 @@ class TransactionRoute(Resource) :
             abort(404)
 
 
+    # this should be changed to a put route with a cancel boolean value passed in to allow
+    # the user to cancel an active transaction
     @requires_auth
     def delete(id) :
         try : 
