@@ -30,8 +30,6 @@ stripe.api_key = stripe_secret_key
 
 
 # @info - class that users can post/get from , in order to active their account that they previously registered.
-#         The specific id they post to (api.praxyk.com/confirm/{ID}) contains hashed inside of it the user's
-#         email address that we sent the confirm code to. We use that email tore gister the user under.
 class PaymentRoute(Resource) :
 
     def __init__(self) :
