@@ -64,7 +64,7 @@ class ResultRoute(Resource):
                 results = {}
 
             return jsonify(results)
-        except Exception, e :
+        except Exception as e :
             print "Exception GET /results/X (%s)" % str(e)
             return abort(500)
 
@@ -86,16 +86,34 @@ class ResultRoute(Resource):
                 results_json.append(marshal_result(res))
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
-        (page_json, next_page_num) = self.get_page_from_results(result_list, args.page, args.page_size)
+        page_results  = self.get_page_from_results(result_list, args.page, args.page_size)
+
+        page_json = page_results.get('results_json', None)
+        next_page_num = page_results.get('next_page_num', None)
+        prev_page_num = page_results.get('prev_page_num', None)
+        last_page_num = page_results.get('last_page_num', None)
+
         if page_json :
             page = {"page_number" : args.page, "results" : page_json}
 
         next_page = "" if not next_page_num else url_for(RESULT_ENDPOINT, id=trans.id,
-                                                         page_size=args.page_size, page=next_page_num)
+                                                         page_size=args.page_size, page=next_page_num,
+                                                         _external=True)
+        prev_page = "" if not prev_page_num else url_for(RESULT_ENDPOINT, id=trans.id,
+                                                         page_size=args.page_size, page=prev_page_num,
+                                                         _external=True)
+        first_page = url_for(RESULT_ENDPOINT, id=trans.id, page_size=args.page_size, page=1, _external=True)
+        last_page = url_for(RESULT_ENDPOINT, id=trans.id, page_size=args.page_size, page=last_page_num, _external=True)
+
+
+
         return {"code"        : 200,
                 "transaction" : marshal(trans, transaction_fields),
                 "page"        : page,
-                "next_page"   : next_page }
+                "next_page"   : next_page,
+                "prev_page"   : prev_page,
+                "first_page"  : first_page,
+                "last_page"   : last_page} 
                 
 
             
@@ -105,9 +123,11 @@ class ResultRoute(Resource):
     # results of the last page
     def get_page_from_results(self, result_list, page, page_size) :
         startind = (page-1)*page_size
-        endind = (page)*page_size
+        endind = (page)*page_size-1
+        amount = len(result_list)
+        last_page_num = (amount/page_size) + 1
 
-        if startind < 0 or startind > len(result_list) :
+        if startind < 0 or startind > amount :
             return (None, None)
         if endind < 0 :
             return (None, None)
@@ -118,6 +138,11 @@ class ResultRoute(Resource):
         for result in results_subset :
             results_json.append(marshal_result(result))
 
-        return (results_json,(None if endind >= len(result_list) else page+1))
+        res = {'results_json' : results_json,
+               'next_page_num' : (None if endind >= len(result_list) else page+1),
+               'prev_page_num' : (None if page == 1 else page-1),
+               'last_page_num' : last_page_num}
+
+        return res
 
 

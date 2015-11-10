@@ -1,4 +1,5 @@
 #include <praxyk/ocr.hpp>
+#include <praxyk/paths.hpp>
 
 #include <boost/thread/thread.hpp>
 
@@ -6,6 +7,7 @@
 #include <leptonica/allheaders.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <stdexcept>
 
 namespace praxyk {
@@ -14,6 +16,12 @@ void _get_string_from_image(
     const std::string &filename,
     std::string *ret
 ) {
+    // Tell Tesseract to look at our trained data
+    const std::string tessdata_prefix = get_pkg_data_dir();
+    if(setenv("TESSDATA_PREFIX", tessdata_prefix.c_str(), 1)) {
+        throw std::runtime_error("Failed to set TESSDATA_PREFIX environment variable.");
+    }
+
     // Create Tesseract instance
     tesseract::TessBaseAPI *api = new tesseract::TessBaseAPI();
     if (api->Init(NULL, "eng")) {

@@ -116,21 +116,37 @@ class TransactionsRoute(Resource) :
                 transactions = [marshal(trans, transaction_fields) for trans in transactions]
                 return jsonify({"code" : 200, 'user_name' : user_name, 'transactions' : transactions})
             
-            next_page_num = 0
             page = {}
-            (page_json, next_page_num) = self.get_page_from_results(transactions, args.page, args.page_size)
+
+            page_results  = self.get_page_from_results(transactions, args.page, args.page_size)
+
+            page_json = page_results['results_json']
+            next_page_num = page_results['next_page_num']
+            prev_page_num = page_results['prev_page_num']
+            last_page_num = page_results['last_page_num']
             if page_json : 
                 page = {"page_number" : args.page,
                         "transactions"     : page_json}
                                                                                                                                                          
             next_page = "" if not next_page_num else url_for(TRANSACTIONS_ENDPOINT,
                                                              page_size=args.page_size,
-                                                             page=next_page_num)
+                                                             page=next_page_num,
+                                                             _external=True)
+            prev_page = "" if not next_page_num else url_for(TRANSACTIONS_ENDPOINT,
+                                                             page_size=args.page_size,
+                                                             page=prev_page_num,
+                                                             _external=True)
+
+            first_page = url_for(TRANSACTIONS_ENDPOINT, page_size=args.page_size, page=1, _external=True)
+            last_page = url_for(TRANSACTIONS_ENDPOINT, page_size=args.page_size, page=last_page_num, _external=True)
 
 
             return {"code"        : 200,
                     "page"        : page,
-                    "next_page"   : next_page } 
+                    "next_page"   : next_page,
+                    "prev_page"   : prev_page,
+                    "first_page"  : first_page,
+                    "last_page"   : last_page} 
 
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
@@ -139,18 +155,20 @@ class TransactionsRoute(Resource) :
 
     # takes a list of results, a page number, and a page_size to find the index bounds
     # on the page and returns the page as a list of results
-    # returns (result_list, next_page_num) where next_page_num is None if result_list contains
+    # returns (result_list, next_page_num, last_page_num) where next_page_num is None if result_list contains
     # results of the last page
     def get_page_from_results(self, result_list, page, page_size) :
         startind = (page-1)*page_size
         endind = (page)*page_size
+        amount = result_list.count()
+        last_page_num = (amount/page_size) + 1
 
-        if startind < 0 or startind > result_list.count() :
+        if startind < 0 or startind > amount :
             return (None, None)
         if endind < 0 :                                                                                                                              
             return (None, None)
 
-        results_subset = result_list.filter(Transaction.id >= startind).filter(Transaction.id <= endind).all()
+        results_subset = result_list.filter(Transaction.id >= startind).filter(Transaction.id < endind).all()
 
 
         results_json = []
@@ -159,7 +177,12 @@ class TransactionsRoute(Resource) :
         for result in results_subset :
             results_json.append(marshal(result, transaction_fields))
 
-        return (results_json, (None if endind >= result_list.count() else page+1))
+        res = {'results_json' : results_json,
+               'next_page_num' : (None if endind >= result_list.count() else page+1),
+               'prev_page_num' : (None if page == 1 else page-1),
+               'last_page_num' : last_page_num}
+
+        return res
 
     
 

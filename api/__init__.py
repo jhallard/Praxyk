@@ -119,10 +119,10 @@ security = Security(PRAXYK_API_APP, user_datastore)
 # PRAXYK_API_APP.config['SECURITY_CONFIRMABLE']
 
 # Redis config for the queueing system
-redis_host = REDIS_CONF['dbip']
-redis_port = REDIS_CONF['port']
-redis_pw   = REDIS_CONF['dbpasswd']
-redis_num  = REDIS_CONF['dbnum']
+redis_host = REDIS_CONF.get('dbip', "")
+redis_port = REDIS_CONF.get('port', "")
+redis_pw   = REDIS_CONF.get('dbpasswd', "")
+redis_num  = REDIS_CONF.get('dbnum', "")
 # redis      = redis.Redis(host=redis_host, port=redis_port, password=redis_pw)
 redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, password=redis_pw, db=redis_num)
 

@@ -27,6 +27,7 @@ class Transaction(db.Model) :
     __tablename__ = "Transactions"
 
     id              = db.Column(db.Integer, primary_key = True)
+    name            = db.Column(db.String(150)) # the name associated with the transaction
     created_at      = db.Column(db.DateTime)
     finished_at     = db.Column(db.DateTime)
     user_id         = db.Column(db.Integer, db.ForeignKey('Users.id'))
@@ -47,6 +48,9 @@ class Transaction(db.Model) :
     TRANSACTION_FINISHED = "finished"
     TRANSACTION_FAILED = "failed"
 
+    @hybrid_property
+    def name(self) :
+       return self._name if self._name else "user_%_trans_%" % (self.user_id, self.id) 
 
     @hybrid_property
     def results_url(self) :
@@ -64,7 +68,7 @@ class Transaction(db.Model) :
 
 
     def __init__(self, user_id, command_url, status=TRANSACTION_NEW, size_total_KB = 0,
-                 uploads_total=0, uploads_success=0, uploads_failed=0) :
+                 uploads_total=0, uploads_success=0, uploads_failed=0, name="") :
         self.created_at      = datetime.datetime.now()
         self.user_id         = user_id
         self.status          = status
@@ -76,6 +80,7 @@ class Transaction(db.Model) :
         self.model           = self.command_url.split("/")[3]
         self.service         = self.command_url.split("/")[2]
         self.version         = self.command_url.split("/")[1]
+        self._name           = name
 
  
     def __repr__(self):

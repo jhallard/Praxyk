@@ -1,0 +1,5 @@
+Praxyk Config
+=================
+
+
+Note that all the files in here contain fake data for use by the travis-ci scripts with local databases. Do not put any real configuration files in this directory.

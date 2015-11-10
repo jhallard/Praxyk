@@ -1,0 +1,28 @@
+{
+  "security_password_hash" : "bcrypt",
+  "security_password_salt" : "mothersdaymotherfuckers",
+  "secret_key" : "WHOBUTWHATAREYOUTHEMOST",
+  "email" : "praxykservices@gmail.com",
+  "emailpassword" : "not_the_real_password",
+  "token_expiration" : 1440,
+  "users" : [
+        {
+           "name" : "root",
+           "email": "root@praxyk.com",
+           "password" : "ALKSPORIFJKGIDFODKJFIFD923",
+           "role" : "root"
+        },
+        {
+           "name" : "api_admin",
+           "email": "apiadmin@praxyk.com",
+           "password" : "1234567890987654321",
+           "role" : "admin"
+         },
+         {
+           "name" : "test_user",
+           "email" : "testapiuser@praxyk.com",
+           "password" : "test_user_password",
+           "role" : "test"
+         }
+   ]
+}

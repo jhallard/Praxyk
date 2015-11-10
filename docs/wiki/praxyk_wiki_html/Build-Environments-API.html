@@ -23,18 +23,24 @@ sudo pip install flask-user flask-rq
 sudo pip install Flask-Login==<span class="hljs-number">0.2</span>.<span class="hljs-number">11</span> <span class="hljs-comment"># super hacky, later versions break compat. with flask-security</span>
                                      <span class="hljs-comment"># by changing some methods to members.</span>
 sudo pip install flask-cors
-sudo apt-get install redis-server redis-tools python-redis</code></pre><h4 id="setup"><a class="header-link" href="#setup"></a>Setup</h4>
+sudo pip install --upgrade stripe
+sudo apt-get install redis-server redis-tools python-redis</code></pre><h3 id="live-server-requirements"><a class="header-link" href="#live-server-requirements"></a>Live Server Requirements</h3>
+<p>To run the Flask App on Port 80 using an Apache2 server install the two items below.</p>
+<pre class="hljs"><code>sudo apt-get install apache2
+sudo apt-get install libapache2-mod-wsgi</code></pre><h4 id="setup-development-server"><a class="header-link" href="#setup-development-server"></a>Setup Development Server</h4>
 <p>All of the code needed to run the API server is under the <code>/praxyk/api/</code> directory, but the config files needed to actually access the databases and other services are not located in the repository. Ask a team member for these config files if you need them.</p>
 <p>Start by getting the most recent API code.</p>
 <pre class="hljs"><code>git <span class="hljs-built_in">clone</span> -b api https://github.com/jhallard/praxyk</code></pre><p>Go into the <code>api</code> directory, and launch the Flask app.</p>
 <pre class="hljs"><code><span class="hljs-built_in">cd</span> praxyk/api/
 ./api_server.py --local
-&gt; Running on <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">5000</span></code></pre><p>The above command launches the app on <code>localhost</code>, to expose the API to the external world simply don&#39;t give the <code>--local</code> flag.</p>
-<h4 id="update-server-code"><a class="header-link" href="#update-server-code"></a>Update Server Code</h4>
+&gt; Running on <span class="hljs-number">127.0</span>.<span class="hljs-number">0.1</span>:<span class="hljs-number">5000</span></code></pre><p>The above command launches the app on <code>localhost</code>, to expose the API to the external world simply don&#39;t give the <code>--local</code> flag. Note that running the app this way will always cause it to be on port 5000. To have it run in production mode (port 80 on apache2 server), see two sections below.</p>
+<h4 id="update-dev-server-code"><a class="header-link" href="#update-dev-server-code"></a>Update Dev Server Code</h4>
 <p>On the Praxyk API server, if you want to pull the newest code you can run the <code>~/update_api_server</code> script (it&#39;s already on the server). The script is given below : </p>
 <pre class="hljs"><code><span class="hljs-shebang">#!/usr/bin/bash</span>
 mv ~/praxyk-api ~/praxyk-api-bak
 git <span class="hljs-built_in">clone</span> -b api https://github.com/jhallard/praxyk ~/praxyk-api
-<span class="hljs-built_in">cd</span> ~/praxyk-api/api</code></pre>    </article>
+<span class="hljs-built_in">cd</span> ~/praxyk-api/api</code></pre><h3 id="setting-up-the-production-server"><a class="header-link" href="#setting-up-the-production-server"></a>Setting up the Production Server</h3>
+<p>TODO </p>
+    </article>
   </body>
 </html>

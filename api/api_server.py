@@ -60,16 +60,27 @@ from api import * # imports all defines from top-level __init__
 
 
 DESCRIPTION = """
-##### Write a Description of this Script Here #####
+This script serves as the request handler for the main Praxyk API.
+It is written using the Flask framework to enable route handling.
+In order for this script to work, you must have both the apiconfig and 
+dbconfig folders inside of you .praxyk configuration directory. These folders
+must contain the up-to-date database credentials and the initial users
+of the Praxyk system (like root, admins, etc.).
+This script can be used with the --local flag to only host the API handler
+on localhost:5000. Without that flag it will be hosted at port 5000 but exposed
+to the world at the server's IP address.
+If you want to run the API handler on port 80, you must set up an apache server and
+configure it to run this app using python wsgi bindings.
 """
 
 # @info - parse command line args into useable dictionary
 #         right now we only take a config file as an argument
 def parse_args(argv) :
     parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('--port',  default=5000, help="This is the port the server will be run locally on. Defualt is 5000")
     parser.add_argument('--builddb', action='store_true', help="This will cause all of the tables to be dropped and remade.")
     parser.add_argument('--local', action='store_true', help="Use this flag to run the server on " + \
-                                                            "localhost:5000 instead of as a live server.")
+                                                             "localhost:5000 instead of $IPADDR:5000.")
     return parser.parse_args()
 
 
@@ -134,11 +145,11 @@ if __name__ == '__main__':
 
     # will run on localhost:5000 if --local flag is given
     if args.local :
-        PRAXYK_API_APP.run(debug=True, threaded=True)
+        PRAXYK_API_APP.run(port=int(args.port), debug=True, threaded=True)
     # else we run a http server that can listen for foreign connections on port 5000
     else :
         http_server = HTTPServer(WSGIContainer(PRAXYK_API_APP))
-        http_server.listen(5000)
+        http_server.listen(int(args.port))
         IOLoop.instance().start()
 
 
