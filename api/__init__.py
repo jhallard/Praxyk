@@ -43,7 +43,7 @@ bcrypt = Bcrypt(PRAXYK_API_APP)  # used for password hashing
 CORS(PRAXYK_API_APP)             # cross-site scripting
 # RQ(PRAXYK_API_APP)               # redis queue
 
-BASE_URL           = "api.praxyk.com"
+BASE_URL           = "localhost"
 VERSION            = "/v1"
 
 # routes
@@ -62,7 +62,7 @@ USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
 PAYMENT_ROUTE        = VERSION + "/payment/<int:id>"
-PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/"
+PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/<string:webhook>"
 COUPON_ROUTE = VERSION + "/coupon/<int:id>"
 
 # endpoints
