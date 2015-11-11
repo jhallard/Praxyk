@@ -60,10 +60,11 @@ RESULT_ROUTE       = RESULTS_ROUTE + '<int:id>'
 TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
 USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
+POD_FACE_DETECT_ROUTE = POD_ROUTE + "face_detect/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
 PAYMENT_ROUTE        = VERSION + "/payment/<int:id>"
 PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/<string:webhook>"
-COUPON_ROUTE = VERSION + "/coupon/<int:id>"
+COUPON_ROUTE        = VERSION + "/coupon/<int:id>"
 
 # endpoints
 TRANSACTIONS_ENDPOINT = 'transactions'
@@ -76,9 +77,10 @@ TOKEN_ENDPOINT        = 'tokens'
 AUTH_ENDPOINT         = 'auth'
 LOGIN_ENDPOINT        = 'login'
 CONFIRM_ENDPOINT      = 'confirm'
-POD_ENDPOINT            = "pod"
-POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
-POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
+POD_ENDPOINT             = "pod"
+POD_OCR_ENDPOINT         = POD_ENDPOINT + "_ocr"
+POD_FACE_DETECT_ENDPOINT = POD_ENDPOINT + "_face_detect"
+POD_BAYES_SPAM_ENDPOINT  = POD_ENDPOINT + "_bayes_spam"
 PAYMENT_HANDLER_ENDPOINT = 'payment_handler'
 PAYMENT_ENDPOINT = 'payment'
 COUPON_ENDPOINT = 'coupon'

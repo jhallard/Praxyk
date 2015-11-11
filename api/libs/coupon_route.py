@@ -47,13 +47,16 @@ class CouponRoute(Resource) :
             abort(404)
 	user = User.query.get(id)
         try :
-            customer = stripe.Customer.retrieve(user.payment_info.customer_id)
+            pinfo = user.payment_info[0] if user.payment_info else None
+            if not pinfo : abort(403)
+            customer = stripe.Customer.retrieve(pinfo.customer_id)
             customer.coupon = args.coupon
             result = customer.save()
             print(result)
 
             return jsonify({'code':200,'message':'The coupon was successfully added to your account!'})
         except stripe.error.InvalidRequestError, e:
+            sys.stderr.write("Exception : " + str(e))
             return jsonify({'code':200,'message':'There was an error trying to add your coupon! Please make sure that coupon is valid!'})
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
