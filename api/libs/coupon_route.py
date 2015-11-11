@@ -40,17 +40,14 @@ class CouponRoute(Resource) :
 
     @requires_auth
     def post(self, id) :
-        self.reqparse.add_argument('coupon', type=str, default=None, required=True, location='json')
+        self.reqparse.add_argument('coupon', type=str, required=True, location='json')
         args = self.reqparse.parse_args()
-        print(args.coupon)
         caller = g._caller
         if not caller or not validate_owner(caller, id) :
-            print("------NOT CALLER\n")
             abort(404)
 	user = User.query.get(id)
-        print("------GOT USER\n")
         try :
-            customer = stripe.Customer.retrieve(user.customer_id)
+            customer = stripe.Customer.retrieve(user.payment_info.customer_id)
             customer.coupon = args.coupon
             result = customer.save()
             print(result)

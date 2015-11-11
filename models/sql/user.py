@@ -66,7 +66,7 @@ class User(db.Model, UserMixin):
         self.active = active
         self.confirmed = confirm
         self.roles = roles
-        self.payment_info = Payment_Info(email=email)
+        self.payment_info = [Payment_Info(email=email)]
 
     def __repr__(self):
         return '<ID %r, Email %r>' % (self.id, self.email)
