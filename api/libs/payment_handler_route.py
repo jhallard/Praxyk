@@ -50,7 +50,7 @@ class PaymentHandlerRoute(Resource) :
             sys.stderr.write("Exception : " + str(e))
             abort(404)
 
-def send_email(self, to, subject, template):
+def send_email(to, subject, template):
         try :
             msg = Message(
                 subject,

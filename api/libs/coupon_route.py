@@ -27,6 +27,8 @@ from auth_route import *
 from libs.route_fields import *
 
 import stripe
+from api.config import stripe_secret_key
+stripe.api_key = stripe_secret_key
 
 
 # @info - class that users can post/get from , in order to active their account that they previously registered.
