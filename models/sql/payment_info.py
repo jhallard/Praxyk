@@ -35,22 +35,17 @@ from transaction import *
 from role import *
 from user import *
 
-class Payments(db.Model, UserMixin):
-	__tablename__ = "Payments"
-	
+class Payment_Info(db.Model, UserMixin):
+	__tablename__ = "Payment_Info"
 	id             = db.Column(db.Integer, primary_key=True)
 	user_id        = db.Column(db.Integer, db.ForeignKey('Users.id'))
-	amount         = db.Column(db.Integer)
-	captured       = db.Column(db.Boolean())
-	paid           = db.Column(db.Boolean())
-	receipt_number = db.Column(db.Integer)
-	payment_id     = db.Column(db.String(64))
-	customer_id    = db.Column(db.String(32))
+	customer_id    = db.Column(db.String(32), unique=True)
+	card_id        = db.Column(db.String(32), unique=True)
 
-	def __init__(self, json_data) :
-		self.amount = json_data['amount']
-		self.captured = json_data['captured']
-		self.paid = json_data['paid']
-		self.receipt_number = json_data['receipt_number']
-		self.payment_id = json_data['payment_id']
-		self.customer_id = json_data['customer_id']
+	def __init__(self, email) :
+           self.customer_id = create_customer(email=email)
+           self.card_id = None
+
+def create_customer(email):
+    result_json = stripe.Customer.create(email=email,plan="POD_Services")
+    return result_json.id 

@@ -32,6 +32,7 @@ from libs.auth_route import AuthRoute
 from libs.confirm_route import ConfirmRoute
 from libs.pod.pod_route import POD_Route
 from libs.pod.ocr_route import POD_OCR_Route
+from libs.pod.face_detect_route import POD_Face_Detect_Route
 from libs.pod.bayes_spam_route import POD_Bayes_Spam_Route
 from libs.payment_route import PaymentRoute
 from libs.payment_handler_route import PaymentHandlerRoute
@@ -104,11 +105,13 @@ api.add_resource(ConfirmRoute, CONFIRM_ROUTE, endpoint=CONFIRM_ENDPOINT)
 
 api.add_resource(POD_Route, POD_ROUTE, endpoint=POD_ENDPOINT)
 api.add_resource(POD_OCR_Route, POD_OCR_ROUTE, endpoint=POD_OCR_ENDPOINT)
+api.add_resource(POD_Face_Detect_Route, POD_FACE_DETECT_ROUTE, endpoint=POD_FACE_DETECT_ENDPOINT)
 api.add_resource(POD_Bayes_Spam_Route, POD_BAYES_SPAM_ROUTE, endpoint=POD_BAYES_SPAM_ENDPOINT)
 
 api.add_resource(PaymentRoute,PAYMENT_ROUTE,endpoint=PAYMENT_ENDPOINT)
 api.add_resource(PaymentHandlerRoute,PAYMENT_HANDLER_ROUTE,endpoint=PAYMENT_HANDLER_ENDPOINT)
 api.add_resource(CouponRoute,COUPON_ROUTE,endpoint=COUPON_ENDPOINT)
+
 
 @PRAXYK_API_APP.teardown_appcontext
 def shutdown_session(exception=None):
@@ -122,7 +125,7 @@ def create_initial_users() :
         db.session.commit()
 
         for user in INITIAL_USERS:
-            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], active=True)
+            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], confirm=True, active=True)
             user_datastore.activate_user(new_user)
             role = user_datastore.find_role(user['role'])
             user_datastore.add_role_to_user(new_user, role)

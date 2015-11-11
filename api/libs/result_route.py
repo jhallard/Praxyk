@@ -18,6 +18,7 @@ from api import *
 from auth_route import *
 
 from models.nosql.pod.result_pod_ocr import *
+from models.nosql.pod.result_pod_face_detect import *
 from models.nosql.result_base import *
 
 from libs.route_fields import *
@@ -46,7 +47,7 @@ class ResultRoute(Resource):
     #         of by giving ?pagination=False which will cause all results to be dumped in a single list.
     @requires_auth
     def get(self, id):
-        try :
+        # try :
             caller = g._caller
             trans = Transaction.query.get(id)
             if not trans or not caller or not validate_owner(caller, trans.user_id) :
@@ -56,26 +57,28 @@ class ResultRoute(Resource):
             results = {}
 
             if service == SERVICE_POD :
-                if model == MODELS_POD_OCR :
-                    results = self.get_results_pod_ocr(caller, trans)
-                elif model == MODELS_POD_BAYES_SPAM :
-                    results = {}
+                results = self.get_results_pod_ocr(model, caller, trans)
             elif service == SERVICE_TLP : 
                 results = {}
 
             return jsonify(results)
-        except Exception as e :
-            print "Exception GET /results/X (%s)" % str(e)
-            return abort(500)
+        # except Exception as e :
+            # print "Exception GET /results/X (%s)" % str(e)
+            # return abort(500)
 
     # @info - this function takes a transaction db model and returns the results associated with that
     #         request. This function makes use of the pagination scheme to return results, see the API
     #         docs for more info on pagination.
-    def get_results_pod_ocr(self, caller, trans) :
+    def get_results_pod_ocr(self, model, caller, trans) :
         args = self.reqparse.parse_args()
         next_page_num = 0
         page = {}
-        result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
+
+        result_list = []
+        if model == "ocr" :
+            result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
+        elif model == "face_detect" :
+            result_list = Result_POD_Face_Detect.query.filter(transaction_id=trans.id).order_by('item_number').execute()
 
         if not result_list or len(result_list) != trans.uploads_success :
             print "\n\n Not All Result Recovered from Redis DB" + str(result_list) + "\n\n"
@@ -83,10 +86,10 @@ class ResultRoute(Resource):
         if not args.pagination :
             results_json = []
             for res in result_list :
-                results_json.append(marshal_result(res, trans.service))
+                results_json.append(marshal_result(res, trans.service, trans.model))
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
-        page_results  = self.get_page_from_results(result_list, args.page, args.page_size)
+        page_results  = self.get_page_from_results(result_list, args.page, args.page_size, trans)
 
         page_json = page_results.get('results_json', None)
         next_page_num = page_results.get('next_page_num', None)
@@ -121,7 +124,7 @@ class ResultRoute(Resource):
     # on the page and returns the page as a list of results
     # returns (result_list, next_page_num) where next_page_num is None if result_list contains
     # results of the last page
-    def get_page_from_results(self, result_list, page, page_size) :
+    def get_page_from_results(self, result_list, page, page_size, trans) :
         startind = (page-1)*page_size
         endind = (page)*page_size-1
         amount = len(result_list)
@@ -138,7 +141,7 @@ class ResultRoute(Resource):
         results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
         # print str(results_subset) + "  " + str(result_list)
         for result in results_subset :
-            results_json.append(marshal_result(result))
+            results_json.append(marshal_result(result, trans.service, trans.model))
 
         res = {'results_json' : results_json,
                'next_page_num' : (None if endind >= len(result_list) else page+1),

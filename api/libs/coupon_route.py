@@ -40,23 +40,23 @@ class CouponRoute(Resource) :
 
     @requires_auth
     def post(self, id) :
-        self.reqparse.add_argument('coupon', type=str, default=None, required=True, location='json')
+        self.reqparse.add_argument('coupon', type=str, required=True, location='json')
         args = self.reqparse.parse_args()
-        print(args.coupon)
         caller = g._caller
         if not caller or not validate_owner(caller, id) :
-            print("------NOT CALLER\n")
             abort(404)
 	user = User.query.get(id)
-        print("------GOT USER\n")
         try :
-            customer = stripe.Customer.retrieve(user.customer_id)
+            pinfo = user.payment_info[0] if user.payment_info else None
+            if not pinfo : abort(403)
+            customer = stripe.Customer.retrieve(pinfo.customer_id)
             customer.coupon = args.coupon
             result = customer.save()
             print(result)
 
             return jsonify({'code':200,'message':'The coupon was successfully added to your account!'})
         except stripe.error.InvalidRequestError, e:
+            sys.stderr.write("Exception : " + str(e))
             return jsonify({'code':200,'message':'There was an error trying to add your coupon! Please make sure that coupon is valid!'})
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))

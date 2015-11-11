@@ -34,22 +34,38 @@ class PaymentHandlerRoute(Resource) :
         super(PaymentHandlerRoute, self).__init__()
 
    #Only Stripe has access to this api route
-    def post(self, id) :
+    def post(self, webhook) :
         try :
-            args = self.reqparse.parse_args()
-            email = self.confirm_token(id)
-            if not email :
-                return abort(404)	
-            
-            user = User.query.filter_by(email=email).first()
-            user.active=True
-
-            db.session.commit()
-            return redirect("http://www.praxyk.com/login.html", code=302)
+            stripe_data = request.get_json()
+            if webhook == "charge_failed":
+                 user_payment_info = Payment_Info.query.filter_by(customer_id=stripe_data.data.object.customer).first()
+                 user = user_payment_info.user
+                 template = render_template('credit_card_charge_failed_email.html', user_name=user.name)
+                 send_email(user.email, "PRAXYK: CREDIT CARD CHARGE FAILURE", template)
+                 user.active = False
+                 db.session.add(user)
+                 db.session.commit()
+                 return 200
         except Exception, e:
             sys.stderr.write("Exception : " + str(e))
             abort(404)
 
+def send_email(self, to, subject, template):
+        try :
+            msg = Message(
+                subject,
+                recipients=[to],
+                html=template,
+                sender=PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER']
+            )
+            mail.send(msg)
+            return True
+        except Exception, e:
+            sys.stderr.write("Exception : " + str(e))
+            return False
+            
+def charge_user(billing_data):
+	pass
 
 
 

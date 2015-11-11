@@ -12,9 +12,10 @@ import rom
 from models.nosql.result_base import *
 
 
-class Result_POD_FaceDetect(ResultBase) :
+class Result_POD_Face_Detect(ResultBase) :
 	num_faces = rom.Integer()
-	faces_detected = OneToMany('DetectedFace', column=ResultID)
+        faces_json = rom.Text()
+	faces_detected = rom.OneToMany('DetectedFace', column='result_face_detect')
 
 
 # @info - This class represents a single detected face in an image that can have
@@ -23,7 +24,7 @@ class Result_POD_FaceDetect(ResultBase) :
 #         correspond to different features of a given face
 class DetectedFace(rom.Model) :
 
-	result_face_detect = ManyToOne('Result_POD_FaceDetect', on_delete='set null')
+	result_face_detect = rom.ManyToOne('Result_POD_FaceDetect', on_delete='set null')
 	brow_ll = rom.Float()
 	brow_lc = rom.Float()
 	brow_lr = rom.Float()
