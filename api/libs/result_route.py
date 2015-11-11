@@ -83,10 +83,10 @@ class ResultRoute(Resource):
         if not args.pagination :
             results_json = []
             for res in result_list :
-                results_json.append(marshal_result(res, trans.service))
+                results_json.append(marshal_result(res, trans.service, trans.model))
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
-        page_results  = self.get_page_from_results(result_list, args.page, args.page_size)
+        page_results  = self.get_page_from_results(result_list, args.page, args.page_size, trans)
 
         page_json = page_results.get('results_json', None)
         next_page_num = page_results.get('next_page_num', None)
@@ -121,7 +121,7 @@ class ResultRoute(Resource):
     # on the page and returns the page as a list of results
     # returns (result_list, next_page_num) where next_page_num is None if result_list contains
     # results of the last page
-    def get_page_from_results(self, result_list, page, page_size) :
+    def get_page_from_results(self, result_list, page, page_size, trans) :
         startind = (page-1)*page_size
         endind = (page)*page_size-1
         amount = len(result_list)
@@ -138,7 +138,7 @@ class ResultRoute(Resource):
         results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
         # print str(results_subset) + "  " + str(result_list)
         for result in results_subset :
-            results_json.append(marshal_result(result))
+            results_json.append(marshal_result(result, trans.service, trans.model))
 
         res = {'results_json' : results_json,
                'next_page_num' : (None if endind >= len(result_list) else page+1),

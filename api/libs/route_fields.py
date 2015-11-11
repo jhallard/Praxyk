@@ -16,16 +16,18 @@ def convert_timestr(dt) :
         return '0-0-0 00:00:00'
     return dt.strftime('%Y-%m-%d %H:%M:%S')
 
-def prediction_map(service, result) :
-    if service == 'ocr' :
-        return ocr_prediction(result)
+def prediction_map(service, model, result) :
+    print "\n\n SERVICE " + str(service) + str(result)
+    if service == 'pod' :
+        if model == 'ocr' :
+            return ocr_prediction(result)
     return {}
 
 def ocr_prediction(res) :
     return { "result_string" : res.result_string }
 
 # @info - have to make our own function for marshal Result objects from the redis db
-def marshal_result(res, service) :
+def marshal_result(res, service, model) :
     return { "item_number"   : res.item_number,
              "item_name"     : res.item_name,
              "status"        : res.status,
@@ -33,7 +35,7 @@ def marshal_result(res, service) :
              "finished_at"   : convert_timestr(res.finished_at),
              "created_at"    : convert_timestr(res.created_at),
              "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number, _external=True),
-             "prediction"    : prediction_map(service, res)
+             "prediction"    : prediction_map(service, model, res)
     }
 
 

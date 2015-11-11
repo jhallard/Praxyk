@@ -46,7 +46,7 @@ class POD_OCR_Route(Resource) :
         return dt.strftime('%Y-%m-%d %H:%M:%S')
 
     def __init__(self) :
-        self.ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'pdf', 'png', 'jpg', 'jpeg'])
+        self.ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'png', 'jpg', 'jpeg'])
         self.reqparse = reqparse.RequestParser()
         super(POD_OCR_Route, self).__init__()
 
@@ -62,6 +62,10 @@ class POD_OCR_Route(Resource) :
             if not caller :
                 abort(404)
 
+            print "\n\n\n"
+            print request.files
+            print request.values
+            print vars(request)
 
             (new_trans, files_success) = self.setup_transaction(request, caller)
 
