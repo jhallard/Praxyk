@@ -122,7 +122,7 @@ def create_initial_users() :
         db.session.commit()
 
         for user in INITIAL_USERS:
-            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], active=True)
+            new_user = user_datastore.create_user(name=user['name'], email=user['email'], password=user['password'], confirm=True, active=True)
             user_datastore.activate_user(new_user)
             role = user_datastore.find_role(user['role'])
             user_datastore.add_role_to_user(new_user, role)

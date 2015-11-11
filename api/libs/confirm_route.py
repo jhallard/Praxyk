@@ -43,7 +43,7 @@ class ConfirmRoute(Resource) :
                 return abort(404)	
             
             user = User.query.filter_by(email=email).first()
-            user.active=True
+            user.confirmed=True
 
             db.session.commit()
             return redirect("http://www.praxyk.com/login.html", code=302)
