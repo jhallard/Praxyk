@@ -28,14 +28,12 @@ def ocr_prediction(res) :
     return { "result_string" : res.result_string }
 
 def face_detect_prediction(res) :
-    print str(vars(res)) + "\n\n\n"
     comp = json.loads(res.faces_json)
     return { "faces" : [dict(**c) for c in comp]}
     # return comp
 
 # @info - have to make our own function for marshal Result objects from the redis db
 def marshal_result(res, service, model) :
-    print str(service) + str(model) + 10*"\n"
     return { "item_number"   : res.item_number,
              "item_name"     : res.item_name,
              "status"        : res.status,

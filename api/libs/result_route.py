@@ -47,7 +47,7 @@ class ResultRoute(Resource):
     #         of by giving ?pagination=False which will cause all results to be dumped in a single list.
     @requires_auth
     def get(self, id):
-        # try :
+        try :
             caller = g._caller
             trans = Transaction.query.get(id)
             if not trans or not caller or not validate_owner(caller, trans.user_id) :
@@ -57,20 +57,28 @@ class ResultRoute(Resource):
             results = {}
 
             if service == SERVICE_POD :
-                results = self.get_results_pod_ocr(model, caller, trans)
+                results = self.get_results_pod(model, caller, trans)
+                if not results :
+                    results = self.get_results_pod(model, caller, trans)
             elif service == SERVICE_TLP : 
                 results = {}
 
+            print "\n\nResults : Transaction ID %s" % str(id)
+            print results
+
             return jsonify(results)
-        # except Exception as e :
-            # print "Exception GET /results/X (%s)" % str(e)
-            # return abort(500)
+        except Exception as e :
+            print "Exception GET /results/X (%s)" % str(e)
+            return abort(500)
 
     # @info - this function takes a transaction db model and returns the results associated with that
     #         request. This function makes use of the pagination scheme to return results, see the API
     #         docs for more info on pagination.
-    def get_results_pod_ocr(self, model, caller, trans) :
+    def get_results_pod(self, model, caller, trans) :
         args = self.reqparse.parse_args()
+        if args.page_size <= 0 : args.page_size = DEFAULT_PAGE_SIZE
+        if args.page <= 0 : args.page = DEFAULT_PAGE
+
         next_page_num = 0
         page = {}
 
@@ -90,6 +98,9 @@ class ResultRoute(Resource):
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
         page_results  = self.get_page_from_results(result_list, args.page, args.page_size, trans)
+
+        print "\n\npage_results (self.get_page_from_results) : Transaction ID %s" % str(id)
+        print str(page_results) +"\n\n"
 
         page_json = page_results.get('results_json', None)
         next_page_num = page_results.get('next_page_num', None)
