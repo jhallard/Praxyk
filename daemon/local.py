@@ -23,10 +23,12 @@ def get_machinfo():
 def run_containers():
     info = get_machinfo()
     print(json.dumps(info))
+    command_get_docker = ['apt-get' , 'install', '-y', 'docker']
     command_pull = ['docker', 'pull', 'tekgek/praxyk']
-    command_run = ['docker', 'run', '-d', 'praxyk:latest']
+    command_run = ['docker', 'run', '-d', 'tekgek/praxyk:latest']
 
     log = open('praxyk.log', 'w')
+    subprocess.call(command_get_docker, stdout=log, stderr=log)
     subprocess.call(command_pull, stdout=log)
     for i in range(0, info['thread_count']):
         subprocess.call(command_run, stdout=log)

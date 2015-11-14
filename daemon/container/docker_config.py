@@ -8,8 +8,8 @@ docker_config_file = ["""FROM ubuntu
 RUN apt-get update
 RUN apt-get install -y git-core python-pip
 RUN pip install rq
-RUN git clone git://github.com/jhallard/Praxyk -b """,
-"""RUN cd Praxyk/pod && ./pod_build.sh
+RUN git clone --recursive git://github.com/Praxyk/Praxyk -b """,
+"""RUN cd Praxyk/pod && ./build.sh
 RUN cp -r Praxyk/api /
 RUN mkdir -p /drive1/img_store""",
 """EXPOSE 6379

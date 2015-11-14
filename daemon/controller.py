@@ -58,6 +58,12 @@ class VMLog(object):
         for i in data:
             self.add(i['hostname'], i['thread_count'], i['ip'])
 
+    def is_present(self, mach_name):
+        for i in self.machines:
+            if mach_name == i.hostname:
+                return True
+        return False
+
 def load_imbalance(machs, queue_len):
     cap = 0
     for i in machs.machines:
@@ -88,13 +94,15 @@ class MyDaemon(Daemon):
         print('Done')
         db.close()
 
-        print('Starting new instance...')
         new_mach_info = daemon_utils.start_vm(WORKING_PATH)
-        machs.add(new_mach_info['host_name'],
-                  new_mach_info['thread_count'])
-        db = open(DB_FILE, 'w')
-        db.write(json.dumps(machs.to_json(), indent=2))
-        db.close()
+        if not machs.is_present(new_mach_info['host_name']):
+            print('Starting new instance... (%s containers...)' %
+                new_mach_info['thread_count'])
+            machs.add(new_mach_info['host_name'],
+                      new_mach_info['thread_count'])
+            db = open(DB_FILE, 'w+')
+            db.write(json.dumps(machs.to_json(), indent=2))
+            db.close()
 
         while True:
             if load_imbalance(machs, len(q)):
@@ -102,7 +110,7 @@ class MyDaemon(Daemon):
                 new_mach_info = daemon_utils.start_vm(WORKING_PATH)
                 machs.add(new_mach_info['host_name'],
                           new_mach_info['thread_count'])
-                db = open(DB_FILE, 'w')
+                db = open(DB_FILE, 'w+')
                 db.write(json.dumps(machs.to_json(), indent=2))
                 db.close()
             time.sleep(1)

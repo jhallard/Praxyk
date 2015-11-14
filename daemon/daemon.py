@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os, time, atexit
+import subprocess
 from signal import SIGTERM
 
 class Daemon:
@@ -56,7 +57,7 @@ class Daemon:
 		os.dup2(so.fileno(), sys.stdout.fileno())
 		os.dup2(se.fileno(), sys.stderr.fileno())
         """
-        
+
 		# write pidfile
 		atexit.register(self.delpid)
 		pid = str(os.getpid())
@@ -90,6 +91,7 @@ class Daemon:
 		"""
 		Stop the daemon
 		"""
+		subprocess.call(['killall', 'docker'])
 		# Get the pid from the pidfile
 		try:
 			pf = file(self.pidfile,'r')

@@ -5,3 +5,5 @@ if [ $? != 0 ]; then
   echo "Error: docker build command failed."
   exit 1
 fi
+
+docker push tekgek/praxyk:latest
