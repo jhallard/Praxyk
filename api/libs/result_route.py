@@ -63,7 +63,7 @@ class ResultRoute(Resource):
                 results = {}
 
             print "\n\nResults : Transaction ID %s" % str(id)
-            #print str(results)
+            print str(results)
 
             if results :
                 return jsonify(results)
@@ -104,7 +104,7 @@ class ResultRoute(Resource):
         page_results  = self.get_page_from_results(result_list, args.page, args.page_size, trans)
 
         print "\n\npage_results (self.get_page_from_results) : Transaction ID %s" % str(id)
-        print str(page_results) +"\n\n"
+        # print str(page_results if page_results else "") +"\n\n"
 
         page_json = page_results.get('results_json', None)
         next_page_num = page_results.get('next_page_num', None)
@@ -140,29 +140,34 @@ class ResultRoute(Resource):
     # returns (result_list, next_page_num) where next_page_num is None if result_list contains
     # results of the last page
     def get_page_from_results(self, result_list, page, page_size, trans) :
-        startind = (page-1)*page_size
-        endind = (page)*page_size-1
-        amount = len(result_list)
-        last_page_num = (amount/page_size) + 1
+        try :
+            startind = (page-1)*page_size
+            endind = (page)*page_size-1
+            amount = len(result_list)
+            last_page_num = (amount/page_size) + 1
 
-        if startind < 0 or startind > amount :
-            return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
-                    'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
-        if endind < 0 :
-            return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
-                    'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
+            if startind < 0 or startind > amount :
+                return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
+                        'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
+            if endind < 0 :
+                return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
+                        'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
 
-        results_json = []
-        results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
-        # print str(results_subset) + "  " + str(result_list)
-        for result in results_subset :
-            results_json.append(marshal_result(result, trans.service, trans.model))
+            results_json = []
+            results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
+            # print str(results_subset) + "  " + str(result_list)
+            for result in results_subset :
+                results_json.append(marshal_result(result, trans.service, trans.model))
 
-        res = {'results_json' : results_json,
-               'next_page_num' : (None if endind >= len(result_list) else page+1),
-               'prev_page_num' : (None if page == 1 else page-1),
-               'last_page_num' : last_page_num}
+            res = {'results_json' : results_json,
+                   'next_page_num' : (None if endind >= len(result_list) else page+1),
+                   'prev_page_num' : (None if page == 1 else page-1),
+                   'last_page_num' : last_page_num}
 
-        return res
+            return res
+        except Exception as e :
+            print "fucking get_page_bullshit"
+            print str(e)
+            return {}
 
 
