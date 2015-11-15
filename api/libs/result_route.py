@@ -24,6 +24,8 @@ from models.nosql.result_base import *
 from libs.route_fields import *
 from libs.transactions_route import transaction_fields
 
+from rom import util, session
+
 DEFAULT_PAGE_SIZE = 100
 DEFAULT_PAGE=1
 
@@ -55,18 +57,18 @@ class ResultRoute(Resource):
 
             (service, model) = (trans.service, trans.model)
             results = {}
-
             if service == SERVICE_POD :
                 results = self.get_results_pod(model, caller, trans)
-                if not results :
-                    results = self.get_results_pod(model, caller, trans)
             elif service == SERVICE_TLP : 
                 results = {}
 
             print "\n\nResults : Transaction ID %s" % str(id)
-            print results
+            #print str(results)
 
-            return jsonify(results)
+            if results :
+                return jsonify(results)
+            else :
+                return jsonify({"code" : 419})
         except Exception as e :
             print "Exception GET /results/X (%s)" % str(e)
             return abort(500)
@@ -87,6 +89,8 @@ class ResultRoute(Resource):
             result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
         elif model == "face_detect" :
             result_list = Result_POD_Face_Detect.query.filter(transaction_id=trans.id).order_by('item_number').execute()
+
+        session.refresh(result_list)
 
         if not result_list or len(result_list) != trans.uploads_success :
             print "\n\n Not All Result Recovered from Redis DB" + str(result_list) + "\n\n"

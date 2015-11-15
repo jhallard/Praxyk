@@ -29,6 +29,7 @@ sudo cp api_server.wsgi /var/www/praxyk_api_server/
 sudo cp api.praxyk.com.conf /etc/apache2/sites-available/api.praxyk.com.conf
 
 cd ~
+rm -rf praxyk-api-live
 cp -R praxyk praxyk-api-live
 cd $API_DEPLOY_DIR
 

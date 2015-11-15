@@ -11,6 +11,7 @@ import datetime
 
 import rom
 from rom import util
+rom.util.use_null_session()
 
 # @info - takes a given json file and loads it into an active dictionary for return
 def load_json_file(fn) :
