@@ -1,5 +1,5 @@
 import praxyk
 import os
 
-praxyk.get_spam_chance("filename")
+print praxyk.bayes_spam("/home/nikita/Praxyk/pod/Praxyk-data/mlpack/foo")
 exit()
