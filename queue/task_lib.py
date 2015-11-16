@@ -184,7 +184,7 @@ def do_ocr_abort(trans_id, file_num) :
     this_result.save(full=True)
     return True
 
-def do_face_detectocr_abort(trans_id, file_num) :
+def do_face_detect_abort(trans_id, file_num) :
     this_result = Result_POD_Face_Detect.query.filter(transaction_id=trans_id).filter(item_number=file_num).first()
     this_result.finished_at = datetime.datetime.now()
     this_result.status = Result_POD_Face_Detect.RESULT_FINISHED
