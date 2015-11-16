@@ -2,15 +2,16 @@ import os
 import sys
 import getopt
 import csv
+import praxyk
 
 def process_feature(filename):
 	#load feature list
 	features = []
-	print os.getcwd()
+	print praxyk.get_mlpack_dir()
 	try:
-		features_file = open(os.path.dirname(os.path.realpath(__file__)) + "/features.txt", "r")
+		features_file = open(praxyk.get_mlpack_dir() + "/features.txt", "r")
 	except IOError:
-		raise RuntimeError(os.path.dirname(os.path.realpath(__file__)) + "features.txt missing.")
+		raise RuntimeError(praxyk.get_mlpack_dir() + "features.txt missing.")
 		exit()
 	for line in features_file:
 		features.append(line.strip())
@@ -22,6 +23,7 @@ def process_feature(filename):
 	test_entry = []
 	for word in features:
 		test_entry.append(test_file.count(word))
+	writer = csv.writer(output)
 	writer.writerow(test_entry)
 
 def bayes_spam(filename_path):
