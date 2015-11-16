@@ -42,7 +42,6 @@ namespace praxyk {
 
       //load the file to interpret
       const string testingDataFilename = filename;
-//      const string testingDataFilename = "/home/nikita/Praxyk/pod/Praxyk-data/mlpack/test.csv";
 
       mat testingData;
       data::Load(testingDataFilename, testingData, true);
