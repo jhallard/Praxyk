@@ -15,6 +15,7 @@ namespace praxyk {
     PRAXYK_INLINE std::string get_mlpack_dir() {
         return (get_pkg_data_dir() + "/mlpack");
     }
+
 }
 
 #endif /* INCLUDED_PRAXYK_PATHS_HPP */
