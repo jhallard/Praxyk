@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>POD Environment Config</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><h3 id="pod-environment-config"><a class="header-link" href="#pod-environment-config"></a>POD Environment Config</h3>
+<p>Prediction on Demand is a service that has actively running ML models encapsulated in linux containers. This environments can handle many different containers at once and must manage getting data from the master-server into the right container and then out the same path.</p>
+<p><strong>Build Script as of 10/19/2015</strong></p>
+<p>This will install the necessary Tesseract library and other dependencies on an Ubuntu 14.04 VM.</p>
+<pre class="hljs"><code>sudo apt-get update
+sudo apt-get install cmake git ssh libboost-math-dev libboost-program-options-dev libboost-random-dev \
+libboost-test-dev libxml2-dev libarmadillo-dev automake autotools-dev libtool cmake swig python-dev \
+libleptonica-dev libfann-dev libicu-dev libpango1.<span class="hljs-number">0</span>-dev libcairo2-dev libboost-thread-dev \
+libopencv-dev
+git <span class="hljs-built_in">clone</span> https://github.com/tesseract-ocr/tesseract -b <span class="hljs-number">3.02</span>.<span class="hljs-number">02</span>
+<span class="hljs-built_in">cd</span> tesseract
+./autogen.sh
+./configure
+sudo make install
+<span class="hljs-built_in">cd</span> ..
+git <span class="hljs-built_in">clone</span> https://github.com/tesseract-ocr/tessdata
+sudo cp -r tessdata/* /usr/<span class="hljs-built_in">local</span>/share/tessdata
+git <span class="hljs-built_in">clone</span> https://github.com/mlpack/mlpack.git -b mlpack-<span class="hljs-number">1.0</span>.<span class="hljs-number">12</span>
+mkdir mlpack/build
+<span class="hljs-built_in">cd</span> mlpack/build
+cmake ..
+sudo make install</code></pre><p>TODO: adding custom Tesseract training data</p>
+<p>Note that Tesseract and MLPack are built from source. This is because Tesseract&#39;s Ubuntu package does not come with its training utilities and because MLPack didn&#39;t have Ubuntu packages until 14.10.</p>
+<p><strong>Building Praxyk&#39;s POD code</strong>
+The Praxyk POD library can be built with the following commands.</p>
+<pre class="hljs"><code>git <span class="hljs-built_in">clone</span> https://github.com/jhallard/Praxyk -b pod
+mkdir Praxyk/pod/build
+<span class="hljs-built_in">cd</span> Praxyk/pod/build
+cmake ..
+sudo make install</code></pre><p>TODO: Remove automatic checkout of pod branch when it&#39;s merged in</p>
+<p><strong>The LD_LIBRARY_PATH Environment Variable</strong></p>
+<p>By default, CMake will install Praxyk into /usr/local; however, by default, Linux will not look in /usr/local/lib for libraries, so the following line will need to be added to the relevant user&#39;s .bashrc:</p>
+<pre class="hljs"><code><span class="hljs-built_in">export</span> LD_LIBRARY_PATH=/usr/<span class="hljs-built_in">local</span>/lib:<span class="hljs-variable">$LD_LIBRARY_PATH</span></code></pre>    </article>
+  </body>
+</html>

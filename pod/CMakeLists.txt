@@ -14,10 +14,12 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules;${CMAKE_MODULE_PATH}")
 ########################################################################
 # Search for dependencies here
 ########################################################################
+FIND_PACKAGE(CLANDMARK REQUIRED)
 FIND_PACKAGE(FANN REQUIRED)
 FIND_PACKAGE(Tesseract REQUIRED)
 FIND_PACKAGE(MLPack REQUIRED)
 FIND_PACKAGE(LibXml2 2.6.0 REQUIRED)
+FIND_PACKAGE(OpenCV REQUIRED)
 
 SET(BOOST_REQUIRED_COMPONENTS
     thread
@@ -26,6 +28,14 @@ FIND_PACKAGE(Boost 1.48 COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
 IF(NOT ${Boost_FOUND})
     MESSAGE(FATAL_ERROR "Boost.Thread is required.")
 ENDIF(NOT ${Boost_FOUND})
+
+FIND_PACKAGE(OpenMP)
+IF(OPENMP_FOUND)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ELSE(OPENMP_FOUND)
+    SET(USE_OPENMP OFF)
+ENDIF(OPENMP_FOUND)
 
 ########################################################################
 # Global flags
@@ -66,10 +76,54 @@ ADD_SUBDIRECTORY(python)
 ADD_SUBDIRECTORY(tests)
 
 ####################################################################
+# Install CLandmark trained data
+####################################################################
+SET(clandmark_data
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/clandmark/clandmark_model.xml
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/clandmark/haarcascade_frontalface_alt.xml
+)
+INSTALL(
+    FILES ${clandmark_data}
+    DESTINATION ${PKG_DATA_DIR}/clandmark
+)
+
+####################################################################
+# Install MLPack trained data (TODO)
+####################################################################
+#SET(clandmark_data
+#    ${CMAKE_SOURCE_DIR}/Praxyk-data/clandmark/foo
+#)
+#INSTALL(
+#    FILES ${mlpack_data}
+#    DESTINATION ${PKG_DATA_DIR}/mlpack
+#)
+
+####################################################################
+# Install CLandmark trained data
+####################################################################
+SET(tesseract_data
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.bigrams
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.fold
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.lm
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.nn
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.params
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.size
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.cube.word-freq
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.tesseract_cube.nn
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.traineddata
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.user-patterns
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/tessdata/eng.user-words
+)
+INSTALL(
+    FILES ${tesseract_data}
+    DESTINATION ${PKG_DATA_DIR}/tessdata
+)
+
+####################################################################
 # Final Display
 ####################################################################
 MESSAGE(STATUS "")
-MESSAGE(STATUS "Building Praxyk - Server Side.")
+MESSAGE(STATUS "Building Praxyk - POD Library.")
 MESSAGE(STATUS " - Build type: ${CMAKE_BUILD_TYPE}")
 MESSAGE(STATUS " - Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 MESSAGE(STATUS "")

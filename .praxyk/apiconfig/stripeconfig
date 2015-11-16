@@ -1,0 +1,6 @@
+{
+	"test_secret_key":"sk_test_FAKE_KEY_CODE3",
+	"test_publishable_key":"pk_test_NOT_REALLY_THE_KEY",
+	"live_secret_key":"sk_live_NOPE_NOT_REAL",
+	"live_publishable_key":"pk_live_ALSO_NOT_REAL"
+}

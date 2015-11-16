@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>Praxyk Models</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><h1 id="praxyk-models"><a class="header-link" href="#praxyk-models"></a>Praxyk Models</h1>
+<p>This directory contains definitions of all of the models in the shared-databases used by the various Praxyk servers. This includes both SQL models fo</p>
+<h3 id="mysql-models"><a class="header-link" href="#mysql-models"></a>MySQL Models</h3>
+<p>The bulk of the data used by Praxyk is stored in MySQL databases. This includes user data, authentication data, payment data, transaction history, an</p>
+<table>
+<thead>
+<tr>
+<th>file</th>
+<th>Model Clas</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user.py</code></td>
+<td>User</td>
+<td>The standard user model. Includes things like email (unique), password (hashed+salted), name (single string), and</td>
+</tr>
+<tr>
+<td><code>transaction.py</code></td>
+<td>Transaction</td>
+<td>This describes a single transaction with a Praxyk service, which in itself is a grouping of service requests.</td>
+</tr>
+<tr>
+<td><code>role.py</code></td>
+<td>Role</td>
+<td>Roles are data-types that can be attached to users to grant priviledge. </td>
+</tr>
+<tr>
+<td><code>token.py</code></td>
+<td>Token</td>
+<td>Tokens allow user to access praxyk services, they are aquired by logging in with a username and password.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nosql-models"><a class="header-link" href="#nosql-models"></a>NoSQL Models</h3>
+<table>
+<thead>
+<tr>
+<th>file</th>
+<th>Model Clas</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>result_base.py</code></td>
+<td>Results</td>
+<td>An object that mirrors a MySQL Transaction object for use temporarily in the NoSQL code.</td>
+</tr>
+<tr>
+<td><code>result_base.py</code></td>
+<td>ResultBase</td>
+<td>A base model that defines all meta-data common to results of different types. Is meant to be overridden </td>
+</tr>
+<tr>
+<td><code>pod/pod_ocr_result.py</code></td>
+<td>POD_OCR_result</td>
+<td>A child class of ResultBase that is specific to POD-OCR requests.              </td>
+</tr>
+</tbody>
+</table>
+    </article>
+  </body>
+</html>

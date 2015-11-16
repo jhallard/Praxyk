@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title></title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><p>###Website Server Setup#
+The website is up as of Oct 12th. May be down intermittently.
+<a href="http://www.praxyk.com">Home Page</a></p>
+<p>####Requirements
+On a fresh Ubuntu 14.04 x64 instance, use the following install script to setup the server environment.</p>
+<pre class="hljs"><code>sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install lighttpd</code></pre><p>####Setup</p>
+<pre class="hljs"><code>rm /var/www/index.lighttpd.html
+git <span class="hljs-built_in">clone</span> -b website http://www.github.com/praxyk.git
+sudo rsync -rtv /home/{user}/praxyk/website/ /var/www/</code></pre><p>In order to auto update the website every hour do the following:</p>
+<pre class="hljs"><code>sudo crontab <span class="hljs-operator">-e</span></code></pre><p>A dialog will ask what editor to use. Then go down to the bottom of the file and add the following:</p>
+<pre class="hljs"><code><span class="hljs-number">0</span> * * * * git -C /home/{user}/praxyk pull
+<span class="hljs-number">0</span> * * * * rsync -rtv /home/{user}/praxyk/website/ /var/www/</code></pre><p>The server will now be set up.</p>
+    </article>
+  </body>
+</html>
