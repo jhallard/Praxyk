@@ -88,10 +88,11 @@ INSTALL(
 )
 
 ####################################################################
-# Install MLPack trained data (TODO)
+# Install MLPack trained data
 ####################################################################
 SET(mlpack_data
     ${CMAKE_SOURCE_DIR}/Praxyk-data/mlpack/features.txt
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/mlpack/training.csv
 
 )
 INSTALL(
