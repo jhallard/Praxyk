@@ -7,7 +7,6 @@ import praxyk
 def process_feature(filename):
 	#load feature list
 	features = []
-	print praxyk.get_mlpack_dir()
 	try:
 		features_file = open(praxyk.get_mlpack_dir() + "/features.txt", "r")
 	except IOError:
@@ -28,7 +27,7 @@ def process_feature(filename):
 
 def bayes_spam(filename_path):
 	process_feature(filename_path)
-	return get_spam_chance(filename_path + ".csv")
+	return praxyk.get_spam_chance(filename_path + ".csv")
 
 #entry_list = []
 #output = open("output.csv", "a")

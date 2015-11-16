@@ -90,13 +90,14 @@ INSTALL(
 ####################################################################
 # Install MLPack trained data (TODO)
 ####################################################################
-#SET(clandmark_data
-#    ${CMAKE_SOURCE_DIR}/Praxyk-data/clandmark/foo
-#)
-#INSTALL(
-#    FILES ${mlpack_data}
-#    DESTINATION ${PKG_DATA_DIR}/mlpack
-#)
+SET(mlpack_data
+    ${CMAKE_SOURCE_DIR}/Praxyk-data/mlpack/features.txt
+
+)
+INSTALL(
+    FILES ${mlpack_data}
+    DESTINATION ${PKG_DATA_DIR}/mlpack
+)
 
 ####################################################################
 # Install CLandmark trained data
