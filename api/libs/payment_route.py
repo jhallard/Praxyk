@@ -142,7 +142,7 @@ class PaymentRoute(Resource) :
          card = customer.sources.retrieve(user.payment_info.card_id).delete()
          
          if not card.deleted :
-            return jsonify({'code':400,'message':"There was a problem removing you card!"})
+            return jsonify({'code':400,'message':"There was a problem removing your card!"})
             
          user.payment_info.card_id = None
          user.active=False
