@@ -144,7 +144,7 @@ class TransactionsRoute(Resource) :
                                                              page_size=args.page_size,
                                                              page=next_page_num,
                                                              _external=True)
-            prev_page = "" if not next_page_num else url_for(TRANSACTIONS_ENDPOINT,
+            prev_page = "" if not prev_page_num else url_for(TRANSACTIONS_ENDPOINT,
                                                              page_size=args.page_size,
                                                              page=prev_page_num,
                                                              _external=True)
