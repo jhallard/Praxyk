@@ -1,0 +1,14 @@
+#include <praxyk/paths.hpp>
+
+#include <cstdlib>
+
+namespace praxyk {
+    std::string get_pkg_data_dir() {
+        char* dir_from_env = getenv("PRAXYK_PKG_DATA_DIR");
+        if(dir_from_env) {
+            return dir_from_env;
+        } else {
+            return "@CMAKE_INSTALL_PREFIX@/@PKG_DATA_DIR@";
+        }
+    }
+}

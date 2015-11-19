@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>Praxyk Devops Server</title>
+    <link type="text/css" rel="stylesheet" href="assets/css/github-markdown.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/pilcrow.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/hljs-github.min.css"/>
+  </head>
+  <body>
+    <article class="markdown-body"><h1 id="praxyk-devops-server"><a class="header-link" href="#praxyk-devops-server"></a>Praxyk Devops Server</h1>
+<p>This part of the source tree contains all code and libraries necessary to run the Praxyk devops server on a given machine. It includes many homemade utility classes to handle authorization, database access, and interaction with IaaS provider APIs.</p>
+<h5 id="quick-start"><a class="header-link" href="#quick-start"></a>Quick Start</h5>
+<p>To get the DevOps server up and running quickly, log onto the server that you want to act as the devops server and perform the following commands :</p>
+<pre class="hljs"><code>git <span class="hljs-built_in">clone</span> -b devops https://github.com/jhallard/praxyk
+<span class="hljs-built_in">cd</span> praxyk/devops/server
+./setup.sh <span class="hljs-comment"># make the logging directories</span>
+./devops_request_handler.py --builddb --filldb  <span class="hljs-variable">$CONFIGF_PATH</span> <span class="hljs-variable">$SCHEMAF_PATH</span> <span class="hljs-comment"># start the api request handler</span></code></pre><p> Note that for everything to work you will need to aquire the database <code>.schema</code> file that represents the devops database and a configuration json file that contains authorization information. If you are on the Praxyk team, ask me for these things. If you aren&#39;t, you&#39;re going to need to fill in your json files and pass them into the relevant scripts.</p>
+<p> If successful, the above call will make the database described by the given <code>.schema</code> file, sync its data with that of the various IaaS providers, add the root user to the system, then begin listening for API requests.</p>
+<h4 id="request-handler"><a class="header-link" href="#request-handler"></a>Request Handler</h4>
+<p> This section will give more information on the request handler script, which acts as the the primary interface between the user and our server. The handler script is written in python and uses the Flask module to expose a REST API to the world. This program is meant to run continuously, taking API requests, parsing them and forwarding them to the appropriate functions contained in the various utility classes (see <code>/devops/server/libs/</code>).</p>
+<p> A complete description of running the <code>devops_request_handler.py</code> script is given below.</p>
+<pre class="hljs"><code>$ ./devops_request_handler.py -h
+usage: devops_request_handler.py [-h] [--metaconfig METACONFIG]
+                                 [--builddb BUILDDB] [--filldb FILLDB]
+                                 config schemaf
+
+This is the script that handles all incoming API requests <span class="hljs-keyword">for</span> the Praxyk
+development operations server (devops.praxyk.com). It uses the included
+utilities (vmUtil, dbUtil, authUtil, devopsUtil) to expose a secure and simple
+interface <span class="hljs-keyword">for</span> users to access shared compute resources. The script must be
+given the path to a configuration file containing sensitive information
+(dbusers, dbpw, dbip, auth tokens <span class="hljs-keyword">for</span> IaaS providers). It also must be given a
+shema file representing the devops database that is being used. Most actions
+that are performed by this script are triggered via incoming API calls, except
+<span class="hljs-keyword">for</span> the build/fill database commands. Those can only be triggered by giving
+the input flag --builddb and --filldb respectively. Build DB will cause the
+tables and indexes to be constructed, <span class="hljs-keyword">while</span> fill DB will cause data <span class="hljs-keyword">in</span> the DB
+to be synced with data from IaaS providers. It will also add <span class="hljs-keyword">in</span> the root user.
+If you want to sync the DB with IaaS providers manually without building and
+filling the DB from scratch, you can use the API to send a sync command. See
+the DevOps API Docs.
+
+positional arguments:
+  config                Full path to the config file <span class="hljs-keyword">for</span> this regression. It
+                        should include the vm tokens, dbip, dbpw, and dbuser.
+  schemaf               Full path to the .schema file <span class="hljs-keyword">for</span> a database.
+
+optional arguments:
+  -h, --help            show this <span class="hljs-built_in">help</span> message and <span class="hljs-built_in">exit</span>
+  --metaconfig METACONFIG
+                        Full path to the json file containing info about the
+                        meta-database <span class="hljs-keyword">for</span> storing <span class="hljs-built_in">log</span> files.
+  --builddb BUILDDB     If present, the DB represented by the given schema
+                        file will bebuilt from scratch but not filled, given
+                        that it doesnt exist already.
+  --filldb FILLDB       If present, the devops DB that was just built will be
+                        synced withthe current info provided by IaaS
+                        providers.</code></pre><h4 id="unit-testing"><a class="header-link" href="#unit-testing"></a>Unit Testing</h4>
+<p> This part of the source tree includes a suite relatively extensive unit-test for all different levels of complexity. The modules and their respective unit tests are listed below.</p>
+<ul class="list">
+<li><code>db_util.py</code> : <code>db_unit_test.py</code></li>
+<li><code>vm_util.py</code> : <code>vm_unit_test.py</code></li>
+<li><code>auth_util.py</code> : <code>auth_unit_test.py</code></li>
+<li><code>devops_util.py</code> : <code>devops_unit_test.py</code></li>
+<li><code>devops_request_handler.py</code> : <code>handler_unit_test.py</code></li>
+</ul>
+<p>Each <code>*.unit_test.py</code> file contains a single class that derives from the <code>UnitTest</code> class, defined in <code>/unittest/unit_test.py</code>. Each specific unit test class takes in one or more dictionaries of configuration arguments during construction, after which the <code>run()</code> function can be called to run the specific unit test suite. This is all encapsulated in <code>regression.py</code>, which takes in a few command-line arguments and creates all of the needed configuration dictionaries for the specific set of unit-tests being ran.</p>
+<h5 id="running-regressions"><a class="header-link" href="#running-regressions"></a>Running Regressions</h5>
+<p> Regressions are run by calling <code>./regression.py</code> and passing in the appropriate arguments. All tests and components are logged in their own directories underneat <code>praxyk/devops/server/logs/</code>. They will all be created automatically when you run the <code>setup.sh</code> script.
+A complete description of the regression python program is given below.</p>
+<pre class="hljs"><code> usage: regression.py [-h] [--metaconfig METACONFIG] [--schemaf SCHEMAF]
+                     [--flags FLAGS]
+                     config testname
+
+This is the <span class="hljs-built_in">set</span> of unit tests <span class="hljs-keyword">for</span> that devops server backend. From this
+program you can <span class="hljs-built_in">test</span> the main server program as well as the various utilities
+that it relies on, like the dbUtil, vmUtil, devopsUtil, and authUtil classes.
+
+positional arguments:
+  config                Full path to the config file <span class="hljs-keyword">for</span> this regression. It
+                        should include the vm tokens, dbip, dbpw, and dbuser.
+  testname              Which <span class="hljs-built_in">test</span> <span class="hljs-keyword">do</span> you want to run.The following are accepted :
+                        {vmtest, authtest, devopstest, servertest, dbtest}
+
+optional arguments:
+  -h, --help            show this <span class="hljs-built_in">help</span> message and <span class="hljs-built_in">exit</span>
+  --metaconfig METACONFIG
+                        Full path to the json file containing info about the
+                        meta-database <span class="hljs-keyword">for</span> storing <span class="hljs-built_in">log</span> files.
+  --schemaf SCHEMAF     Full path to the .schema file <span class="hljs-keyword">for</span> a database. This is
+                        required <span class="hljs-keyword">if</span> you are testing the datbase, auth, devops,
+                        or server.
+  --flags FLAGS         A string <span class="hljs-built_in">where</span> each character represents a <span class="hljs-built_in">test</span> flag.
+                        Only used <span class="hljs-keyword">for</span> vmtest so far.vmtest flags : [a b c d e
+                        f] each one runs another series of tests.devopstest
+                        flags : [a b c]</code></pre>    </article>
+  </body>
+</html>

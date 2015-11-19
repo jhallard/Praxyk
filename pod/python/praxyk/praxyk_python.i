@@ -1,5 +1,7 @@
 %{
+    #include <praxyk/facial_rec.hpp>
     #include <praxyk/ocr.hpp>
+    #include <praxyk/paths.hpp>
     #include <praxyk/spam.hpp>
 
     #include <stdexcept>
@@ -19,12 +21,20 @@
     }
 }
 
+%include <std_map.i>
 %include <std_string.i>
 %include <std_vector.i>
 %template(string_vector) std::vector<std::string>;
 
 %include <praxyk_docstrings.i>
 %include <praxyk/config.hpp>
+
+%rename(__detect_faces_in_image) praxyk::detect_faces_in_image;
+%include <praxyk/facial_rec.hpp>
+%template(face_map)  std::map<std::string, praxyk::coords_t>;
+%template(face_maps) std::vector<std::map<std::string, praxyk::coords_t> >;
+
 %include <praxyk/ocr.hpp>
+%include <praxyk/paths.hpp>
 %include <praxyk/spam.hpp>
 

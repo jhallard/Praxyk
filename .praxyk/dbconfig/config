@@ -1,0 +1,12 @@
+{
+  "dbip" : "127.0.0.1",
+  "dbuser" : "root",
+  "dbname" : "test",
+  "dbpw" : "",
+  "redisdb" : { 
+      "dbip" : "127.0.0.1",
+      "dbpasswd" : "",
+      "port" : 6379,
+      "dbnum" : 0
+   }   
+}

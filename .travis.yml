@@ -1,0 +1,23 @@
+sudo: required
+dist: trusty
+
+services:
+  - redis-server
+  - mysql
+
+before_install:
+  - sudo apt-get -qqy update 
+  - git submodule update --init --recursive
+
+install:
+  - bash build.sh
+
+before_script:
+  - echo "" # init any db's/api/users here.
+
+script:
+  - echo "" # call test scripts here
+
+notifications:
+  slack:
+    secure: G5E8YL3nSt7M6osk4a0yPP4sIdSF5wMuTBD+KMP+gurkX+r8+lyj5csz3KhytWzk6uqkgN+GDm1QLoyl1ipSIQMP6qPj1nOM6ZEuqrXL/WPakPZvll33toqh/vpQ3Q4i5xgknHNqY0EqfrUJMSU8c91aJv4dyNqDZkcRBbRklRLYt3KR+sux5N5WPAaTBcwqhspTVicS5DevxH+XfBJV2EGWG8NcRsgTMMKPK0/0vZ8ROm/oIJz55w1HV7FJQjNMqauKbVBQNavEK7qJLT80qx6K4foRtnou+nncE4dh7vEYzDA2Q9gpRtBPSxmFQhAioa+Ya/32qyDePLx52bKQ6QKTQEOQhl9mLMN4a8J6XpcTZbI5Wy6KSpT3m+jG6FCZqD8hQ1smmNC18hS5yIMSd53nQ7u0d0ZUZxa2lpCF9cCCs5+5Rj8RZZm+bgdec8zlZ+ESozKf0odvIIOYdkkR6pel+QNQTmFp6kC1aKFUo6hkwWpBbb0azCampP6cfS/9aJXIwm8MzynGEB/ev0RruJ9M2gWUoIte5qxXb8QLdnCBWm+NzGTkiSknCXRCOhopHHGCHITLpOMSQsrVqN98ZNK2BQ3AL5DV+Z1I804QYN4NVBEHfI+0VJO/kMsmjqOm41zKMyNDAut3Ijt/kHJqlJ7odiIqh2FduZENMPm6qC8=

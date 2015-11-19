@@ -1,3 +1,6 @@
+#ifndef INCLUDED_PRAXYK_OCR_HPP
+#define INCLUDED_PRAXYK_OCR_HPP
+
 #include <praxyk/config.hpp>
 
 #include <string>
@@ -15,3 +18,5 @@ PRAXYK_API std::vector<std::string> get_strings_from_images(
 );
 
 }
+
+#endif /* INCLUDED_PRAXYK_OCR_HPP */
