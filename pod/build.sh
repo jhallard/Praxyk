@@ -16,6 +16,7 @@ RETVAL=$?
 
 cd $HOME
 if [ ! -d mlpack ]
+then
     git clone https://github.com/mlpack/mlpack.git -b mlpack-1.0.12
     mkdir -p mlpack/build
     cd mlpack
@@ -29,6 +30,7 @@ RETVAL=$?
 
 cd $HOME
 if [ ! -d clandmark ]
+then
     git clone https://github.com/Praxyk/clandmark -b praxyk
     mkdir -p clandmark/build
     cd clandmark/build && cmake .. && sudo make install
