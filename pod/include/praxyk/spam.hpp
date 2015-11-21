@@ -7,7 +7,7 @@
 
 namespace praxyk {
     PRAXYK_API float get_spam_chance(
-        const std::string &message
+        const std::string &filename
     );
 }
 
