@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
-import praxyk
-
 import sys
 import traceback
-
+import inspect
+import praxyk
 def spam_test1():
+    import praxyk
+    from praxyk import spam
     try:
+        print "ham1 result = "
+        print praxyk.bayes_spam("/home/nikita/testdata/ham1")
         return True
     except:
         print
@@ -16,7 +19,11 @@ def spam_test1():
         return False
 
 def spam_test2():
+    import praxyk
+    from praxyk import spam
     try:
+        print "spam1 result = "
+        print praxyk.bayes_spam("/home/nikita/testdata/spam1")
         return True
     except:
         print
@@ -26,6 +33,7 @@ def spam_test2():
         return False
 
 def spam_test3():
+    import praxyk
     try:
         return True
     except:
