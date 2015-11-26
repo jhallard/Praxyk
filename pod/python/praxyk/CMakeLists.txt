@@ -32,7 +32,7 @@ print(sysconfig.get_python_lib(plat_specific=True, prefix=''))
     SET(PRAXYK_PYTHON_FILES
         __init__.py
         facial_tools.py
-        get_feature.py
+        spam.py
     )
 
     FOREACH(pyfile ${PRAXYK_PYTHON_FILES})

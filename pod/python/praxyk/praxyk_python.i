@@ -36,5 +36,6 @@
 
 %include <praxyk/ocr.hpp>
 %include <praxyk/paths.hpp>
-%include <praxyk/spam.hpp>
 
+%rename(__get_spam_chance) praxyk::get_spam_chance;
+%include <praxyk/spam.hpp>
