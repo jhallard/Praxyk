@@ -55,9 +55,8 @@ def removeDirectory(directory):
             else:
                 return os.remove(directory)
         except:
-			return False
-    else:
-		return False
+            pass
+    return False
 
 def get_redis_conn() :
     redis_host = REDIS_CONF['dbip']
@@ -216,7 +215,7 @@ def process_pod(transaction, fileh) :
         if model == "ocr" :
             this_result = do_ocr(trans, fileh, file_num)
         elif model == "face_detect" :
-            this_results = do_face_detect(trans, fileh, file_num)
+            this_result = do_face_detect(trans, fileh, file_num)
 
         results = Results.query.filter(transaction_id=trans_id).first() # gets the redis transaction
                                                                         # object that contains indiv.

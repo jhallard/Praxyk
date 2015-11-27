@@ -57,11 +57,6 @@ class POD_Face_Detect_Route(Resource) :
             if not caller :
                 abort(404)
 
-            print "\n\n\n"
-            print request.files
-            print request.values
-            print vars(request)
-
             (new_trans, files_success) = self.setup_transaction(request, caller)
 
 
