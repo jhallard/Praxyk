@@ -8,7 +8,9 @@ cd $HOME
 sudo apt-get -qqy update
 sudo apt-get -qqy install libxml2-dev libarmadillo-dev automake autotools-dev \
 libtool cmake swig python-dev libleptonica-dev libicu-dev clang gcc g++ ssh \
-libopencv-dev tesseract-ocr-dev libboost-all-dev > .build.log
+libopencv-dev tesseract-ocr-dev libboost-all-dev python-setuptools > .build.log
+
+sudo pip install editdistance
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo POD Ubuntu Requirements Install Success
