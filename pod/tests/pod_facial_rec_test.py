@@ -20,7 +20,7 @@ def test_one_face_image():
             return True
 
         images_dir = os.environ["PRAXYK_IMAGES_DIR"]
-        image_path = os.path.join(images_dir, "one_face.png")
+        image_path = os.path.join(images_dir, "one_face.jpg")
         faces = praxyk.praxyk_python.__detect_faces_in_image(image_path)
         if len(faces) < 1:
             raise RuntimeError("Praxyk did not detect required face.")
@@ -40,7 +40,7 @@ def test_two_faces_image():
             return True
 
         images_dir = os.environ["PRAXYK_IMAGES_DIR"]
-        image_path = os.path.join(images_dir, "two_faces.png")
+        image_path = os.path.join(images_dir, "two_faces.jpg")
         faces = praxyk.praxyk_python.__detect_faces_in_image(image_path)
         if len(faces) < 2:
             raise RuntimeError("Praxyk did not detect required faces.")
