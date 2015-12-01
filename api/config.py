@@ -20,10 +20,12 @@ def load_json_file(fn) :
     return None
 
 
-DB_CONF_FILE  = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
-API_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
+DB_CONF_FILE     = os.path.expanduser("~") + "/.praxyk/dbconfig/config"
+API_CONF_FILE    = os.path.expanduser("~") + "/.praxyk/apiconfig/rootconfig"
+STRIPE_CONF_FILE = os.path.expanduser("~") + "/.praxyk/apiconfig/stripeconfig"
 dbconf        = load_json_file(DB_CONF_FILE)
 apiconf       = load_json_file(API_CONF_FILE)
+stripeconf    = load_json_file(STRIPE_CONF_FILE)
 
 dbuser     = dbconf.get('dbuser', "")
 dbip       = dbconf.get('dbip', "")
@@ -42,3 +44,13 @@ SQLALCHEMY_ECHO         = True
 SECRET_KEY = os.urandom(24)
 
 DEBUG = True
+
+#Stripe api keys
+stripe_secret_key = None
+stripe_publishable_key = None
+if DEBUG:
+   stripe_secret_key = stripeconf['test_secret_key']
+   stripe_publishable_key = stripeconf['test_publishable_key']
+else:
+   stripe_secret_key = stripeconf['live_secret_key']
+   stripe_publishable_key = stripeconf['live_publishable_key']

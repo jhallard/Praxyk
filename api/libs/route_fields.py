@@ -7,17 +7,43 @@
 
 ## @info - this file contains all the marshal'ing fields that turn database objects into 
 ##         dictionaries that can jsonified and returned to the user
-
+import json
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 from api import *
 
 def convert_timestr(dt) :
     if not dt :
         return '0-0-0 00:00:00'
-    return dt.strftime('%Y-%m-%d %H:%M:%S')
+    return dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+def prediction_map(service, model, result) :
+    if service == 'pod' :
+        if model == 'ocr' :
+            return ocr_prediction(result)
+        if model == 'face_detect' :
+            return face_detect_prediction(result)
+    return {}
+
+def ocr_prediction(res) :
+    try :
+        if res and res.result_string :
+            return { "result_string" : res.result_string }
+    except :
+        pass
+    return { "result_string" : "processing..." }
+
+def face_detect_prediction(res) :
+    try :
+        if res and res.faces_json :
+            comp = json.loads(res.faces_json)
+            return { "faces" : [dict(**c) for c in comp]}
+    except :
+        pass
+    return {"faces" : "processing..."}
+    # return comp
 
 # @info - have to make our own function for marshal Result objects from the redis db
-def marshal_result(res) :
+def marshal_result(res, service, model) :
     return { "item_number"   : res.item_number,
              "item_name"     : res.item_name,
              "status"        : res.status,
@@ -25,8 +51,9 @@ def marshal_result(res) :
              "finished_at"   : convert_timestr(res.finished_at),
              "created_at"    : convert_timestr(res.created_at),
              "uri"           : url_for(RESULT_ENDPOINT, id=res.transaction_id, page_size=1, page=res.item_number, _external=True),
-             "prediction"    : { "result_string" : res.result_string }
+             "prediction"    : prediction_map(service, model, res)
     }
+
 
 
 # this map defines how a user db object get's transformed into a user api return object.

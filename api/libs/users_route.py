@@ -153,7 +153,7 @@ class UsersRoute(Resource) :
             if User.query.filter_by(email=email).first() :
                 abort(400)
 
-            new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password, active=False)
+            new_user = user_datastore.create_user(name=args.name, email=args.email, password=args.password, confirm=False)
             role = user_datastore.find_role(Role.ROLE_USER)
             user_datastore.add_role_to_user(new_user, role)
             db.session.commit()

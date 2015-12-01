@@ -52,6 +52,8 @@ class TransactionRoute(Resource) :
             abort(404)
 
 
+    # this should be changed to a put route with a cancel boolean value passed in to allow
+    # the user to cancel an active transaction
     @requires_auth
     def delete(id) :
         try : 
@@ -70,14 +72,15 @@ class TransactionsRoute(Resource) :
 
     def __init__(self) :
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('user_id',    type=int, default=None, required=False, location=['json', 'values'])
-        self.reqparse.add_argument('service',    type=str, default=None, required=False, location=['json', 'values'])
-        self.reqparse.add_argument('model',      type=str, default=None, required=False, location=['json', 'values'])
-        self.reqparse.add_argument('version',    type=str, default=None, required=False, location=['json', 'values'])
-        self.reqparse.add_argument('limit',      type=int, default=None, required=False, location=['json', 'values'])
-        self.reqparse.add_argument('pagination', type=inputs.boolean,  default=True, location=['json', 'values', 'headers'])
-        self.reqparse.add_argument('page',       type=int, default=DEFAULT_PAGE, location=['json', 'values'])
-        self.reqparse.add_argument('page_size',  type=int, default=DEFAULT_PAGE_SIZE, location=['json', 'values'])
+        self.reqparse.add_argument('user_id',      type=int, default=None, required=False, location=['json', 'values'])
+        self.reqparse.add_argument('reverse_sort', type=inputs.boolean, default=False, required=False, location=['json', 'values'])
+        self.reqparse.add_argument('service',      type=str, default=None, required=False, location=['json', 'values'])
+        self.reqparse.add_argument('model',        type=str, default=None, required=False, location=['json', 'values'])
+        self.reqparse.add_argument('version',      type=str, default=None, required=False, location=['json', 'values'])
+        self.reqparse.add_argument('limit',        type=int, default=None, required=False, location=['json', 'values'])
+        self.reqparse.add_argument('pagination',   type=inputs.boolean,  default=True, location=['json', 'values', 'headers'])
+        self.reqparse.add_argument('page',         type=int, default=DEFAULT_PAGE, location=['json', 'values'])
+        self.reqparse.add_argument('page_size',    type=int, default=DEFAULT_PAGE_SIZE, location=['json', 'values'])
         super(TransactionsRoute, self).__init__()
 
     @requires_auth
@@ -92,11 +95,20 @@ class TransactionsRoute(Resource) :
                 abort(404)
 
             user_name = User.query.get(user_id).name if user_id else "All"
+
+            if not args.page : args.page = DEFAULT_PAGE
+            if not args.page_size : args.page_size = DEFAULT_PAGE_SIZE
+
             transactions=[]
             if user_id > 0 :
                 transactions  =  Transaction.query.filter_by(user_id=user_id)
             else :
-                transactions  =  Transaction.query.order_by(Transaction.created_at)
+                transactions  =  Transaction.query
+
+            if args.reverse_sort :
+                transactions  =  transactions.order_by(Transaction.id.desc())
+            else :
+                transactions  =  transactions.order_by(Transaction.id)
             
             if not transactions :
                 abort(404)
@@ -106,7 +118,7 @@ class TransactionsRoute(Resource) :
             
             if args.model :
                 transactions = transactions.filter_by(model=args.model)
-            
+
             # if not pagination dump all results
             if not args.pagination :	
                 if args.limit and args.limit > 0 :
@@ -132,7 +144,7 @@ class TransactionsRoute(Resource) :
                                                              page_size=args.page_size,
                                                              page=next_page_num,
                                                              _external=True)
-            prev_page = "" if not next_page_num else url_for(TRANSACTIONS_ENDPOINT,
+            prev_page = "" if not prev_page_num else url_for(TRANSACTIONS_ENDPOINT,
                                                              page_size=args.page_size,
                                                              page=prev_page_num,
                                                              _external=True)
@@ -168,11 +180,13 @@ class TransactionsRoute(Resource) :
         if endind < 0 :                                                                                                                              
             return (None, None)
 
-        results_subset = result_list.filter(Transaction.id >= startind).filter(Transaction.id < endind).all()
+        # results_subset = result_list.filter(Transaction.id >= startind).filter(Transaction.id < endind).all()
+        # results_subset = result_list.filter(Transaction.id >= startind).filter(Transaction.id < endind).all()
 
 
         results_json = []
-        # results_subset = result_list #result_list[startind:endind] if startind > 0 else result_list[:endind]
+        temp_list = result_list.all()
+        results_subset = temp_list[startind:endind] if startind > 0 else temp_list[:endind]
         print str(results_subset) + "  " + str(result_list)
         for result in results_subset :
             results_json.append(marshal(result, transaction_fields))
