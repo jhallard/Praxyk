@@ -2,7 +2,6 @@
 
 import praxyk
 
-import editdistance
 import os
 import sys
 import traceback
@@ -14,17 +13,17 @@ import traceback
 # to where they are stored.
 #
 
-def test_empty_image():
+def test_one_face_image():
     try:
         # If system not set up, don't necessarily fail
         if "PRAXYK_IMAGES_DIR" not in os.environ:
             return True
 
         images_dir = os.environ["PRAXYK_IMAGES_DIR"]
-        empty_image = os.path.join(images_dir, "empty.png")
-        image_str = praxyk.get_string_from_image(empty_image)
-        if image_str != "":
-            raise RuntimeError("Praxyk detected a string in an empty image.")
+        image_path = os.path.join(images_dir, "one_face.jpg")
+        faces = praxyk.praxyk_python.__detect_faces_in_image(image_path)
+        if len(faces) < 1:
+            raise RuntimeError("Praxyk did not detect required face.")
 
         return True
     except:
@@ -34,21 +33,17 @@ def test_empty_image():
                                   limit=5, file=sys.stdout)
         return False
 
-def test_typed_text():
+def test_two_faces_image():
     try:
         # If system not set up, don't necessarily fail
         if "PRAXYK_IMAGES_DIR" not in os.environ:
             return True
 
         images_dir = os.environ["PRAXYK_IMAGES_DIR"]
-        typed_image = os.path.join(images_dir, "typed_text.png")
-        image_str = praxyk.get_string_from_image(typed_image)
-        if image_str == "":
-            raise RuntimeError("Praxyk detected no string in image with typed text.")
-
-        should_be = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        if editdistance.eval(image_str, should_be) > len(should_be)/4:
-            raise RuntimeError("Praxyk failed to detect correct string.")
+        image_path = os.path.join(images_dir, "two_faces.jpg")
+        faces = praxyk.praxyk_python.__detect_faces_in_image(image_path)
+        if len(faces) < 2:
+            raise RuntimeError("Praxyk did not detect required faces.")
 
         return True
     except:
@@ -59,5 +54,5 @@ def test_typed_text():
         return False
 
 if __name__ == "__main__":
-    successful = test_empty_image() and test_typed_text()
+    successful = test_one_face_image() and test_two_faces_image()
     sys.exit(0 if successful else 1)

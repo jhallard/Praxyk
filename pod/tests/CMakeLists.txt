@@ -11,6 +11,7 @@ MACRO(PRAXYK_ADD_PYTHON_TEST test)
 ENDMACRO(PRAXYK_ADD_PYTHON_TEST)
 
 SET(PRAXYK_PYTHON_TESTS
+    pod_facial_rec_test
     pod_ocr_test
     pod_spam_test
 )

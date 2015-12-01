@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import praxyk
-
 import sys
 import traceback
-
+import inspect
+import praxyk
 def spam_test1():
+    import praxyk
+    from praxyk import spam
     try:
         return True
     except:
@@ -16,6 +17,8 @@ def spam_test1():
         return False
 
 def spam_test2():
+    import praxyk
+    from praxyk import spam
     try:
         return True
     except:
@@ -26,6 +29,7 @@ def spam_test2():
         return False
 
 def spam_test3():
+    import praxyk
     try:
         return True
     except:

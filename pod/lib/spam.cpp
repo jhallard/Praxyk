@@ -1,46 +1,59 @@
 #include <praxyk/spam.hpp>
+#include <praxyk/paths.hpp>
+
 #include <mlpack/core.hpp>
-#include <floatfann.h> // Needs to be included before fann_cpp.h
-#include <fann_cpp.h>
+#include "naive_bayes_classifier.hpp"
 
 using namespace mlpack;
+using namespace mlpack::naive_bayes;
+using namespace std;
+using namespace arma;
 
 namespace praxyk {
-    static PRAXYK_INLINE FANN::neural_net _init_spam_net() {
-        /*
-         * The spam training data will be at a specific filepath
-         * in the instance. Once this is in-place, this function
-         * will create a FANN instance, train it with our spam
-         * data, and make it available for use as soon as the
-         * library is loaded.
-         */
-        return FANN::neural_net();
-    }
 
-    static FANN::neural_net _nnet = _init_spam_net();
+/*
+ * TODO: serialization. This currently trains the classifier
+ * every call.
+ */
+ float get_spam_chance(const std::string &filename) {
+    const string trainingDataFilename = get_mlpack_dir() + "/training.csv";
+    mat trainingData;
+    data::Load(trainingDataFilename, trainingData, true);
 
-    /*
-     * This just shows how the neural net will be called. We
-     * still need to figure out how to go from the message
-     * we're passing in to the actual input numbers. Given that
-     * we're not actually instantiating the neural net, running
-     * this will segfault.
-     */
-    float get_spam_chance(const std::string &message) {
-      return 0.5;
-      
-    }
+    Col<size_t> labels;
+    vec mappings;
+    vec rawLabels = trans(trainingData.row(trainingData.n_rows - 1));
+    rawLabels.print();
+/*    data::NormalizeLabels(rawLabels, labels, mappings);
+    // Remove the label row.
+    trainingData.shed_row(trainingData.n_rows - 1);
 
-  std::string exec(const char* cmd) {
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) return "ERROR";
-    char buffer[128];
-    std::string result = "";
-    while (!feof(pipe)) {
-      if (fgets(buffer, 128, pipe) != NULL)
-	result += buffer;
+    // Load the file to interpret.
+    const string testingDataFilename = filename;
+
+    mat testingData;
+    data::Load(testingDataFilename, testingData, true);
+
+    if (testingData.n_rows != trainingData.n_rows){
+        Log::Fatal << "Test data dimensionality (" << testingData.n_rows << ") "
+        << "must be the same as training data (" << trainingData.n_rows - 1 << ")!"
+        << std::endl;
     }
-    pclose(pipe);
-    return result;
-  }
+    Timer::Start("training");
+    NaiveBayesClassifier<> nbc(trainingData, labels, mappings.n_elem,false);
+    Timer::Stop("training");
+    Col<size_t> results;
+    Timer::Start("testing");
+    nbc.Classify(testingData, results);
+    Timer::Stop("testing");
+
+    // Un-normalize labels to prepare output.
+    vec rawResults;
+ //   data::RevertLabels(results, mappings, rawResults);
+    // Only return the first result.
+ //   return rawResults[0];
+ */
+    return 12;
+}
+
 }
