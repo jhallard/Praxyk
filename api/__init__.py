@@ -18,7 +18,7 @@ from sqlalchemy.ext.hybrid import hybrid_method, hybrid_property
 # from flask.ext.rq import RQ
 
 import redis
-from config import apiconf, REDIS_CONF
+from config import apiconf, REDIS_CONF, stripeconf
 
 sys.path.append('../')
 
@@ -43,7 +43,7 @@ bcrypt = Bcrypt(PRAXYK_API_APP)  # used for password hashing
 CORS(PRAXYK_API_APP)             # cross-site scripting
 # RQ(PRAXYK_API_APP)               # redis queue
 
-BASE_URL           = "api.praxyk.com"
+BASE_URL           = "localhost"
 VERSION            = "/v1"
 
 # routes
@@ -60,7 +60,11 @@ RESULT_ROUTE       = RESULTS_ROUTE + '<int:id>'
 TRANSACTION_ROUTE  = TRANSACTIONS_ROUTE + '<int:id>'
 USER_ROUTE         = USERS_ROUTE + '<int:id>'
 POD_OCR_ROUTE        = POD_ROUTE + "ocr/"
+POD_FACE_DETECT_ROUTE = POD_ROUTE + "face_detect/"
 POD_BAYES_SPAM_ROUTE = POD_ROUTE + "bayes_spam/"
+PAYMENT_ROUTE        = VERSION + "/payment/<int:id>"
+PAYMENT_HANDLER_ROUTE = VERSION + "/payment_handler/<string:webhook>"
+COUPON_ROUTE        = VERSION + "/coupon/<int:id>"
 
 # endpoints
 TRANSACTIONS_ENDPOINT = 'transactions'
@@ -73,9 +77,13 @@ TOKEN_ENDPOINT        = 'tokens'
 AUTH_ENDPOINT         = 'auth'
 LOGIN_ENDPOINT        = 'login'
 CONFIRM_ENDPOINT      = 'confirm'
-POD_ENDPOINT            = "pod"
-POD_OCR_ENDPOINT        = POD_ENDPOINT + "_ocr"
-POD_BAYES_SPAM_ENDPOINT = POD_ENDPOINT + "_bayes_spam"
+POD_ENDPOINT             = "pod"
+POD_OCR_ENDPOINT         = POD_ENDPOINT + "_ocr"
+POD_FACE_DETECT_ENDPOINT = POD_ENDPOINT + "_face_detect"
+POD_BAYES_SPAM_ENDPOINT  = POD_ENDPOINT + "_bayes_spam"
+PAYMENT_HANDLER_ENDPOINT = 'payment_handler'
+PAYMENT_ENDPOINT = 'payment'
+COUPON_ENDPOINT = 'coupon'
 
 # services
 SERVICE_POD = "pod"
@@ -85,7 +93,8 @@ SERVICES = [SERVICE_POD, SERVICE_TLP]
 # models
 MODELS_POD_OCR = "ocr"
 MODELS_POD_BAYES_SPAM = "bayes_spam"
-MODELS = [MODELS_POD_OCR, MODELS_POD_BAYES_SPAM]
+MODELS_POD_FACE_DETECT = "face_detect"
+MODELS = [MODELS_POD_OCR, MODELS_POD_BAYES_SPAM, MODELS_POD_FACE_DETECT]
 
 
 # mail settings
@@ -106,7 +115,7 @@ PRAXYK_API_APP.config['MAIL_DEFAULT_SENDER'] = 'from@example.com'
 TOKEN_EXPIRATION = apiconf['token_expiration']
 
 
-from models.sql.user import User, Role, Transaction, Token
+from models.sql.user import User, Role, Transaction, Token, Payment_Info
 
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(PRAXYK_API_APP, user_datastore)

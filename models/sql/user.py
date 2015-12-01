@@ -28,6 +28,7 @@ from datetime import datetime as dt
 from token import *
 from transaction import *
 from role import *
+from payment_info import *
 
 
 class User(db.Model, UserMixin):
@@ -38,10 +39,12 @@ class User(db.Model, UserMixin):
     email        = db.Column(db.String(120), index=True, unique=True)
     _password    = db.Column(db.String(255))
     active       = db.Column(db.Boolean())
+    confirmed    = db.Column(db.Boolean())
     created_at   = db.Column(db.DateTime)
     transactions = db.relationship('Transaction', backref='user', lazy='dynamic')
     roles        = db.relationship('Role', secondary=roles_users, backref=db.backref('user', lazy='dynamic'))
     tokens       = db.relationship('Token', backref='user', lazy='dynamic')
+    payment_info = db.relationship('Payment_Info', backref='user', lazy='dynamic')
 
     @hybrid_property
     def password(self) :
@@ -55,13 +58,15 @@ class User(db.Model, UserMixin):
     def transactions_url(self) :
        return url_for(TRANSACTIONS_ENDPOINT, user_id=self.id, _external=True) 
 
-    def __init__(self, name, email, password, active=False, roles=None) :
+    def __init__(self, name, email, password, confirm=False, roles=None, active=False) :
         self.name = name
         self.email = email
         self.password = password
         self.created_at = dt.now()
         self.active = active
+        self.confirmed = confirm
         self.roles = roles
+        self.payment_info = [Payment_Info(email=email)]
 
     def __repr__(self):
         return '<ID %r, Email %r>' % (self.id, self.email)
@@ -73,7 +78,7 @@ class User(db.Model, UserMixin):
     def authenticate(email, plaintext) :
         try :
             user = User.query.filter_by(email=email).first()
-            if not user.active :
+            if not user.confirmed :
                 return None
             if user and user.verifypw(plaintext) :
                 return user

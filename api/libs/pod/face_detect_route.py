@@ -5,12 +5,6 @@
 ## @github https://github.com/jhallard/praxyk
 ## @license MIT
 
-## @info - This file defines all of the /users/ route for the Praxyk API.
-##         This involved creating a class with the PUT, GET, POST, and 
-##         DELETE methods defined. Once defined, the main API handler 
-##         (../api_server.py) can simply import this class and use it to 
-##         handle any user-related requests.
-
 import sys, os
 import argparse
 import datetime
@@ -20,7 +14,7 @@ from pprint import *
 from flask import Flask, jsonify, request, Response, g, abort, make_response, render_template, url_for
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal, marshal_with
 
-from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT, POD_ENDPOINT, POD_OCR_ENDPOINT, RESULTS_ENDPOINT
+from api import db, USER_ENDPOINT, USERS_ENDPOINT, CONFIRM_ENDPOINT, POD_ENDPOINT, POD_FACE_DETECT_ENDPOINT, RESULTS_ENDPOINT
 from api import User, Role, user_datastore, mail, redis_pool, redis
 
 from libs.auth_route import *
@@ -28,18 +22,18 @@ from libs.transactions_route import *
 from libs.route_fields import *
 
 from models.nosql.result_base import *
-from models.nosql.pod.result_pod_ocr import *
+from models.nosql.pod.result_pod_face_detect import *
 
 from queue import *
 
 from werkzeug import secure_filename
 
 
-# @info - route that allows user to enact request for the POD-OCR service.
+# @info - route that allows user to enact request for the POD-Face-Detect service.
 #         users can post images to this route, we will process those images using
-#         an OCR algorithm and return a string of whatever text we think is in the image
-#         back to the user.
-class POD_OCR_Route(Resource) :
+#         an Facial Detection algorithm and return a list of dictionaries describing
+#         all of the faces we think are present in the image
+class POD_Face_Detect_Route(Resource) :
 
     # convert datetime object to string formatted time
     def convert_timestr(self, dt) :                                                                                                                        
@@ -48,7 +42,8 @@ class POD_OCR_Route(Resource) :
     def __init__(self) :
         self.ALLOWED_EXTENSIONS = set(['bmp', 'tif', 'tiff', 'png', 'jpg', 'jpeg'])
         self.reqparse = reqparse.RequestParser()
-        super(POD_OCR_Route, self).__init__()
+        self.command_url = url_for(POD_FACE_DETECT_ENDPOINT)
+        super(POD_Face_Detect_Route, self).__init__()
 
 
     # @info - post route for pod-ocr service. Users must include their auth token and list of image files
@@ -61,11 +56,6 @@ class POD_OCR_Route(Resource) :
             caller = g._caller
             if not caller :
                 abort(404)
-
-            print "\n\n\n"
-            print request.files
-            print request.values
-            print vars(request)
 
             (new_trans, files_success) = self.setup_transaction(request, caller)
 
@@ -86,7 +76,7 @@ class POD_OCR_Route(Resource) :
             return jsonify({"code" : 200, "transaction" : marshal(new_trans, transaction_fields)})
 
         except Exception, e:
-            sys.stderr.write("\nException (POD_OCR_Route:POST) : " + str(e))
+            sys.stderr.write("\nException (POD_Face_Detect_Route:POST) : " + str(e))
             abort(404)
 
     # @info - take a newly made transaction db object and the list of files that that transaction
@@ -112,9 +102,9 @@ class POD_OCR_Route(Resource) :
                      "finished_at" : new_trans.finished_at,
                      "status"      : new_trans.status,
                      "user_id"     : new_trans.user_id,
-                     "model"       : "ocr"
+                     "model"       : "face_detect"
                 }
-                result = Result_POD_OCR(created_at = datetime.datetime.now(),
+                result = Result_POD_Face_Detect(created_at = datetime.datetime.now(),
                                         transaction_id = new_trans.id,
                                         item_number = file_count,
                                         item_name = file_struct['name'],
@@ -126,7 +116,7 @@ class POD_OCR_Route(Resource) :
             results.save()
             return jobs
         except Exception, e:
-            sys.stderr.write("\nException (POD_OCR_route:enqueue_trans) : " + str(e))
+            sys.stderr.write("\nException (POD_Face_Detect_route:enqueue_trans) : " + str(e))
             return []
     
     # @info - takes the raw request from the user (containing the images to be processed) and the
@@ -136,7 +126,7 @@ class POD_OCR_Route(Resource) :
         try :
             (files_success, files_failed) = self.get_files_from_request(request)
 
-            command_url = url_for(POD_OCR_ENDPOINT)
+            command_url = url_for(POD_FACE_DETECT_ENDPOINT)
 
             trans_name = request.values.get('name', "")
 
@@ -156,7 +146,7 @@ class POD_OCR_Route(Resource) :
 
             return (new_trans, files_success)
         except Exception, e:
-            sys.stderr.write("\nException (POD_OCR_route:setup_trans) : " + str(e))
+            sys.stderr.write("\nException (POD_FACE_DETECT_route:setup_trans) : " + str(e))
             return ([], []) 
 
 
@@ -191,7 +181,7 @@ class POD_OCR_Route(Resource) :
 
             return (files_success, files_failed)
         except Exception, e:
-            sys.stderr.write("\nException (POD_OCR_route:get_files_from_req) : " + str(e))
+            sys.stderr.write("\nException (POD_FACE_DETECT_route:get_files_from_req) : " + str(e))
             return ([], []) 
 
 
@@ -199,3 +189,5 @@ class POD_OCR_Route(Resource) :
     def allowed_file(self, filename):
         return '.' in filename and \
         filename.rsplit('.', 1)[1] in self.ALLOWED_EXTENSIONS
+
+

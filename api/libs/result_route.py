@@ -18,10 +18,13 @@ from api import *
 from auth_route import *
 
 from models.nosql.pod.result_pod_ocr import *
+from models.nosql.pod.result_pod_face_detect import *
 from models.nosql.result_base import *
 
 from libs.route_fields import *
 from libs.transactions_route import transaction_fields
+
+from rom import util, session
 
 DEFAULT_PAGE_SIZE = 100
 DEFAULT_PAGE=1
@@ -54,16 +57,18 @@ class ResultRoute(Resource):
 
             (service, model) = (trans.service, trans.model)
             results = {}
-
             if service == SERVICE_POD :
-                if model == MODELS_POD_OCR :
-                    results = self.get_results_pod_ocr(caller, trans)
-                elif model == MODELS_POD_BAYES_SPAM :
-                    results = {}
+                results = self.get_results_pod(model, caller, trans)
             elif service == SERVICE_TLP : 
                 results = {}
 
-            return jsonify(results)
+            print "\n\nResults : Transaction ID %s" % str(id)
+            print str(results)
+
+            if results :
+                return jsonify(results)
+            else :
+                return jsonify({"code" : 419})
         except Exception as e :
             print "Exception GET /results/X (%s)" % str(e)
             return abort(500)
@@ -71,11 +76,21 @@ class ResultRoute(Resource):
     # @info - this function takes a transaction db model and returns the results associated with that
     #         request. This function makes use of the pagination scheme to return results, see the API
     #         docs for more info on pagination.
-    def get_results_pod_ocr(self, caller, trans) :
+    def get_results_pod(self, model, caller, trans) :
         args = self.reqparse.parse_args()
+        if args.page_size <= 0 : args.page_size = DEFAULT_PAGE_SIZE
+        if args.page <= 0 : args.page = DEFAULT_PAGE
+
         next_page_num = 0
         page = {}
-        result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
+
+        result_list = []
+        if model == "ocr" :
+            result_list = Result_POD_OCR.query.filter(transaction_id=trans.id).order_by('item_number').execute()
+        elif model == "face_detect" :
+            result_list = Result_POD_Face_Detect.query.filter(transaction_id=trans.id).order_by('item_number').execute()
+
+        session.refresh(result_list)
 
         if not result_list or len(result_list) != trans.uploads_success :
             print "\n\n Not All Result Recovered from Redis DB" + str(result_list) + "\n\n"
@@ -83,10 +98,13 @@ class ResultRoute(Resource):
         if not args.pagination :
             results_json = []
             for res in result_list :
-                results_json.append(marshal_result(res))
+                results_json.append(marshal_result(res, trans.service, trans.model))
             return {"code" : 200, "transaction" : marshal(trans, transaction_fields), "results" : results_json } 
 
-        page_results  = self.get_page_from_results(result_list, args.page, args.page_size)
+        page_results  = self.get_page_from_results(result_list, args.page, args.page_size, trans)
+
+        print "\n\npage_results (self.get_page_from_results) : Transaction ID %s" % str(id)
+        # print str(page_results if page_results else "") +"\n\n"
 
         page_json = page_results.get('results_json', None)
         next_page_num = page_results.get('next_page_num', None)
@@ -121,28 +139,35 @@ class ResultRoute(Resource):
     # on the page and returns the page as a list of results
     # returns (result_list, next_page_num) where next_page_num is None if result_list contains
     # results of the last page
-    def get_page_from_results(self, result_list, page, page_size) :
-        startind = (page-1)*page_size
-        endind = (page)*page_size-1
-        amount = len(result_list)
-        last_page_num = (amount/page_size) + 1
+    def get_page_from_results(self, result_list, page, page_size, trans) :
+        try :
+            startind = (page-1)*page_size
+            endind = (page)*page_size-1
+            amount = len(result_list)
+            last_page_num = (amount/page_size) + 1
 
-        if startind < 0 or startind > amount :
-            return (None, None)
-        if endind < 0 :
-            return (None, None)
+            if startind < 0 or startind > amount :
+                return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
+                        'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
+            if endind < 0 :
+                return {'results_json' : None, 'next_page_num' : (None if endind >= len(result_list) else page+1),
+                        'prev_page_num' : (None if page == 1 else page-1), 'last_page_num' : last_page_num}
 
-        results_json = []
-        results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
-        # print str(results_subset) + "  " + str(result_list)
-        for result in results_subset :
-            results_json.append(marshal_result(result))
+            results_json = []
+            results_subset = result_list[startind:endind] if startind > 0 else result_list[:endind]
+            # print str(results_subset) + "  " + str(result_list)
+            for result in results_subset :
+                results_json.append(marshal_result(result, trans.service, trans.model))
 
-        res = {'results_json' : results_json,
-               'next_page_num' : (None if endind >= len(result_list) else page+1),
-               'prev_page_num' : (None if page == 1 else page-1),
-               'last_page_num' : last_page_num}
+            res = {'results_json' : results_json,
+                   'next_page_num' : (None if endind >= len(result_list) else page+1),
+                   'prev_page_num' : (None if page == 1 else page-1),
+                   'last_page_num' : last_page_num}
 
-        return res
+            return res
+        except Exception as e :
+            print "fucking get_page_bullshit"
+            print str(e)
+            return {}
 
 
