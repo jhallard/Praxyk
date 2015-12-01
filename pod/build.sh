@@ -59,7 +59,6 @@ RETVAL=$?
 sudo ldconfig
 
 python -c "import praxyk"
-make test
 
 RETVAL=$?
 [ $RETVAL -eq 0 ] && echo Praxyk Python Import Success
