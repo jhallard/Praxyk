@@ -7,10 +7,10 @@ export CXX=/usr/bin/clang++
 git submodule update --init --recursive
 
 cd $HOME
-sudo apt-get -qqy update
-sudo apt-get -qqy install libxml2-dev libarmadillo-dev automake autotools-dev \
+sudo apt-get -y update
+sudo apt-get -y install libxml2-dev libarmadillo-dev automake autotools-dev \
 libtool cmake swig python-dev libleptonica-dev libicu-dev clang gcc g++ ssh \
-libopencv-dev tesseract-ocr-dev libboost-all-dev python-setuptools > .build.log
+libopencv-dev tesseract-ocr-dev libboost-all-dev python-pip
 
 sudo pip install editdistance
 
